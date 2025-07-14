@@ -1,0 +1,126 @@
+PODS:
+  - AFNetworking (4.0.1):
+    - AFNetworking/NSURLSession (= 4.0.1)
+    - AFNetworking/Reachability (= 4.0.1)
+    - AFNetworking/Security (= 4.0.1)
+    - AFNetworking/Serialization (= 4.0.1)
+    - AFNetworking/UIKit (= 4.0.1)
+  - AFNetworking/NSURLSession (4.0.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (4.0.1)
+  - AFNetworking/Security (4.0.1)
+  - AFNetworking/Serialization (4.0.1)
+  - AFNetworking/UIKit (4.0.1):
+    - AFNetworking/NSURLSession
+  - BRPickerView (2.9.7):
+    - BRPickerView/All (= 2.9.7)
+  - BRPickerView/All (2.9.7):
+    - BRPickerView/Default
+    - BRPickerView/Deprecated
+  - BRPickerView/Core (2.9.7)
+  - BRPickerView/DatePicker (2.9.7):
+    - BRPickerView/Core
+  - BRPickerView/Default (2.9.7):
+    - BRPickerView/DatePicker
+    - BRPickerView/TextPicker
+  - BRPickerView/Deprecated (2.9.7):
+    - BRPickerView/Core
+    - BRPickerView/Deprecated/AddressPickerView (= 2.9.7)
+    - BRPickerView/Deprecated/Base (= 2.9.7)
+    - BRPickerView/Deprecated/StringPickerView (= 2.9.7)
+  - BRPickerView/Deprecated/AddressPickerView (2.9.7):
+    - BRPickerView/Core
+    - BRPickerView/Deprecated/Base
+  - BRPickerView/Deprecated/Base (2.9.7):
+    - BRPickerView/Core
+  - BRPickerView/Deprecated/StringPickerView (2.9.7):
+    - BRPickerView/Core
+    - BRPickerView/Deprecated/Base
+  - BRPickerView/TextPicker (2.9.7):
+    - BRPickerView/Core
+  - HWPanModal (0.9.9)
+  - HXPhotoPickerObjC (3.3.4):
+    - HXPhotoPickerObjC/Default (= 3.3.4)
+  - HXPhotoPickerObjC/Default (3.3.4)
+  - HXPhotoPickerObjC/SDWebImage (3.3.4):
+    - SDWebImage (~> 5.0)
+  - HXPhotoPickerObjC/SDWebImage_AF (3.3.4):
+    - AFNetworking
+    - SDWebImage (~> 5.0)
+  - IGListDiffKit (5.0.0)
+  - IGListKit (5.0.0):
+    - IGListDiffKit (= 5.0.0)
+  - LGSideMenuController (2.3.0)
+  - Masonry (1.1.0)
+  - MJRefresh (3.7.9)
+  - SDWebImage (5.21.1):
+    - SDWebImage/Core (= 5.21.1)
+  - SDWebImage/Core (5.21.1)
+  - SVProgressHUD (2.3.1):
+    - SVProgressHUD/Core (= 2.3.1)
+  - SVProgressHUD/Core (2.3.1)
+  - YYCache (1.0.4)
+  - YYModel (1.0.4)
+  - ZXingObjC (3.6.9):
+    - ZXingObjC/All (= 3.6.9)
+  - ZXingObjC/All (3.6.9)
+  - ZXNavigationBar (1.4.1)
+
+DEPENDENCIES:
+  - AFNetworking
+  - BRPickerView
+  - HWPanModal (~> 0.9.4)
+  - HXPhotoPickerObjC
+  - HXPhotoPickerObjC/SDWebImage
+  - HXPhotoPickerObjC/SDWebImage_AF
+  - IGListKit (~> 5.0.0)
+  - LGSideMenuController (= 2.3.0)
+  - Masonry
+  - MJRefresh
+  - SDWebImage (~> 5.0)
+  - SVProgressHUD
+  - YYCache
+  - YYModel
+  - ZXingObjC
+  - ZXNavigationBar
+
+SPEC REPOS:
+  trunk:
+    - AFNetworking
+    - BRPickerView
+    - HWPanModal
+    - HXPhotoPickerObjC
+    - IGListDiffKit
+    - IGListKit
+    - LGSideMenuController
+    - Masonry
+    - MJRefresh
+    - SDWebImage
+    - SVProgressHUD
+    - YYCache
+    - YYModel
+    - ZXingObjC
+    - ZXNavigationBar
+
+SPEC CHECKSUMS:
+  AFNetworking: 3bd23d814e976cd148d7d44c3ab78017b744cd58
+  BRPickerView: 6548c8fbe21c0f29e72ab2fae177d196edc83f09
+  HWPanModal: b57a6717d3cdcd666bff44f9dd2a5be9f4d6f5d2
+  HXPhotoPickerObjC: ca01803a5f8d48a43a8283eec2a632cfb0386b37
+  IGListDiffKit: 02d937d7e714d6f558771f284ed80668d483b522
+  IGListKit: baf7e87b4c2262cd569c380e46ca5667a4a82c82
+  LGSideMenuController: 330643f700bce9783a153660123de7cb64b5aa78
+  Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
+  MJRefresh: ff9e531227924c84ce459338414550a05d2aea78
+  SDWebImage: f29024626962457f3470184232766516dee8dfea
+  SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
+  YYCache: 8105b6638f5e849296c71f331ff83891a4942952
+  YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
+  ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
+  ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
+
+PODFILE CHECKSUM: 9aec2202fb1504361a624d3162bbfd4ae28884c5
+
+COCOAPODS: 1.16.2
