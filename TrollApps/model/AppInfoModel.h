@@ -13,9 +13,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface AppInfoModel : NSObject<IGListDiffable>
 //OC属性
-@property (nonatomic, strong) UIImage * appIcon;//软件图标
-@property (nonatomic, strong) NSString * icon_url;//软件图标URL
-@property (nonatomic, strong) ITunesAppModel *iTunesAppModel;//商店数据字典
+@property (nonatomic, strong, nullable) UIImage *appIcon; // 软件图标
+@property (nonatomic, strong, nullable) NSString *iconBase64String;
+@property (nonatomic, strong, nullable) NSString * icon_url;//软件图标URL
+@property (nonatomic, strong, nullable) ITunesAppModel *iTunesAppModel;//商店数据字典
+@property (nonatomic, strong, nullable) NSURL *mainFileUrl;//主程序URL
+@property (nonatomic, strong, nullable) NSData *mainFileData;//主程序数据
+
+
 @property (nonatomic, assign) BOOL isShowAll;////cell属性 是否显示全部 用于查看折叠软件
 
 ///数据库属性

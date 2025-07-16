@@ -11,7 +11,7 @@
 #import "ShowOneAppViewController.h"
 #import "NetworkClient.h"
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -59,7 +59,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.tag = self.title;
     }
     
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?:[[NewProfileViewController sharedInstance] getIDFV];
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :[[NewProfileViewController sharedInstance] getIDFV];
+    NSLog(@"请求的UDID:%@",udid);
     
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{

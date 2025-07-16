@@ -10,7 +10,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface EditUserProfileViewController : DemoBaseViewController
-@property (nonatomic, strong) UserModel *userInfo;
+
+@property (nonatomic, strong) NSString *udid;
 @end
 
 NS_ASSUME_NONNULL_END

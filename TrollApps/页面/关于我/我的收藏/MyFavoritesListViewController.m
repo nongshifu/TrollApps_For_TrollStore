@@ -49,7 +49,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [self setupSearchView];
     
-    
 }
 
 //设置搜索框
@@ -104,7 +103,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
-    
+    [self loadDataWithPage:1];
     
 }
 

@@ -75,6 +75,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     NSLog(@"显示后");
+    self.navigationController.navigationBarHidden = YES;
+    self.tabBarController.tabBar.hidden = NO;
 //    NSArray *titles = @[@"分类", @"收藏",];
 //    NSArray *icons = @[@"tag.square", @"star.lefthalf.fill"];
 //    [self.bottomButton updateButtonsWithStrings:titles icons:icons];
@@ -112,6 +114,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [SVProgressHUD showWithStatus:@"设置分类中"];
             
             [self cleanOldUI];
+            
             [self setupSegmentedControl];
             
             [self setupViewControllers];
@@ -187,7 +190,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
 }
 
-
 - (void)cleanOldUI {
     // 移除顶部分类标签相关视图
     [self.tagsSubView removeFromSuperview];
@@ -207,8 +209,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark -导航
+
 - (void)setupNavigationBar {
     NSLog(@"监听主题变化updateTabBarColor");
+    
     
     // 设置导航栏基本属性
     self.zx_navTitleLabel.textAlignment = NSTextAlignmentLeft;
@@ -287,7 +291,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
 }
-
 
 - (UIImage *)loadAvatarImage {
     UIImage *avatarImage = [[NewProfileViewController sharedInstance] loadAvatarFromCache];
@@ -479,6 +482,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         controller.view.backgroundColor = [UIColor clearColor];
         [controller.view removeDynamicBackground];
         [self.viewControllers addObject:controller];
+        [controller refreshLoadInitialData];
     }
 }
 
@@ -563,11 +567,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 //设置约束
 - (void)updateViewConstraints{
     [super updateViewConstraints];
+    // 分页控制器约束（充满剩余空间）
+    [self.pageViewController.view mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.tagsStackView.mas_bottom).offset(10);
+        make.left.right.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
+    }];
     
     [UIView animateWithDuration:0.3 animations:^{
-        
+       
         self.switchAppListButton.alpha = !self.searchView.alpha;
         self.zx_navRightBtn.alpha = !self.searchView.alpha;
+        
     }];
     
 }
@@ -823,8 +834,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
     if(tag ==0){
         CategoryManagerViewController *vc = [CategoryManagerViewController new];
-        
-        [self.navigationController pushViewController:vc animated:YES];
+        [self presentPanModal:vc];
+//        [self.navigationController pushViewController:vc animated:YES];
     }else if(tag ==1){
         MyFavoritesListViewController *vc = [MyFavoritesListViewController new];
    

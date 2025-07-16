@@ -38,7 +38,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [self setupUI];
     [self setupRefresh];
-    [self refreshLoadInitialData];
+//    [self refreshLoadInitialData];
 }
 
 

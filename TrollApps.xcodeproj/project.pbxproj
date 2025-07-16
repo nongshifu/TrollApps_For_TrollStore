@@ -36,7 +36,6 @@
 		C28720492E2542C300ABC6AE /* ToolStoreListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FCF2E2542C300ABC6AE /* ToolStoreListViewController.m */; };
 		C287204A2E2542C300ABC6AE /* UploadTask.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FD62E2542C300ABC6AE /* UploadTask.m */; };
 		C287204B2E2542C300ABC6AE /* TaskManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FD72E2542C300ABC6AE /* TaskManager.m */; };
-		C287204C2E2542C300ABC6AE /* FileUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FDB2E2542C300ABC6AE /* FileUtils.m */; };
 		C287204D2E2542C300ABC6AE /* PublishAppViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FDC2E2542C300ABC6AE /* PublishAppViewController.m */; };
 		C287204E2E2542C300ABC6AE /* DocumentPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FDF2E2542C300ABC6AE /* DocumentPickerViewController.m */; };
 		C287204F2E2542C300ABC6AE /* UploadFileItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871FE32E2542C300ABC6AE /* UploadFileItem.m */; };
@@ -78,6 +77,13 @@
 		C287207A2E25484500ABC6AE /* HXPhotoURLConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = C28720782E25484500ABC6AE /* HXPhotoURLConverter.m */; };
 		C28720882E255EAA00ABC6AE /* UserProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28720872E255EAA00ABC6AE /* UserProfileViewController.m */; };
 		C287208D2E25609300ABC6AE /* UserModelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C287208C2E25609300ABC6AE /* UserModelCell.m */; };
+		C28720912E26342900ABC6AE /* CommentInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = C28720902E26342900ABC6AE /* CommentInputView.m */; };
+		C28720942E268BF100ABC6AE /* LikeModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C28720932E268BF100ABC6AE /* LikeModel.m */; };
+		C28720972E26C66F00ABC6AE /* UserListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28720962E26C66F00ABC6AE /* UserListViewController.m */; };
+		C28720CF2E27D87900ABC6AE /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = C28720CE2E27D87900ABC6AE /* Podfile */; };
+		C28721062E281D5400ABC6AE /* FileInstallManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721052E281D5400ABC6AE /* FileInstallManager.m */; };
+		C28721222E281E9600ABC6AE /* PidModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = C28721112E281E9600ABC6AE /* PidModel.mm */; };
+		C28721232E281E9600ABC6AE /* Root.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721132E281E9600ABC6AE /* Root.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -140,8 +146,6 @@
 		C2871FD62E2542C300ABC6AE /* UploadTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UploadTask.m; sourceTree = "<group>"; };
 		C2871FD72E2542C300ABC6AE /* TaskManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TaskManager.m; sourceTree = "<group>"; };
 		C2871FD82E2542C300ABC6AE /* UploadTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UploadTask.h; sourceTree = "<group>"; };
-		C2871FDA2E2542C300ABC6AE /* FileUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtils.h; sourceTree = "<group>"; };
-		C2871FDB2E2542C300ABC6AE /* FileUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileUtils.m; sourceTree = "<group>"; };
 		C2871FDC2E2542C300ABC6AE /* PublishAppViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PublishAppViewController.m; sourceTree = "<group>"; };
 		C2871FDE2E2542C300ABC6AE /* DocumentPickerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentPickerViewController.h; sourceTree = "<group>"; };
 		C2871FDF2E2542C300ABC6AE /* DocumentPickerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DocumentPickerViewController.m; sourceTree = "<group>"; };
@@ -223,6 +227,22 @@
 		C28720872E255EAA00ABC6AE /* UserProfileViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserProfileViewController.m; sourceTree = "<group>"; };
 		C287208B2E25609300ABC6AE /* UserModelCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserModelCell.h; sourceTree = "<group>"; };
 		C287208C2E25609300ABC6AE /* UserModelCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserModelCell.m; sourceTree = "<group>"; };
+		C287208F2E26342900ABC6AE /* CommentInputView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CommentInputView.h; sourceTree = "<group>"; };
+		C28720902E26342900ABC6AE /* CommentInputView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CommentInputView.m; sourceTree = "<group>"; };
+		C28720922E268BF100ABC6AE /* LikeModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LikeModel.h; sourceTree = "<group>"; };
+		C28720932E268BF100ABC6AE /* LikeModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LikeModel.m; sourceTree = "<group>"; };
+		C28720952E26C66F00ABC6AE /* UserListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserListViewController.h; sourceTree = "<group>"; };
+		C28720962E26C66F00ABC6AE /* UserListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserListViewController.m; sourceTree = "<group>"; };
+		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		C28721042E281D5400ABC6AE /* FileInstallManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileInstallManager.h; sourceTree = "<group>"; };
+		C28721052E281D5400ABC6AE /* FileInstallManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileInstallManager.m; sourceTree = "<group>"; };
+		C28721082E281E9600ABC6AE /* NSTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSTask.h; sourceTree = "<group>"; };
+		C287210C2E281E9600ABC6AE /* NSTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSTask.h; sourceTree = "<group>"; };
+		C28721102E281E9600ABC6AE /* PidModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PidModel.h; sourceTree = "<group>"; };
+		C28721112E281E9600ABC6AE /* PidModel.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PidModel.mm; sourceTree = "<group>"; };
+		C28721132E281E9600ABC6AE /* Root.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Root.m; sourceTree = "<group>"; };
+		C28721142E281E9600ABC6AE /* Root.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Root.h; sourceTree = "<group>"; };
+		C28721152E281E9600ABC6AE /* iMemScan.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = iMemScan.entitlements; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -259,6 +279,8 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C28721032E281D4600ABC6AE /* 安装工具 */,
+				C287208E2E26341300ABC6AE /* CommentInputView */,
 				C28720852E255E9300ABC6AE /* 用户中心 */,
 				C2871F9C2E2542C200ABC6AE /* 表格控制器模板TemplateListController */,
 				C2871FAC2E2542C200ABC6AE /* 导航 */,
@@ -270,11 +292,13 @@
 				C287201B2E2542C300ABC6AE /* 组件 */,
 				4F639DEF2272E94500776206 /* AppDelegate.h */,
 				4F639DF02272E94500776206 /* AppDelegate.m */,
+				C2871FF32E2542C300ABC6AE /* model */,
 				4F639DF22272E94500776206 /* ViewController.h */,
 				4F639DF32272E94500776206 /* ViewController.m */,
 				C28720712E25432100ABC6AE /* config.h */,
 				4F639DF82272E94C00776206 /* Assets.xcassets */,
 				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
+				C28720CE2E27D87900ABC6AE /* Podfile */,
 				4F639DFD2272E94C00776206 /* Info.plist */,
 				4F639DFE2272E94C00776206 /* main.m */,
 			);
@@ -464,8 +488,6 @@
 				C28720782E25484500ABC6AE /* HXPhotoURLConverter.m */,
 				C28720752E25484500ABC6AE /* MediaProcessor.h */,
 				C28720762E25484500ABC6AE /* MediaProcessor.m */,
-				C2871FDA2E2542C300ABC6AE /* FileUtils.h */,
-				C2871FDB2E2542C300ABC6AE /* FileUtils.m */,
 			);
 			path = "文件处理";
 			sourceTree = "<group>";
@@ -496,7 +518,6 @@
 				C2871FF22E2542C300ABC6AE /* AppListViewController.h */,
 				C2871FE72E2542C300ABC6AE /* AppListViewController.m */,
 				C2871FE92E2542C300ABC6AE /* cell */,
-				C2871FF32E2542C300ABC6AE /* model */,
 				C2871FE82E2542C300ABC6AE /* ShowOneAppViewController.h */,
 				C28720002E2542C300ABC6AE /* ShowOneAppViewController.m */,
 			);
@@ -521,18 +542,20 @@
 		C2871FF32E2542C300ABC6AE /* model */ = {
 			isa = PBXGroup;
 			children = (
+				C2871FFC2E2542C300ABC6AE /* NewAppFileModel.h */,
 				C2871FF42E2542C300ABC6AE /* NewAppFileModel.m */,
 				C2871FF52E2542C300ABC6AE /* AppComment.h */,
-				C2871FF62E2542C300ABC6AE /* AppInfoModel.h */,
-				C2871FF72E2542C300ABC6AE /* Demo9Model.m */,
-				C2871FF82E2542C300ABC6AE /* AppVersionModel.h */,
-				C2871FF92E2542C300ABC6AE /* TipBarModel.h */,
-				C2871FFA2E2542C300ABC6AE /* AppInfoModel.m */,
 				C2871FFB2E2542C300ABC6AE /* AppComment.m */,
-				C2871FFC2E2542C300ABC6AE /* NewAppFileModel.h */,
-				C2871FFD2E2542C300ABC6AE /* Demo9Model.h */,
-				C2871FFE2E2542C300ABC6AE /* TipBarModel.m */,
+				C2871FF62E2542C300ABC6AE /* AppInfoModel.h */,
+				C2871FFA2E2542C300ABC6AE /* AppInfoModel.m */,
+				C2871FF82E2542C300ABC6AE /* AppVersionModel.h */,
 				C2871FFF2E2542C300ABC6AE /* AppVersionModel.m */,
+				C2871FFD2E2542C300ABC6AE /* Demo9Model.h */,
+				C2871FF72E2542C300ABC6AE /* Demo9Model.m */,
+				C2871FF92E2542C300ABC6AE /* TipBarModel.h */,
+				C2871FFE2E2542C300ABC6AE /* TipBarModel.m */,
+				C28720922E268BF100ABC6AE /* LikeModel.h */,
+				C28720932E268BF100ABC6AE /* LikeModel.m */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -618,19 +641,19 @@
 		C287201B2E2542C300ABC6AE /* 组件 */ = {
 			isa = PBXGroup;
 			children = (
-				C287201C2E2542C300ABC6AE /* UIColor.h */,
-				C287201D2E2542C300ABC6AE /* 小按钮 */,
-				C28720222E2542C300ABC6AE /* UIView.m */,
 				C28720232E2542C300ABC6AE /* 动画效果按钮 */,
-				C28720262E2542C300ABC6AE /* UIResponder+DoneButton.m */,
-				C28720272E2542C300ABC6AE /* UIImage+Extensions.h */,
+				C287201D2E2542C300ABC6AE /* 小按钮 */,
 				C28720282E2542C300ABC6AE /* 钥匙串KEY */,
-				C287202B2E2542C300ABC6AE /* timeTool */,
-				C287202E2E2542C300ABC6AE /* UIColor.m */,
 				C287202F2E2542C300ABC6AE /* 自定义按钮 */,
-				C28720322E2542C300ABC6AE /* UIResponder+DoneButton.h */,
-				C28720332E2542C300ABC6AE /* UIView.h */,
+				C287202B2E2542C300ABC6AE /* timeTool */,
+				C287201C2E2542C300ABC6AE /* UIColor.h */,
+				C287202E2E2542C300ABC6AE /* UIColor.m */,
+				C28720272E2542C300ABC6AE /* UIImage+Extensions.h */,
 				C28720342E2542C300ABC6AE /* UIImage+Extensions.m */,
+				C28720322E2542C300ABC6AE /* UIResponder+DoneButton.h */,
+				C28720262E2542C300ABC6AE /* UIResponder+DoneButton.m */,
+				C28720332E2542C300ABC6AE /* UIView.h */,
+				C28720222E2542C300ABC6AE /* UIView.m */,
 			);
 			path = "组件";
 			sourceTree = "<group>";
@@ -716,6 +739,8 @@
 				C28720892E25606500ABC6AE /* model */,
 				C28720862E255EAA00ABC6AE /* UserProfileViewController.h */,
 				C28720872E255EAA00ABC6AE /* UserProfileViewController.m */,
+				C28720952E26C66F00ABC6AE /* UserListViewController.h */,
+				C28720962E26C66F00ABC6AE /* UserListViewController.m */,
 			);
 			path = "用户中心";
 			sourceTree = "<group>";
@@ -736,6 +761,63 @@
 				C287208C2E25609300ABC6AE /* UserModelCell.m */,
 			);
 			path = cell;
+			sourceTree = "<group>";
+		};
+		C287208E2E26341300ABC6AE /* CommentInputView */ = {
+			isa = PBXGroup;
+			children = (
+				C287208F2E26342900ABC6AE /* CommentInputView.h */,
+				C28720902E26342900ABC6AE /* CommentInputView.m */,
+			);
+			path = CommentInputView;
+			sourceTree = "<group>";
+		};
+		C28721032E281D4600ABC6AE /* 安装工具 */ = {
+			isa = PBXGroup;
+			children = (
+				C28721072E281E9600ABC6AE /* Jailbreak */,
+				C28721042E281D5400ABC6AE /* FileInstallManager.h */,
+				C28721052E281D5400ABC6AE /* FileInstallManager.m */,
+			);
+			path = "安装工具";
+			sourceTree = "<group>";
+		};
+		C28721072E281E9600ABC6AE /* Jailbreak */ = {
+			isa = PBXGroup;
+			children = (
+				C28721082E281E9600ABC6AE /* NSTask.h */,
+				C28721092E281E9600ABC6AE /* Sh */,
+				C287210F2E281E9600ABC6AE /* Pid */,
+				C28721122E281E9600ABC6AE /* Root */,
+				C28721152E281E9600ABC6AE /* iMemScan.entitlements */,
+			);
+			path = Jailbreak;
+			sourceTree = "<group>";
+		};
+		C28721092E281E9600ABC6AE /* Sh */ = {
+			isa = PBXGroup;
+			children = (
+				C287210C2E281E9600ABC6AE /* NSTask.h */,
+			);
+			path = Sh;
+			sourceTree = "<group>";
+		};
+		C287210F2E281E9600ABC6AE /* Pid */ = {
+			isa = PBXGroup;
+			children = (
+				C28721102E281E9600ABC6AE /* PidModel.h */,
+				C28721112E281E9600ABC6AE /* PidModel.mm */,
+			);
+			path = Pid;
+			sourceTree = "<group>";
+		};
+		C28721122E281E9600ABC6AE /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				C28721132E281E9600ABC6AE /* Root.m */,
+				C28721142E281E9600ABC6AE /* Root.h */,
+			);
+			path = Root;
 			sourceTree = "<group>";
 		};
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
@@ -806,6 +888,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C28720CF2E27D87900ABC6AE /* Podfile in Resources */,
 				4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */,
 				4F639DF92272E94C00776206 /* Assets.xcassets in Resources */,
 			);
@@ -864,6 +947,7 @@
 				C287204D2E2542C300ABC6AE /* PublishAppViewController.m in Sources */,
 				C28720572E2542C300ABC6AE /* NewAppFileModel.m in Sources */,
 				C287205F2E2542C300ABC6AE /* AppSearchCell.m in Sources */,
+				C28720942E268BF100ABC6AE /* LikeModel.m in Sources */,
 				C287206B2E2542C300ABC6AE /* UIResponder+DoneButton.m in Sources */,
 				C28720692E2542C300ABC6AE /* UIView.m in Sources */,
 				C287204B2E2542C300ABC6AE /* TaskManager.m in Sources */,
@@ -883,6 +967,7 @@
 				C287204F2E2542C300ABC6AE /* UploadFileItem.m in Sources */,
 				C287203F2E2542C300ABC6AE /* VIPPackage.m in Sources */,
 				C287208D2E25609300ABC6AE /* UserModelCell.m in Sources */,
+				C28721222E281E9600ABC6AE /* PidModel.mm in Sources */,
 				C28720602E2542C300ABC6AE /* ITunesAppModel.m in Sources */,
 				C28720632E2542C300ABC6AE /* TokenGenerator.m in Sources */,
 				C28720552E2542C300ABC6AE /* AppCommentCell.m in Sources */,
@@ -890,10 +975,12 @@
 				C28720592E2542C300ABC6AE /* AppInfoModel.m in Sources */,
 				C28720492E2542C300ABC6AE /* ToolStoreListViewController.m in Sources */,
 				C28720672E2542C300ABC6AE /* MiniButtonView.m in Sources */,
+				C28721062E281D5400ABC6AE /* FileInstallManager.m in Sources */,
 				C28720792E25484500ABC6AE /* MediaProcessor.m in Sources */,
 				C287203E2E2542C300ABC6AE /* VIPPackageCell.m in Sources */,
 				C28720582E2542C300ABC6AE /* Demo9Model.m in Sources */,
 				C28720462E2542C300ABC6AE /* NewToolViewController.m in Sources */,
+				C28720972E26C66F00ABC6AE /* UserListViewController.m in Sources */,
 				C287203A2E2542C300ABC6AE /* EmptyView.m in Sources */,
 				C28720412E2542C300ABC6AE /* ProfileRightViewController.m in Sources */,
 				C28720402E2542C300ABC6AE /* EditUserProfileViewController.m in Sources */,
@@ -911,13 +998,13 @@
 				C287206D2E2542C300ABC6AE /* TimeTool.m in Sources */,
 				C28720372E2542C300ABC6AE /* TemplateSectionController.m in Sources */,
 				C28720742E2545FD00ABC6AE /* testViewController.m in Sources */,
+				C28720912E26342900ABC6AE /* CommentInputView.m in Sources */,
 				C28720532E2542C300ABC6AE /* AppFileCell.m in Sources */,
 				C28720502E2542C300ABC6AE /* UploadManager.m in Sources */,
 				C287206A2E2542C300ABC6AE /* ExpandableIconButton.m in Sources */,
 				C28720682E2542C300ABC6AE /* CustomScrollView.m in Sources */,
 				C28720452E2542C300ABC6AE /* HelpViewController.m in Sources */,
 				C28720482E2542C300ABC6AE /* ToolModel.m in Sources */,
-				C287204C2E2542C300ABC6AE /* FileUtils.m in Sources */,
 				C28720542E2542C300ABC6AE /* TipBarCell.m in Sources */,
 				C287205B2E2542C300ABC6AE /* TipBarModel.m in Sources */,
 				C28720392E2542C300ABC6AE /* TemplateCell.m in Sources */,
@@ -927,6 +1014,7 @@
 				C28720352E2542C300ABC6AE /* UserModel.m in Sources */,
 				C287203B2E2542C300ABC6AE /* DemoBaseViewController.m in Sources */,
 				C287204E2E2542C300ABC6AE /* DocumentPickerViewController.m in Sources */,
+				C28721232E281E9600ABC6AE /* Root.m in Sources */,
 				4F639DF12272E94500776206 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1075,6 +1163,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1097,6 +1186,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

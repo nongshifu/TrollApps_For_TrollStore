@@ -48,6 +48,10 @@
     if (self.gender != other.gender) return NO;
     if (self.vip_level != other.vip_level) return NO;
     if (self.downloads_number != other.downloads_number) return NO;
+    if (self.like_count != other.like_count) return NO;
+    if (self.reply_count != other.reply_count) return NO;
+    if (self.app_count != other.app_count) return NO;
+    
     
     // 日期对比
     if (![self.vip_expire_date isEqualToDate:other.vip_expire_date]) return NO;

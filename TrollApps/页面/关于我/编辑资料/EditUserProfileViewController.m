@@ -40,6 +40,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIView *contentView;
 
+@property (nonatomic, strong) UserModel *userInfo;
+
 @end
 
 @implementation EditUserProfileViewController
@@ -328,7 +330,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)loadUserData {
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
-    if (!self.userInfo || udid.length < 5) {
+    if (udid.length < 5) {
         NSLog(@"用户未登录");
         [SVProgressHUD showInfoWithStatus:@"您还未登录\n请先登录绑定UDID"];
         [SVProgressHUD dismissWithDelay:3 completion:^{
@@ -354,6 +356,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 UserModel *user = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
                 if(user && user.udid.length>5){
                     [NewProfileViewController sharedInstance].userInfo = user;
+                    self.userInfo = user;
                     // 加载头像
                     if (user.avatar.length > 0) {
                         // 假设avatar是URL
@@ -476,7 +479,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 获取当前用户信息
     
     
-    if (!self.userInfo || [NewProfileViewController sharedInstance].userInfo.udid.length < 5) {
+    if ([NewProfileViewController sharedInstance].userInfo.udid.length < 5) {
         NSLog(@"用户未登录");
         [SVProgressHUD showInfoWithStatus:@"您还未登录\n请先登录绑定UDID"];
         [SVProgressHUD dismissWithDelay:3 completion:^{
@@ -511,7 +514,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
                                              parameters:newDic
-                                                   udid:self.userInfo.udid progress:^(NSProgress *progress) {
+                                                   udid:[NewProfileViewController sharedInstance].userInfo.udid progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

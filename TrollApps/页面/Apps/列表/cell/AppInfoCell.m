@@ -13,7 +13,7 @@
 #import "MiniButtonView.h"
 #import "NewProfileViewController.h"
 #import "MyFavoritesListViewController.h"
-#import "FileUtils.h"
+#import "NewAppFileModel.h"
 #import "config.h"
 
 //是否打印
@@ -81,7 +81,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     UIEdgeInsets edge = UIEdgeInsetsMake(2, 4, 2, 4);
     // 应用类型
     self.appTypeButton = [[UIButton alloc] init];
-    self.appTypeButton.titleLabel.font = [UIFont boldSystemFontOfSize:12.0];
+    self.appTypeButton.titleLabel.font = [UIFont boldSystemFontOfSize:10.0];
     [self.appTypeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.appTypeButton.contentEdgeInsets = edge;
     self.appTypeButton.backgroundColor = [[UIColor systemGreenColor] colorWithAlphaComponent:0.6];
@@ -89,7 +89,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     //版本
     self.appVersionButton = [[UIButton alloc] init];
-    self.appVersionButton.titleLabel.font = [UIFont boldSystemFontOfSize:12.0];
+    self.appVersionButton.titleLabel.font = [UIFont boldSystemFontOfSize:10.0];
     [self.appVersionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.appVersionButton.contentEdgeInsets = edge;
     self.appVersionButton.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.6];
@@ -97,7 +97,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     //版本更新时间
     self.appUpdateTimeButton = [[UIButton alloc] init];
-    self.appUpdateTimeButton.titleLabel.font = [UIFont boldSystemFontOfSize:12.0];
+    self.appUpdateTimeButton.titleLabel.font = [UIFont boldSystemFontOfSize:10.0];
     [self.appUpdateTimeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.appUpdateTimeButton.contentEdgeInsets = edge;
     self.appUpdateTimeButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.6];
@@ -228,12 +228,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     // 标签堆栈视图约束
-    [self.tagMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.tagMiniButtonView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.appTypeButton.mas_bottom).offset(8);
         make.left.equalTo(self.appIconImageView.mas_right).offset(12);
         make.right.equalTo(self.contentView.mas_right).offset(-12);
         
-
     }];
 
     // 应用描述约束
@@ -245,7 +244,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }];
     
     // 统计信息按钮约束
-    [self.statsMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.statsMiniButtonView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.appDescriptionLabel.mas_bottom).offset(8);
         make.left.equalTo(self.contentView).offset(16);
         make.height.mas_equalTo(25);
@@ -275,26 +274,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.appNameLabel.text = appInfo.app_name;
         
         // 设置应用类型
-        NSString *type = @"iPA";
-        switch (appInfo.app_type) {
-            case 0:
-                type = @"iPA";
-                break;
-            case 1:
-                type = @"Deb";
-                break;
-            case 2:
-                type = @"Zip";
-                break;
-            case 3:
-                type = @"其他";
-                break;
-                
-            default:
-                break;
-        }
-        //类型
-        NSString *appTypeTitle = type;
+        NSString *appTypeTitle = [NewAppFileModel chineseDescriptionForFileType:appInfo.app_type];
+        
         [self.appTypeButton setTitle:appTypeTitle forState:UIControlStateNormal];
         //版本
         NSString *appVersionTitle = [NSString stringWithFormat:@"v%ld",appInfo.current_version_code];
@@ -313,13 +294,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self configureStatsButtonsWithAppInfo:appInfo];
         
         // 设置应用图标
-        NSArray <UIImage *>* images = @[
-            [UIImage systemImageNamed:@"applelogo"],
-            [UIImage systemImageNamed:@"doc.badge.gearshape.fill"],
-            [UIImage systemImageNamed:@"doc.zipper"],
-            [UIImage systemImageNamed:@"tray.circle"],
-        ];
-        self.appIconImageView.image = images[appInfo.app_type];
+        
         NSLog(@"iconURL:%@",appInfo.icon_url);
         
         [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
@@ -423,6 +398,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             self.downloadButton.backgroundColor = [UIColor purpleColor];
             
             break;
+        case 5: // 隐藏
+            [self.downloadButton setTitle:@"作者隐藏" forState:UIControlStateNormal];
+            
+            self.downloadButton.backgroundColor = [UIColor blackColor];
+            
+            break;
         default:
             [self.downloadButton setTitle:@"其他" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor systemGrayColor];
@@ -500,7 +481,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - 交互处理
 - (void)downloadButtonTapped {
     NSLog(@"点击了右侧下载按钮");
-    
+    switch (self.appInfoModel.app_type) {
+        case 0 || 1:
+            //IPA类型  可以在线安装
+            break;
+        case 2:
+            //DEB 越狱插件类型类型 判断是否越狱 终端安装
+            break;
+            
+        default:
+            break;
+    }
     
 }
 
@@ -593,11 +584,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             return;
         }
         
-        
+        Comment_type comment_type = Comment_type_AppComment;
         // 构建请求参数（根据实际接口调整）
         NSDictionary *params = @{
             @"action": @"comment",
-            @"app_id": @(self.appInfoModel.app_id),
+            @"comment_type": @(comment_type),
+            @"to_id": @(self.appInfoModel.app_id),
             @"content": textField.text,
             @"udid": udid
         };
@@ -756,12 +748,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // API地址 - 根据实际情况修改
     NSString *urlString = [NSString stringWithFormat:@"%@/app_action.php",localURL];
     
-    
+    Comment_type comment_type = Comment_type_AppComment;
     // 准备请求参数
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"action"] = action;
-    params[@"app_id"] = @(self.appInfoModel.app_id);
-    
+    params[@"to_id"] = @(self.appInfoModel.app_id);
+    params[@"type"] = @(comment_type);
     // 获取设备标识
     params[@"idfv"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     
@@ -784,7 +776,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 [SVProgressHUD dismissWithDelay:1];
                 return;
             }
-            
+            NSLog(@"请求返回stringResult：%@",stringResult);
             NSLog(@"请求返回字典：%@",jsonResult);
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString *message = jsonResult[@"msg"];
@@ -894,7 +886,24 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"最后:%@",appFileModels);
     // 计算文件媒体数量
     NSInteger count = 0;
+    // 5. 校验文件格式
+    NSSet *allowedFileTypes = [NSSet setWithObjects:
+                               // 图片格式
+                               @"jpg", @"jpeg", @"png", @"gif", @"bmp", @"heic", @"heif",
+                               // 视频格式
+                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
+                               // 其他指定格式
+//                               @"ipa", @"ipas", @"zip", @"js", @"html", @"json", @"deb", @"sh",
+                               nil];
+
     for (NSString *file in appFileModels) {
+        NSURL *url= [NSURL URLWithString:file];
+        NSString *fileType = [url pathExtension].lowercaseString;
+        //排除非媒体文件
+        if (![allowedFileTypes containsObject:fileType]) {
+            continue;
+        }
+        //最后排除图标和缩略图 得到剩下
         if (![file containsString:@"thumbnail"] && ![file containsString:@"icon.png"]) {
             count++;
         }
@@ -993,7 +1002,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         if (!fileURL) continue;
         
         // 2. 判断是否为媒体文件（图片/视频）
-        if (![FileUtils isMediaFileWithURL:fileURL]) {
+        if (![NewAppFileModel isMediaFileWithURL:fileURL]) {
             NSLog(@"跳过非媒体文件：%@", fileURL);
             continue;
         }
@@ -1004,12 +1013,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             continue;
         }
         
-        if ([FileUtils isImageFileWithURL:fileURL]) {
+        if ([NewAppFileModel isImageFileWithURL:fileURL]) {
             // 执行封装模型（图片文件）
             HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkImageURL:fileURL networkThumbURL:fileURL selected:YES];
             [assetModels addObject:assetModel];
         }
-        else if ([FileUtils isVideoFileWithURL:fileURL]) {
+        else if ([NewAppFileModel isVideoFileWithURL:fileURL]) {
             // 根据视频文件名查找对应的缩略图
             NSString *thumbnailURLString = nil;
             CGFloat videoDuration = 0;
@@ -1024,7 +1033,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             for (NSString *possibleThumbnailName in fileNameToURLMap.keyEnumerator) {
                 if ([possibleThumbnailName containsString:expectedThumbnailName] &&
                     [possibleThumbnailName containsString:@"thumbnail"] &&
-                    [FileUtils isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
+                    [NewAppFileModel isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
                     thumbnailURLString = fileNameToURLMap[possibleThumbnailName];
                     
                     // 从缩略图文件名中提取时长信息

@@ -7,7 +7,7 @@
 
 #import "AppFileCell.h"
 #import "NewAppFileModel.h"
-#import "FileUtils.h"
+
 @interface AppFileCell ()
 
 //图片背景父视图
@@ -70,15 +70,15 @@ typedef NS_ENUM(NSInteger, FileType) {
 */
 - (void)bindViewModel:(id)viewModel {
     self.appFileModel = (NewAppFileModel*)viewModel;
-    switch (self.appFileModel.file_type) {
-        case 1:
-            
-            break;
-            
-        default:
-            
-            break;
-    }
+//    switch (self.appFileModel.file_type) {
+//        case 1:
+//            
+//            break;
+//            
+//        default:
+//            
+//            break;
+//    }
 }
 #pragma mark - 更新后的HXPhotoManager配置
 

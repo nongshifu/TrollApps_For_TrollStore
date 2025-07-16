@@ -33,6 +33,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSDate *last_purchase_time;
 @property (nonatomic, assign) NSInteger vip_level;
 @property (nonatomic, assign) NSInteger downloads_number;
+@property (nonatomic, assign) NSInteger like_count;
+@property (nonatomic, assign) NSInteger reply_count;
+@property (nonatomic, assign) NSInteger app_count;
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
 
 /**

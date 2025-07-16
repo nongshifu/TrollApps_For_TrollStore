@@ -14,7 +14,8 @@
 #import "PublishAppViewController.h"
 #import "AppCommentCell.h"
 #import "TipBarCell.h"
-
+#import "CommentInputView.h"
+#import "AppComment.h"
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -24,14 +25,12 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate>
+@interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
-@property (nonatomic, strong) UITextView *textView; // 评论输入框
-@property (nonatomic, strong) UILabel *textViewPrompt; //提示
-@property (nonatomic, strong) UIView *inputContainerView; // 输入框容器（含发送按钮）
+@property (nonatomic, strong) CommentInputView *commentInputView;// 输入框容器（含发送按钮）
 @property (nonatomic, assign) CGFloat originalInputHeight; // 输入框原始高度（默认40）
 @property (nonatomic, assign) CGFloat expandedInputHeight; // 展开后高度（100）
-@property (nonatomic, strong) UIButton *sendButton;
+
 @property (nonatomic, strong) UIButton *editButton;//编辑软件更新按钮
 @property (nonatomic, strong) UIButton *editAppStatuButton;//删除软件按照
 
@@ -63,7 +62,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 注册点击评论排序通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tipBarCellTapped:) name:kTipBarCellTappedNotification object:nil];
    
-    
+    [self refreshLoadInitialData];
 }
 
 
@@ -108,47 +107,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 /// 创建评论输入框及容器（仅初始化一次约束）
 - (void)setupInputView {
-    // 1. 容器视图
-    self.inputContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, self.viewHeight-self.originalInputHeight, kWidth, self.originalInputHeight)];
-    self.inputContainerView.backgroundColor = [UIColor clearColor];
-    self.inputContainerView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.inputContainerView.layer.shadowOpacity = 0.1;
-    self.inputContainerView.layer.shadowOffset = CGSizeMake(0, -2);
-    [self.view addSubview:self.inputContainerView];
-    
-    UIView *colorView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kWidth, 150)];
-    colorView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
-    [self.inputContainerView addSubview:colorView];
-    [colorView addColorBallsWithCount:10 ballradius:100 minDuration:60 maxDuration:200 UIBlurEffectStyle:UIBlurEffectStyleSystemMaterial UIBlurEffectAlpha:0.95 ballalpha:0.1];
-    [colorView setRandomGradientBackgroundWithColorCount:2 alpha:0.1];
-    
-    // 2. 评论输入框
-    self.textView = [[UITextView alloc] initWithFrame:CGRectMake(10, 8, kWidth - 90, self.originalInputHeight -10)];
-    self.textView.delegate = self;
-    self.textView.font = [UIFont systemFontOfSize:15];
-
-    self.textView.enablesReturnKeyAutomatically = YES;
-    self.textView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.95];
-    self.textView.layer.cornerRadius = 10;
-    self.textView.clipsToBounds = YES;
-    self.textView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8);
-    [self.inputContainerView addSubview:self.textView];
-    
-    self.textViewPrompt = [[UILabel alloc] initWithFrame:CGRectMake(10, 5, kWidth - 150, self.originalInputHeight -20)];
-    self.textViewPrompt.text = @"发表评论 - 参与讨论";
-    self.textViewPrompt.textColor = [UIColor tertiaryLabelColor];
-    [self.textView addSubview:self.textViewPrompt];
-    
-    // 3. 发送按钮
-    self.sendButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.sendButton.frame = CGRectMake(kWidth - 70, 10, 60, self.originalInputHeight -10);
-    [self.sendButton setTitle:@"发送" forState:UIControlStateNormal];
-    self.sendButton.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightMedium];
-    self.sendButton.tintColor = [UIColor systemBlueColor];
-    self.sendButton.layer.cornerRadius = 10;
-    self.sendButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.95];
-    [self.sendButton addTarget:self action:@selector(sendComment) forControlEvents:UIControlEventTouchUpInside];
-    [self.inputContainerView addSubview:self.sendButton];
+    // 创建评论输入视图
+    self.commentInputView = [[CommentInputView alloc] initWithOriginalHeight:50 expandedHeight:80];
+    self.commentInputView.delegate = self;
+    self.commentInputView.frame = CGRectMake(0, self.view.bounds.size.height - 50, self.view.bounds.size.width, 50);
+    [self.view addSubview:self.commentInputView];
 
 }
 
@@ -173,30 +136,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     CGRect keyboardFrame = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     self.keyboardHeight = keyboardFrame.size.height;
     self.keyboardIsShow = YES;
-    
-    [self.sendButton mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.inputContainerView).offset(-8);
-        make.bottom.equalTo(self.textView);
-        make.width.equalTo(@60);
-        make.top.lessThanOrEqualTo(self.sendButton.superview).offset(10);
-    }];
-    
-    // 触发约束更新并添加动画
-    [UIView animateWithDuration:0.3 animations:^{
-        [self.view setNeedsUpdateConstraints]; // 触发updateViewConstraints
-        [self.view layoutIfNeeded]; // 立即更新布局
-    }];
+    self.commentInputView.keyboardHeight = keyboardFrame.size.height;
+    self.commentInputView.keyboardIsShow = YES;
+    [self updateViewConstraints];
 }
 
 /// 键盘即将收起
 - (void)keyboardWillHide:(NSNotification *)notification {
+    self.keyboardHeight = 0;
     self.keyboardIsShow = NO;
-    
-    // 触发约束更新并添加动画
-    [UIView animateWithDuration:0.3 animations:^{
-        [self.view setNeedsUpdateConstraints]; // 触发updateViewConstraints
-        [self.view layoutIfNeeded]; // 立即更新布局
-    }];
+    self.commentInputView.keyboardIsShow = NO;
+    [self updateViewConstraints];
+
 }
 
 
@@ -525,6 +476,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [alert addAction:okAction];
     [vc presentViewController:alert animated:YES completion:nil];
 }
+
 #pragma mark - 约束相关
 
 - (void)setupViewConstraints {
@@ -533,9 +485,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.collectionView.frame = CGRectMake(0, 50, kWidth, self.viewHeight - 100);
     
     CGFloat offsHeight = self.keyboardIsShow ? self.keyboardHeight : 0;
-    self.inputContainerView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);
+    self.commentInputView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);
     
-    self.textView.frame = CGRectMake(10, 8, kWidth - 90, self.keyboardIsShow ? self.expandedInputHeight -10 : self.originalInputHeight -10);
+    self.commentInputView.textView.frame = CGRectMake(10, 8, kWidth - 90, self.keyboardIsShow ? self.expandedInputHeight -10 : self.originalInputHeight -10);
 }
 
 /// 系统布局回调（仅更新约束，不处理动画）
@@ -546,9 +498,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.collectionView.frame = CGRectMake(0, 50, kWidth, self.viewHeight - 100);
     
     CGFloat offsHeight = self.keyboardIsShow ? self.keyboardHeight : 0;
-    self.inputContainerView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);
-    
-    self.textView.frame = CGRectMake(10, 8, kWidth - 90, self.keyboardIsShow ? self.expandedInputHeight -10 : self.originalInputHeight -10);
+    self.commentInputView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);
+    self.commentInputView.textView.frame = CGRectMake(10, 8, kWidth - 90, self.keyboardIsShow ? self.expandedInputHeight -10 : self.originalInputHeight -10);
 
 }
 
@@ -593,6 +544,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [self endRefreshing];
             // 验证返回数据格式
             if (!jsonResult) {
+                NSLog(@"返回数据格式错误: %@", stringResult);
                 [self handleErrorWithMessage:@"返回数据格式错误"];
                 return;
             }
@@ -756,66 +708,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
 }
 
-
-#pragma mark - UITextViewDelegate
-
-// 输入时限制连续换行
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-    // 1. 处理发送按钮点击
-    if ([text isEqualToString:@"\n\n"]) {
-        
-        return NO;
-    }
-    [self processNewlinesInTextView:textView];
-    // 2. 允许正常输入，但后续会在textViewDidChange中处理换行符
-    return YES;
+#pragma mark - CommentInputViewDelegate
+- (void)commentInputViewDidSendComment:(NSString *)content {
+    // 处理评论发送逻辑（替换原sendComment方法）
+    [self.commentInputView.textView resignFirstResponder];
+    [self sendComment];
 }
 
-// 文本变化时清理连续换行符
-- (void)textViewDidChange:(UITextView *)textView {
-    [self processNewlinesInTextView:textView];
-}
-
-// 清理文本中的连续换行符
-- (void)processNewlinesInTextView:(UITextView *)textView {
-    NSString *text = textView.text;
-    
-    // 替换两个或更多连续的换行符为单个换行符
-    NSString *processedText = [text stringByReplacingOccurrencesOfString:@"\n{2,}"
-                                                                  withString:@"\n"
-                                                                     options:NSRegularExpressionSearch
-                                                                       range:NSMakeRange(0, text.length)];
-    
-    // 如果文本被修改，则更新textView
-    if (![processedText isEqualToString:text]) {
-        textView.text = processedText;
-        
-        // 移动光标到文本末尾（保持用户输入流畅）
-        [textView setSelectedRange:NSMakeRange(processedText.length, 0)];
-    }
-    
-    // 检查文本长度是否超过限制
-    if (processedText.length > 200) {
-        textView.text = [processedText substringToIndex:200];
-        [SVProgressHUD showInfoWithStatus:@"最多输入200个字"];
-        [SVProgressHUD dismissWithDelay:1];
-    }
-}
-
-- (void)textViewDidBeginEditing:(UITextView *)textView {
-    self.textViewPrompt.alpha = 0;
-}
-
-- (void)textViewDidEndEditing:(UITextView *)textView {
-    if(textView.text.length ==0){
-        self.textViewPrompt.alpha = 1;
-    }
-}
 
 /// 发送评论
 - (void)sendComment {
     NSLog(@"点击发送按钮");
-    NSString *commentContent = [self.textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    NSString *commentContent = [self.commentInputView.textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if (commentContent.length == 0) {
         [SVProgressHUD showInfoWithStatus:@"评论内容不能为空"];
         [SVProgressHUD dismissWithDelay:1];
@@ -823,12 +727,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     
     // 隐藏键盘
-    [self.textView resignFirstResponder];
+    [self.commentInputView.textView resignFirstResponder];
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
     // 构建请求参数（根据实际接口调整）
+    Comment_type comment_type = Comment_type_AppComment;
     NSDictionary *params = @{
         @"action": @"comment",
-        @"app_id": @(self.app_id),
+        @"type": @(comment_type),
+        @"to_id": @(self.app_id),
         @"content": commentContent,
         @"sort": @(self.sort),
         @"udid": udid
@@ -854,8 +760,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
             if (code == 200) {
                 [SVProgressHUD showSuccessWithStatus:msg];
-                self.textView.text = @""; // 清空输入框
-                self.textViewPrompt.alpha = 1;
+                self.commentInputView.textView.text = @""; // 清空输入框
+                self.commentInputView.textPromptLabel.alpha = 1;
                 // 刷新评论列表（重新加载第一页）
                 [self loadDataWithPage:1];
             } else {

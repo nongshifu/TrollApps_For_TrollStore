@@ -33,6 +33,7 @@
            self.like_count == other.like_count &&
            self.isLiked == other.isLiked &&
     
+    
            [self.create_time isEqualToString:other.create_time] &&
            [self.update_time isEqualToString:other.update_time];
 }

@@ -17,7 +17,7 @@
 #import "HXPhotoPicker.h"
 #import "HXAssetManager.h"
 #import "HXPhotoTools.h"
-#import "FileUtils.h"
+#import "NewAppFileModel.h"
 #import "UploadManager.h"
 #import "TaskManager.h"
 #import "TokenGenerator.h"
@@ -53,8 +53,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UITextField *appNameField; // 应用名称
 @property (nonatomic, strong) UITextField *bundleIDField; // BundleID
 
-@property (nonatomic, strong) UILabel *appTypeLabel; // 主类型标题
-@property (nonatomic, strong) UISegmentedControl *appTypeSegment; // 主类型选择
 
 @property (nonatomic, strong) UILabel *tagsLabel; // 标签标题
 @property (nonatomic, strong) UIView *tagsContainer; // 标签容器
@@ -88,8 +86,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UploadTask *uploadTask;
 @property (nonatomic, assign) BOOL isUploading;
 
-@property (nonatomic, strong) NSMutableArray *fileArray;//选择的文件
-@property (nonatomic, strong) NSMutableArray *mediaArray;//选择的图片视频文件
+@property (nonatomic, strong) NSMutableArray *mediaNameArray;//选择的图片视频文件
+
 @end
 
 @implementation PublishAppViewController
@@ -112,6 +110,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - 初始化
+
 - (void)setupNavigationBar {
     self.zx_hideBaseNavBar  =YES;
     self.zx_showSystemNavBar = YES;
@@ -193,6 +192,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - UI布局
+
 - (void)setupSubviews {
     // 滚动视图（适配小屏设备）
     self.scrollView = [[UIScrollView alloc] init];
@@ -237,14 +237,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bundleIDField.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7];
     [self.contentView addSubview:self.bundleIDField];
     
-    // 应用类型
-    self.appTypeLabel = [self createTitleLabelWithText:@"应用主类型"];
-    [self.contentView addSubview:self.appTypeLabel];
-    
-    self.appTypeSegment = [[UISegmentedControl alloc] initWithItems:@[@"IPA", @"deb", @"zip", @"其他"]];
-    self.appTypeSegment.selectedSegmentIndex = 0;
-    self.appTypeSegment.tintColor = [UIColor systemBlueColor];
-    [self.contentView addSubview:self.appTypeSegment];
     
     // 标签
     self.tagsLabel = [self createTitleLabelWithText:@"应用标签（可多选）"];
@@ -385,24 +377,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.top.equalTo(self.appIconView.mas_bottom).offset(10);
         make.centerX.equalTo(self.contentView);
     }];
-    
-    
-    // 应用类型
-    [self.appTypeLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.fileUploadButton.mas_bottom).offset(15);
-        make.left.equalTo(self.contentView).inset(20);
-        make.height.equalTo(@20);
-    }];
-    
-    [self.appTypeSegment mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appTypeLabel.mas_bottom).offset(8);
-        make.left.right.equalTo(self.contentView).inset(20);
-        make.height.equalTo(@30);
-    }];
-    
+  
     // 标签
     [self.tagsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appTypeSegment.mas_bottom).offset(25);
+        make.top.equalTo(self.fileUploadButton.mas_bottom).offset(25);
         make.left.equalTo(self.contentView).inset(20);
         make.height.equalTo(@20);
     }];
@@ -508,6 +486,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 #pragma mark - 标签初始化
+
 - (void)setupTags {
     self.tagButtons = [NSMutableArray array];
     CGFloat margin = 10;
@@ -594,6 +573,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //文件上传点击
 - (void)uploadFile {
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
     NSArray *documentTypes = @[(NSString *)kUTTypeItem]; // 所有文件类型
     
@@ -755,42 +736,52 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                               style:UIAlertActionStyleCancel
                                             handler:nil]];
     
-    // 适配iPad
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        alert.popoverPresentationController.barButtonItem = sender;
-    }
+    
     [self presentViewController:alert animated:YES completion:nil];
 }
 
 // 保存草稿
 - (void)saveDraft {
     // 构建草稿数据模型
-    NSMutableDictionary *draftDict = [NSMutableDictionary dictionary];
-    draftDict[@"appName"] = self.appNameField.text ?: @"";
-    draftDict[@"bundleID"] = self.bundleIDField.text ?: @"";
-    draftDict[@"appType"] = @(self.appTypeSegment.selectedSegmentIndex);
-    draftDict[@"selectedTags"] = self.selectedTags;
-    draftDict[@"appDescription"] = self.descriptionTextView.text ?: @"";
+    self.app_info.app_name = self.appNameField.text ?: @"";
+    self.app_info.bundle_id = self.bundleIDField.text ?: @"";
+    self.app_info.tags = self.selectedTags;
+    self.app_info.app_description = self.descriptionTextView.text ?: @"";
+    self.app_info.release_notes = self.releaseNotesTextView.text ?: @"";
+    self.app_info.appIcon = self.appIconView.image ?: [UIImage systemImageNamed:@"app.badge.fill"];
     
-    // 保存图标（转为Base64）
-    if (self.appIconView.image && self.appIconView.image != [UIImage systemImageNamed:@"app.badge.fill"]) {
-        NSData *iconData = UIImagePNGRepresentation(self.appIconView.image);
-        draftDict[@"appIconBase64"] = [iconData base64EncodedStringWithOptions:0];
-    }
-    
-    // 保存选中的图片视频（HXPhotoView数据）
+    // 保存选中的图片视频
     if (self.manager.afterSelectedArray.count > 0) {
         [self.manager saveLocalModelsToFile];
     }
     
-    // 保存到本地（使用UserDefaults，复杂场景建议用CoreData）
+    // 将模型转换为字典
+    NSDictionary *modelDict = [self.app_info yy_modelToJSONObject];
+    
+    // 特殊处理 UIImage（转为 Base64 字符串）
+    if (self.appIconView.image) {
+        NSData *imageData = UIImagePNGRepresentation(self.appIconView.image);
+        
+        self.app_info.iconBase64String  = [imageData base64EncodedStringWithOptions:0];
+        NSLog(@"保存头像字符串:%@",self.app_info.iconBase64String);
+        self.app_info.appIcon = nil;
+    }
+    if(self.app_info.mainFileData){
+        self.app_info.mainFileData = nil;
+    }
+    NSLog(@"保存主文件:%@",self.app_info.mainFileUrl);
+    // 关键：在iconBase64String赋值后，重新生成模型字典
+    NSDictionary *newModelDict = [self.app_info yy_modelToJSONObject];
+    
+    // 保存到 UserDefaults
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:draftDict forKey:kPublishAppDraft];
+    [defaults setObject:newModelDict forKey:kPublishAppDraft];
     [defaults synchronize];
     
     [SVProgressHUD showSuccessWithStatus:@"草稿保存成功"];
     [SVProgressHUD dismissWithDelay:1.0];
 }
+
 
 // 删除草稿
 - (void)deleteDraft {
@@ -825,43 +816,22 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     return [defaults objectForKey:kPublishAppDraft] != nil;
 }
 
-//加载草稿数据
+// 加载草稿数据
 - (void)loadDraftIfExists {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSDictionary *draftDict = [defaults objectForKey:kPublishAppDraft];
     if (!draftDict) return;
     
-    // 加载基本信息
-    self.appNameField.text = draftDict[@"appName"];
-    self.bundleIDField.text = draftDict[@"bundleID"];
-    self.appTypeSegment.selectedSegmentIndex = [draftDict[@"appType"] integerValue];
-    self.descriptionTextView.text = draftDict[@"appDescription"];
-    [self textViewDidChange:self.descriptionTextView]; // 更新字数统计
+    // 1. 使用YYModel将字典映射到模型（保持与保存时的模型结构一致）
+    AppInfoModel *draftModel = [AppInfoModel yy_modelWithDictionary:draftDict];
+    if (!draftModel) return;
+    self.app_info = draftModel;
+    [self fillUIWithAppInfo:self.app_info];
     
-    // 加载标签选择状态
-    NSArray *savedTags = draftDict[@"selectedTags"];
-    for (NSString *tag in savedTags) {
-        for (UIButton *tagBtn in self.tagButtons) {
-            if ([tagBtn.titleLabel.text isEqualToString:tag]) {
-                tagBtn.selected = YES;
-                tagBtn.backgroundColor = [UIColor blueColor];
-                [self.selectedTags addObject:tag];
-            }
-        }
-    }
-    
-    // 加载应用图标
-    if (draftDict[@"appIconBase64"]) {
-        NSData *iconData = [[NSData alloc] initWithBase64EncodedString:draftDict[@"appIconBase64"] options:0];
-        self.appIconView.image = [UIImage imageWithData:iconData];
-    }
-    
-    // 加载媒体资源（图片/视频）
+    // 6. 加载媒体资源（图片/视频）
     [self.manager getLocalModelsInFileWithAddData:YES];
-    //刷新
     [self.photoView refreshView];
 }
-
 
 #pragma mark - 辅助方法
 
@@ -1087,7 +1057,39 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"仅使用图标" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        if(model.artworkUrl512.length > 0 ){
+            [self.appIconView sd_setImageWithURL:[NSURL URLWithString:model.artworkUrl512] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                if(image){
+                    //赋值给头像上传
+                    self.selectappIconImage = image;
+                }
+            }];
+        }
+        [self dismiss];
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"覆盖 图标,ID,应用名" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        if(model.trackName.length > 0){
+            self.appNameField.text = model.trackName;
+        }
+        if(model.bundleId.length > 0){
+            self.bundleIDField.text = model.bundleId;
+        }
+        
+        if(model.artworkUrl512.length > 0 ){
+            [self.appIconView sd_setImageWithURL:[NSURL URLWithString:model.artworkUrl512] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                if(image){
+                    //赋值给头像上传
+                    self.selectappIconImage = image;
+                }
+            }];
+        }
+        [self dismiss];
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"使用全部数据覆盖" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         if(model.trackName.length > 0){
             self.appNameField.text = model.trackName;
         }
@@ -1109,9 +1111,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }
         }
         //软件截图 不添加
-        //        if(model.screenshotUrls.count > 0 || model.ipadScreenshotUrls.count>0){
-        //            [self addAssModelToManagerWith:model.screenshotUrls ipadScreenshotUrls:model.ipadScreenshotUrls];
-        //        }
+        if(model.screenshotUrls.count > 0 || model.ipadScreenshotUrls.count>0){
+            [self addAssModelToManagerWith:model.screenshotUrls ipadScreenshotUrls:model.ipadScreenshotUrls];
+        }
         if(model.artworkUrl512.length > 0 ){
             [self.appIconView sd_setImageWithURL:[NSURL URLWithString:model.artworkUrl512] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                 if(image){
@@ -1134,7 +1136,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)fillUIWithAppInfo:(AppInfoModel *)appInfo {
     NSLog(@"用AppInfo数据填充UI（更新软件时使用）更新软件:%@",appInfo.app_name);
     if (!appInfo) return;
-    
+    self.app_info = appInfo;
     // 1. 应用名称
     self.appNameField.text = appInfo.app_name;
     
@@ -1143,8 +1145,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bundleIDField.enabled = NO; // 更新时禁止修改BundleID
     self.bundleIDField.alpha = 0.7;
     
-    // 3. 应用类型
-    self.appTypeSegment.selectedSegmentIndex = appInfo.app_type;
+    // 3. 主程序文件
+    for (NSString *fileName in appInfo.fileNames) {
+        if([fileName containsString:@"_mainFile_"]){
+            [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
+        }
+    }
+   
     
     // 4. 应用描述
     self.descriptionTextView.text = appInfo.app_description ?: @"";
@@ -1157,21 +1164,60 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self updateTagButtonsState];
     
     // 6. 应用图标
-    if (appInfo.appIcon) {
-        self.appIconView.image = appInfo.appIcon;
-    } else if (appInfo.icon_url.length > 0) {
+    __block UIImage *iconImage = [UIImage systemImageNamed:@"app.badge.fill"];
+    NSLog(@"加载草稿iconBase64String：%@",appInfo.iconBase64String);
+    if (appInfo.iconBase64String) {
+        NSData *iconData = [[NSData alloc] initWithBase64EncodedString:appInfo.iconBase64String options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        if (iconData) {
+            iconImage = [UIImage imageWithData:iconData];
+            if(iconImage.size.width >200){
+                iconImage = [iconImage resizedImageToSize:CGSizeMake(200, 200) contentMode:UIViewContentModeScaleAspectFit];
+            }
+            self.selectappIconImage = iconImage;
+        }
+    } if (appInfo.icon_url.length > 0) {
         // 从网络加载图标
         [self.appIconView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url]
-                            placeholderImage:[UIImage systemImageNamed:@"photo.fill"]];
+                            placeholderImage:iconImage completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+            if(image){
+                iconImage = image;
+            }
+        }];
     }
+    self.appIconView.image = iconImage;
     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
+    
+    
     // 7. 媒体文件（图片/视频）
     if (appInfo.fileNames.count > 0) {
         [self loadMediaFilesFromAppInfo:appInfo];
     }
     
     // 8. 调整发布按钮文字
-    [self.publishButton setTitle:@"更新应用" forState:UIControlStateNormal];
+    if(self.category == CategoryTypePublish){
+        [self.publishButton setTitle:@"发布应用" forState:UIControlStateNormal];
+    }else{
+        [self.publishButton setTitle:@"更新应用" forState:UIControlStateNormal];
+    }
+    
+    // 9. 更新主程序文件UI
+    NSLog(@"更新主程序文件UI：%@",appInfo.mainFileUrl);
+    if(appInfo.mainFileUrl){
+        NSString *mainFileName = [appInfo.mainFileUrl lastPathComponent];
+        // 本地新增附件：添加到列表
+        NSError *error;
+        NSData *fileData = [NSData dataWithContentsOfURL:appInfo.mainFileUrl options:0 error:&error];
+        if(error){
+            [self showAlertFromViewController:self title:@"错误" message:[NSString stringWithFormat:@"您选择的文件\n%@\n读取数据失败", mainFileName]];
+            NSLog(@"读取系统文件数据失败: %@", error.localizedDescription);
+            return;
+        }
+        self.app_info.mainFileData = fileData;
+        [self.fileUploadButton setTitle:mainFileName forState:UIControlStateNormal];
+    }
+    
+    // 10. 更新描述
+    self.releaseNotesTextView.text = self.app_info.release_notes;
 }
 
 /// 同步标签按钮的选中状态
@@ -1219,9 +1265,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         // 创建网络资源模型
         HXCustomAssetModel *asset;
-        if ([FileUtils isImageFileWithURL:fileURL]) {
+        if ([NewAppFileModel isImageFileWithURL:fileURL]) {
             asset = [HXCustomAssetModel assetWithNetworkImageURL:fileURL selected:YES];
-        } else if ([FileUtils isVideoFileWithURL:fileURL]) {
+        } else if ([NewAppFileModel isVideoFileWithURL:fileURL]) {
             // 根据视频文件名查找对应的缩略图
             NSString *thumbnailURLString = nil;
             CGFloat videoDuration = 0;
@@ -1236,7 +1282,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             for (NSString *possibleThumbnailName in fileNameToURLMap.keyEnumerator) {
                 if ([possibleThumbnailName containsString:expectedThumbnailName] &&
                     [possibleThumbnailName containsString:@"thumbnail"] &&
-                    [FileUtils isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
+                    [NewAppFileModel isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
                     thumbnailURLString = fileNameToURLMap[possibleThumbnailName];
                     
                     // 从缩略图文件名中提取时长信息
@@ -1283,6 +1329,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - 发布流程处理 ==================
+
 // 发布流程
 - (void)startPublishProcess {
     // 创建一个任务
@@ -1292,43 +1339,37 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"当前照片管理数组:%@",self.manager.afterSelectedArray);
     NSLog(@"云端附件列表:%@",self.app_info.fileNames);
     
-    // 1. 转换HXPhotoModel数组为URL数组（所有图片视频媒体文件URL ）
-    if(!self.fileArray){
-        self.fileArray = [NSMutableArray array];//其他附件
-    }
-    if(!self.mediaArray){
-        self.mediaArray = [NSMutableArray array];//视频图片
+    // 1. 初始化媒体数组
+    if(!self.mediaNameArray){
+        self.mediaNameArray = [NSMutableArray array];//视频图片
     }
     
     
-    // 2. 处理本地选择的媒体列表，生成最新附件列表
+    // 2. 遍历服务器 文件列表 读取图标文件名和主程序文件名
     for (NSString *fileName in self.app_info.fileNames) {
         NSURL *url = [NSURL URLWithString:fileName];
-        BOOL isImageURL = [self isImageURL:url];
-        BOOL isVideoURL = [self isVideoURL:url];
-        //不是图片或者视频就是其他附件
-        if(!isImageURL && !isVideoURL){
-            [self.fileArray addObject:fileName];
+        //读取旧的主程序文件名
+        if([fileName containsString:@"_mainFile_"]){
+            [self.mediaNameArray addObject:fileName];
         }
-        //添加主题图片(例外)
+        //判断是图片
+        BOOL isImageURL = [self isImageURL:url];
+        //添加主题图片
         if(isImageURL && [fileName containsString:@"icon.png"]){
-            [self.mediaArray addObject:fileName];
+            [self.mediaNameArray addObject:fileName];
         }
     }
-    NSLog(@"其他附件:%@",self.fileArray);
-    
-    // 创建一个dispatch_group来跟踪所有异步操作
-    dispatch_group_t group = dispatch_group_create();
-    
-    NSArray<HXPhotoModel *> *selectedMedias = self.manager.afterSelectedArray;
+   
+    // 3.处理 图片视频媒体文件 只更新修改过的 网络URL就是不修改 本地URL就时候添加
+    dispatch_group_t group = dispatch_group_create();//创建一个dispatch_group来跟踪所有异步操作
+    NSArray<HXPhotoModel *> *selectedMedias = self.manager.afterSelectedArray;//读取媒体文件选择器里面的媒体文件
     
     // 标记是否有错误发生
     __block BOOL hasError = NO;
-    
+    //循环媒体文件 处理视频和缩略图
     for (HXPhotoModel *model in selectedMedias) {
         // 进入一个异步操作
         dispatch_group_enter(group);
-        
         [self getMediaURLFromModel:model completion:^(NSURL *url) {
             if (url) {
                 NSString *fileName = [url lastPathComponent];
@@ -1371,7 +1412,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                                         toTask:self.uploadTask];
                                     
                                     // 将缩略图文件名添加到媒体数组
-                                    [self.mediaArray addObject:versionedThumbnailName];
+                                    [self.mediaNameArray addObject:versionedThumbnailName];
                                     
                                     
                                     NSLog(@"视频缩略图已添加到上传列表: %@", versionedThumbnailName);
@@ -1388,7 +1429,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     }
                 }
                 NSLog(@"添加到mediaArray:%@",fileName);
-                [self.mediaArray addObject:fileName];
+                [self.mediaNameArray addObject:fileName];
             } else {
                 NSLog(@"获取媒体URL失败");
                 hasError = YES;
@@ -1399,6 +1440,32 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }];
     }
     
+    //如果有选择新主文件self.mainFileData有数据
+    if(self.app_info.mainFileData){
+        //移除旧的主文件（一个APP只有一个主文件 如果选择了文本文件就移除旧的 从附件列表移除）
+        for (NSString *fileName in self.mediaNameArray) {
+            if([fileName containsString:@"_mainFile_"]){
+                [self.mediaNameArray removeObject:fileName];
+            }
+        }
+        //添加新主程序文件
+        NSString *mainFileName = [self.app_info.mainFileUrl lastPathComponent];
+        // 如果是发布新软件 附带版本号1
+        if(self.category == CategoryTypePublish){
+            mainFileName = [NSString stringWithFormat:@"1_mainFile_%@",mainFileName];
+        } else {
+            // 如果是更新新软件 附带旧版本号+1
+            mainFileName = [NSString stringWithFormat:@"%ld_mainFile_%@",self.app_info.current_version_code+1,mainFileName];
+        }
+        // 添加到上传列表
+        NSLog(@"主程序文件添加到上传列表 其他附件列表:%@",mainFileName);
+        [[UploadManager sharedManager] addFileData:self.app_info.mainFileData fileName:mainFileName toTask:self.uploadTask];
+        
+        //添加到附件列表数组
+        [self.mediaNameArray addObject:mainFileName];
+        
+    }
+   
     // 当所有异步操作完成时执行
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
         if (hasError) {
@@ -1406,9 +1473,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             return;
         }
         
-        // 合并附件和媒体
-        NSArray *allFileNames = [self.mediaArray arrayByAddingObjectsFromArray:self.fileArray];
-        self.app_info.fileNames = [NSMutableArray arrayWithArray:allFileNames];
+        // 赋值最新的版本 附件列表
+        self.app_info.fileNames = [NSMutableArray arrayWithArray:self.mediaNameArray];
         
         // 2.1 将头像转换为临时URL（插入下标0）
         if (self.appIconView.image && self.selectappIconImage) {
@@ -1505,7 +1571,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.app_info.tags = self.selectedTags;
     self.app_info.app_name = self.appNameField.text;
-    self.app_info.app_type = self.appTypeSegment.selectedSegmentIndex;
+    self.app_info.app_type = [NewAppFileModel fileTypeForFileURL:self.app_info.mainFileUrl];
     self.app_info.app_description = self.descriptionTextView.text;
     self.app_info.bundle_id = self.bundleIDField.text;
     self.app_info.release_notes = self.releaseNotesTextView.text; // 假设添加了版本说明输入框
@@ -1614,6 +1680,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         });
     } success:^(NSDictionary *response) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            // 清除本地草稿
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            [defaults removeObjectForKey:kPublishAppDraft];
+            [defaults synchronize];
+            [self.manager deleteLocalModelsInFile];
+            
             [SVProgressHUD showSuccessWithStatus:self.category == CategoryTypePublish ? @"应用发布成功" : @"应用更新成功"];
             [SVProgressHUD dismissWithDelay:1 completion:^{
                 [self dismiss];
@@ -1913,8 +1985,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 #pragma mark - 文件上传选择文件代理 UIDocumentPickerDelegate
-
-#pragma mark - 文件上传选择文件代理 UIDocumentPickerDelegate
 // 处理文件选择完成（支持多文件+去重）
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
     [controller dismissViewControllerAnimated:YES completion:nil];
@@ -1924,12 +1994,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         return;
     }
     
-    // 初始化文件数组（若为nil）
-    if (!self.fileArray) {
-        self.fileArray = [NSMutableArray array];
-    }
-    
-    // 1. 循环处理每个选中的文件
+    // 1. 循环处理每个选中的文件 (这里使用循环方式多选 确实目前只有一个主文件)
     for (NSURL *selectedFileURL in urls) {
         // 检查是否有权限访问文件
         BOOL canAccess = [selectedFileURL startAccessingSecurityScopedResource];
@@ -1940,21 +2005,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         // 2. 获取文件基本信息
         NSString *fileName = [selectedFileURL lastPathComponent];
+        //读取文件名后缀 统一为小写
         NSString *fileType = [selectedFileURL pathExtension].lowercaseString;
+        
         NSError *error = nil;
         NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:selectedFileURL.path error:&error];
         NSNumber *fileSize = fileAttributes[NSFileSize];
         
         // 日志输出当前处理的文件
         NSLog(@"处理文件: %@, 类型: %@, 大小: %@ bytes", fileName, fileType, fileSize);
-        
-        // 3. 校验文件是否已存在（去重逻辑：通过文件路径的哈希值判断唯一性）
-        NSString *fileUniqueKey = [self uniqueKeyForFileURL:selectedFileURL];
-        if ([self isFileAlreadyAdded:fileUniqueKey]) {
-            [SVProgressHUD showInfoWithStatus:[NSString stringWithFormat:@"文件已添加: %@", fileName]];
-            [selectedFileURL stopAccessingSecurityScopedResource];
-            continue; // 已存在，跳过
-        }
+       
         
         // 4. 校验文件大小
         if (fileSize.integerValue > MAX_FILE_SIZE) {
@@ -1965,14 +2025,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }
         
         // 5. 校验文件格式
-        NSSet *allowedFileTypes = [NSSet setWithObjects:
-                                   // 图片格式
-                                   @"jpg", @"jpeg", @"png", @"gif", @"bmp", @"heic", @"heif",
-                                   // 视频格式
-                                   @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
-                                   // 其他指定格式
-                                   @"ipa", @"ipas", @"zip", @"js", @"html", @"json", @"deb", @"sh",
-                                   nil];
+        NSSet *allowedFileTypes = [NSSet setWithObjects:@"ipa", @"ipas", @"zip", @"js", @"html", @"json", @"deb", @"sh", @"plist", @"dylib",nil];
         
         if (![allowedFileTypes containsObject:fileType]) {
             [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"不支持的格式: .%@（文件: %@）", fileType, fileName]];
@@ -1980,23 +2033,23 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             continue;
         }
         
-        // 6. 为文件生成系统图标
-        UIImage *fileIcon = [self generateFileIconWithURL:selectedFileURL fileType:fileType];
+        // 本地新增附件：添加到列表
+        NSData *fileData = [NSData dataWithContentsOfURL:selectedFileURL options:0 error:&error];
+        if(error){
+            [self showAlertFromViewController:self title:@"错误" message:[NSString stringWithFormat:@"您选择的文件\n%@\n读取数据失败", fileName]];
+           
+            NSLog(@"读取系统文件数据失败: %@", error.localizedDescription);
+            return;
+        }
         
-        // 7. 封装文件信息字典（包含唯一标识用于去重）
-        NSDictionary *fileInfo = @{
-            @"uniqueKey": fileUniqueKey, // 用于后续去重判断
-            @"url": selectedFileURL,
-            @"name": fileName,
-            @"type": fileType,
-            @"size": fileSize ?: @0, // 防止size为nil
-            @"icon": fileIcon
-        };
-        
-        // 8. 添加到文件数组
-        [self.fileArray addObject:fileInfo];
         [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"已添加文件: %@", fileName]];
-        
+        [SVProgressHUD dismissWithDelay:2];
+        //修改按钮
+        [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
+        //赋值主文件URL
+        self.app_info.mainFileUrl = selectedFileURL;
+        //赋值主文件data
+        self.app_info.mainFileData = fileData;
         // 释放当前文件的安全访问权限
         [selectedFileURL stopAccessingSecurityScopedResource];
     }
@@ -2019,18 +2072,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [uniqueKey appendFormat:@"%02X", result[i]];
     }
     return uniqueKey;
-}
-
-/**
- 检查文件是否已添加到数组中（通过唯一标识判断）
- */
-- (BOOL)isFileAlreadyAdded:(NSString *)uniqueKey {
-    for (NSDictionary *existingFile in self.fileArray) {
-        if ([existingFile[@"uniqueKey"] isEqualToString:uniqueKey]) {
-            return YES; // 已存在
-        }
-    }
-    return NO; // 未添加
 }
 
 // 处理文件选择取消

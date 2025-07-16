@@ -2,6 +2,7 @@
 #import "UserModel.h" // 引入用户信息模型
 #import "NewProfileViewController.h"
 #import "UserProfileViewController.h"
+#import "LikeModel.h"
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -305,8 +306,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSString *url = [NSString stringWithFormat:@"%@/app_action.php", localURL];
     NSDictionary *params = @{
         @"action": @"toggle_comment_like",
-        @"comment_id": @(commentId),
-        @"target_udid": self.appComment.user_udid ?: @""
+        @"type": @(self.appComment.comment_type),
+        @"to_id": @(self.appComment.comment_id),
+        @"to_udid": self.appComment.user_udid
        
     };
     
@@ -317,6 +319,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                 udid:udid
                                               progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        NSLog(@"点赞返回:%@",stringResult);
         dispatch_async(dispatch_get_main_queue(), ^{
             // 恢复交互
             self.likeImageView.userInteractionEnabled = YES;
@@ -423,7 +426,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 在这里处理标签被点击的逻辑
     NSLog(@"view tapped: %ld", view.tag);
     UserProfileViewController *vc = [UserProfileViewController new];
-    vc.udid = self.appComment.user_udid;
+    vc.user_udid = self.appComment.user_udid;
     [[self getTopViewController] presentPanModal:vc];
 }
+
 @end

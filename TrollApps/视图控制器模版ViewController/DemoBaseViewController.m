@@ -9,6 +9,15 @@
 #import "DemoBaseViewController.h"
 #import "Config.h"
 
+//是否打印
+#define MY_NSLog_ENABLED NO
+
+#define NSLog(fmt, ...) \
+if (MY_NSLog_ENABLED) { \
+NSString *className = NSStringFromClass([self class]); \
+NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
+}
+
 @interface DemoBaseViewController ()
 
 @end
@@ -32,6 +41,7 @@
     self.zx_navStatusBarStyle = ZXNavStatusBarStyleDefault;
     self.zx_showNavHistoryStackContentView = YES;
     [self zx_setNavGradientBacFrom:[UIColor randomColorWithAlpha:0.3] to:[UIColor randomColorWithAlpha:0.3]];
+    
     
     [self setBackgroundUI];
     [self topBackageView];
