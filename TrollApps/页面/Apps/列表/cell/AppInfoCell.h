@@ -7,7 +7,7 @@
 
 #import "TemplateCell.h"
 #import "AppInfoModel.h"
-#import "AppComment.h"
+#import "CommentModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

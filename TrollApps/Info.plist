@@ -2,25 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSFileProviderUsageDescription</key>
-	<string>访问文件以读取和保存相关数据</string>
-	<key>NSCameraUsageDescription</key>
-	<string>我们需要访问您的相机，以便您可以拍摄照片！</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>我们需要使用您的麦克风进行录音</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>我们需要蓝牙权限来连接设备</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.trollapps</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>trollapps</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -35,10 +16,38 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.trollapps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>trollapps</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>我们需要蓝牙权限来连接设备</string>
+	<key>NSCameraUsageDescription</key>
+	<string>我们需要访问您的相机，以便您可以拍摄照片！</string>
+	<key>NSFileProviderUsageDescription</key>
+	<string>访问文件以读取和保存相关数据</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>我们需要使用您的麦克风进行录音</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+		<string>location</string>
+		<string>processing</string>
+		<string>push-to-talk</string>
+		<string>voip</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

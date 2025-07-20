@@ -14,6 +14,7 @@
 #import "NewProfileViewController.h"
 #import "DocumentPickerViewController.h"
 #import "config.h"
+#import "loadData.h"
 #import "HXPhotoPicker.h"
 #import "HXAssetManager.h"
 #import "HXPhotoTools.h"
@@ -26,7 +27,7 @@
 #define kPublishAppDraft @"PublishAppDraft"
 
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -184,9 +185,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.selectedTags = [NSMutableArray array];
     // 初始化默认标签（与AppInfo中定义的标签对应）
-    self.allTags = @[@"巨魔IPA", @"游戏辅助", @"多开软件", @"定位", @"脚本",
-                     @"有根越狱插件", @"无根插件", @"影音", @"工具",
-                     @"系统增强", @"其他"];
+    self.allTags = [NSMutableArray arrayWithArray:[loadData sharedInstance].tags];
     //初始化上传为NO
     self.isUploading = NO;
 }
@@ -573,25 +572,95 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //文件上传点击
 - (void)uploadFile {
-    //系统导航遮挡问题
-    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
-    // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
-    NSArray *documentTypes = @[(NSString *)kUTTypeItem]; // 所有文件类型
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"文件选择" message:@"本地上传还是网络URL" preferredStyle:UIAlertControllerStyleAlert];
     
     
-    // 创建文件选择控制器
-    DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
+    // 添加确定按钮
+    UIAlertAction *loacal = [UIAlertAction actionWithTitle:@"本地文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        //系统导航遮挡问题
+        UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+        // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
+        NSArray *documentTypes = @[(NSString *)kUTTypeItem]; // 所有文件类型
+        
+        
+        // 创建文件选择控制器
+        DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
+        
+        // 设置代理
+        documentPicker.delegate = self;
+        
+        // 允许选择多个文件 (可选)
+        documentPicker.allowsMultipleSelection = NO;
+        // 设置全屏显示
+        documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+        
+        // 显示文件选择器
+        [self presentViewController:documentPicker animated:YES completion:nil];
+    }];
+    [alertController addAction:loacal];
     
-    // 设置代理
-    documentPicker.delegate = self;
+    // 添加确定按钮
+    UIAlertAction *webFile = [UIAlertAction actionWithTitle:@"网络文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"输入" message:@"请输入网络URL地址" preferredStyle:UIAlertControllerStyleAlert];
+        
+        // 添加输入框
+        [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+            textField.placeholder = @"输入文件URL内容";
+        }];
+        
+        // 添加取消按钮
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            // 取消操作的处理
+        }];
+        [alertController addAction:cancelAction];
+        // 添加确定按钮
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            UITextField *textField = alertController.textFields.firstObject;
+            NSString *inputText = textField.text ?: @"";
+            NSLog(@"输入框：%@", inputText);
+            // 正则表达式：匹配以http://或https://开头的URL
+            NSString *pattern = @"^https?://.*$"; // ^表示开头，https?匹配http或https，://固定字符，.*匹配后续任意字符
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", pattern];
+            BOOL isLegalURL = [predicate evaluateWithObject:inputText];
+            
+            if (isLegalURL) {
+                NSLog(@"URL合法：%@", inputText);
+                // 执行合法URL的处理逻辑（如跳转、请求等）
+                NSString *encodedURLString = [inputText stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+                
+                self.app_info.mainFileUrl = [NSURL URLWithString:encodedURLString];
+                NSLog(@"执行合法URL的处理逻辑合法：%@", self.app_info.mainFileUrl);
+                
+                NSString *fileName = [self.app_info.mainFileUrl lastPathComponent];
+                NSLog(@"执行合法URL的fileName：%@", fileName);
+                
+                [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
+            } else {
+                NSLog(@"URL不合法，请以http://或https://开头");
+                // 提示用户输入正确格式
+                UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:@"错误" message:@"请输入以http://或https://开头的URL" preferredStyle:UIAlertControllerStyleAlert];
+                [errorAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                [self presentViewController:errorAlert animated:YES completion:nil];
+            }
+        }];
+        
+        
+        [alertController addAction:okAction];
+        
+        [self presentViewController:alertController animated:YES completion:nil];
+    }];
+    [alertController addAction:webFile];
     
-    // 允许选择多个文件 (可选)
-    documentPicker.allowsMultipleSelection = NO;
-    // 设置全屏显示
-    documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+    // 添加取消按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        // 取消操作的处理
+    }];
+    [alertController addAction:cancelAction];
     
-    // 显示文件选择器
-    [self presentViewController:documentPicker animated:YES completion:nil];
+    
+    [self presentViewController:alertController animated:YES completion:nil];
+    
+    
     
 }
 
@@ -676,7 +745,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [SVProgressHUD dismissWithDelay:1.5];
         return;
     }
-    
+    //验证URL
+    if(!self.app_info.mainFileUrl){
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"请先选择上传的文件"];
+        [SVProgressHUD dismissWithDelay:1.5];
+    }
     // 验证图标是否已设置
     if (self.appIconView.image == [UIImage systemImageNamed:@"app.badge.fill"]) {
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示"
@@ -689,6 +762,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
+    
     
     // 开始发布流程
     [self startPublishProcess];
@@ -755,8 +829,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self.manager saveLocalModelsToFile];
     }
     
-    // 将模型转换为字典
-    NSDictionary *modelDict = [self.app_info yy_modelToJSONObject];
     
     // 特殊处理 UIImage（转为 Base64 字符串）
     if (self.appIconView.image) {
@@ -884,7 +956,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     if (selectedImage) {
         self.appIconView.image = selectedImage;
-        
+        self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
         self.selectappIconImage = selectedImage;;
         [self updateStatusLabel];
     }
@@ -1064,6 +1136,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 if(image){
                     //赋值给头像上传
                     self.selectappIconImage = image;
+                    self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                 }
             }];
         }
@@ -1083,6 +1156,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 if(image){
                     //赋值给头像上传
                     self.selectappIconImage = image;
+                    self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                 }
             }];
         }
@@ -1119,6 +1193,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 if(image){
                     //赋值给头像上传
                     self.selectappIconImage = image;
+                    self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                 }
             }];
         }
@@ -1203,17 +1278,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 9. 更新主程序文件UI
     NSLog(@"更新主程序文件UI：%@",appInfo.mainFileUrl);
     if(appInfo.mainFileUrl){
-        NSString *mainFileName = [appInfo.mainFileUrl lastPathComponent];
-        // 本地新增附件：添加到列表
-        NSError *error;
-        NSData *fileData = [NSData dataWithContentsOfURL:appInfo.mainFileUrl options:0 error:&error];
-        if(error){
-            [self showAlertFromViewController:self title:@"错误" message:[NSString stringWithFormat:@"您选择的文件\n%@\n读取数据失败", mainFileName]];
-            NSLog(@"读取系统文件数据失败: %@", error.localizedDescription);
-            return;
+        //如果是本地文件
+        if([appInfo.mainFileUrl isEqualToString:@"file"]){
+            NSURL *fileUrl = [NSURL URLWithString:appInfo.mainFileUrl];
+            NSString *mainFileName = [fileUrl lastPathComponent];
+            // 本地新增附件：添加到列表
+            NSError *error;
+            NSData *fileData = [NSData dataWithContentsOfURL:fileUrl options:0 error:&error];
+            if(error){
+                [self showAlertFromViewController:self title:@"错误" message:[NSString stringWithFormat:@"您选择的文件\n%@\n读取数据失败", mainFileName]];
+                NSLog(@"读取系统文件数据失败: %@", error.localizedDescription);
+                return;
+            }
+            self.app_info.mainFileData = fileData;
+            [self.fileUploadButton setTitle:mainFileName forState:UIControlStateNormal];
         }
-        self.app_info.mainFileData = fileData;
-        [self.fileUploadButton setTitle:mainFileName forState:UIControlStateNormal];
     }
     
     // 10. 更新描述
@@ -1440,31 +1519,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }];
     }
     
-    //如果有选择新主文件self.mainFileData有数据
-    if(self.app_info.mainFileData){
-        //移除旧的主文件（一个APP只有一个主文件 如果选择了文本文件就移除旧的 从附件列表移除）
-        for (NSString *fileName in self.mediaNameArray) {
-            if([fileName containsString:@"_mainFile_"]){
-                [self.mediaNameArray removeObject:fileName];
-            }
-        }
-        //添加新主程序文件
-        NSString *mainFileName = [self.app_info.mainFileUrl lastPathComponent];
-        // 如果是发布新软件 附带版本号1
-        if(self.category == CategoryTypePublish){
-            mainFileName = [NSString stringWithFormat:@"1_mainFile_%@",mainFileName];
-        } else {
-            // 如果是更新新软件 附带旧版本号+1
-            mainFileName = [NSString stringWithFormat:@"%ld_mainFile_%@",self.app_info.current_version_code+1,mainFileName];
-        }
-        // 添加到上传列表
-        NSLog(@"主程序文件添加到上传列表 其他附件列表:%@",mainFileName);
-        [[UploadManager sharedManager] addFileData:self.app_info.mainFileData fileName:mainFileName toTask:self.uploadTask];
-        
-        //添加到附件列表数组
-        [self.mediaNameArray addObject:mainFileName];
-        
-    }
+    
    
     // 当所有异步操作完成时执行
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
@@ -1472,16 +1527,45 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [SVProgressHUD showErrorWithStatus:@"获取部分媒体文件失败"];
             return;
         }
+        //如果有选择新主文件self.mainFileData有数据
+        if(self.app_info.mainFileData){
+            //移除旧的主文件（一个APP只有一个主文件 如果选择了文本文件就移除旧的 从附件列表移除）
+            // 使用反向遍历安全地删除元素
+            for (NSInteger i = self.mediaNameArray.count - 1; i >= 0; i--) {
+                NSString *fileName = self.mediaNameArray[i];
+                if([fileName containsString:@"_mainFile_"]){
+                    [self.mediaNameArray removeObjectAtIndex:i];
+                }
+            }
+            //添加新主程序文件
+            NSString *mainFileName = [self.app_info.mainFileUrl lastPathComponent];
+            // 如果是发布新软件 附带版本号1
+            if(self.category == CategoryTypePublish){
+                mainFileName = [NSString stringWithFormat:@"1_mainFile_%@",mainFileName];
+            } else {
+                // 如果是更新新软件 附带旧版本号+1
+                mainFileName = [NSString stringWithFormat:@"%ld_mainFile_%@",self.app_info.current_version_code+1,mainFileName];
+            }
+            // 添加到上传列表
+            NSLog(@"主程序文件添加到上传列表 其他附件列表:%@",mainFileName);
+            [[UploadManager sharedManager] addFileData:self.app_info.mainFileData fileName:mainFileName toTask:self.uploadTask];
+            
+            //添加到附件列表数组
+            [self.mediaNameArray addObject:mainFileName];
+            
+        }
         
         // 赋值最新的版本 附件列表
         self.app_info.fileNames = [NSMutableArray arrayWithArray:self.mediaNameArray];
         
+        
         // 2.1 将头像转换为临时URL（插入下标0）
         if (self.appIconView.image && self.selectappIconImage) {
             //移除旧的图标
-            for (NSString *name in self.app_info.fileNames) {
-                if([name containsString:@"icon.png"]){
-                    [self.app_info.fileNames removeObject:name];
+            for (NSInteger i = self.app_info.fileNames.count - 1; i >= 0; i--) {
+                NSString *fileName = self.app_info.fileNames[i];
+                if([fileName containsString:@"icon.png"]){
+                    [self.app_info.fileNames removeObject:fileName];
                 }
             }
             // 如果修改了头像 上传到上传管理
@@ -1530,6 +1614,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 恢复任务状态
         [self updateUIWithTask:self.uploadTask];
     }
+    
 }
 
 // 根据任务恢复UI
@@ -1571,11 +1656,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.app_info.tags = self.selectedTags;
     self.app_info.app_name = self.appNameField.text;
-    self.app_info.app_type = [NewAppFileModel fileTypeForFileURL:self.app_info.mainFileUrl];
+    self.app_info.app_type = [NewAppFileModel fileTypeForFileName:self.app_info.mainFileUrl];
     self.app_info.app_description = self.descriptionTextView.text;
     self.app_info.bundle_id = self.bundleIDField.text;
     self.app_info.release_notes = self.releaseNotesTextView.text; // 假设添加了版本说明输入框
-    
+    self.app_info.track_id = self.iTunesAppModel.trackId?:@"0";
     // 4. 构建保存路径
     NSString *appTypeDir = [self appTypeDirectory];//获取文件类型字符串 IPA/DEB/ZIP
     NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
@@ -2025,7 +2110,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }
         
         // 5. 校验文件格式
-        NSSet *allowedFileTypes = [NSSet setWithObjects:@"ipa", @"ipas", @"zip", @"js", @"html", @"json", @"deb", @"sh", @"plist", @"dylib",nil];
+        NSSet *allowedFileTypes = [NSSet setWithObjects:@"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh", @"plist", @"dylib",nil];
         
         if (![allowedFileTypes containsObject:fileType]) {
             [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"不支持的格式: .%@（文件: %@）", fileType, fileName]];
@@ -2047,7 +2132,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         //修改按钮
         [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
         //赋值主文件URL
-        self.app_info.mainFileUrl = selectedFileURL;
+        self.app_info.mainFileUrl = [NSString stringWithFormat:@"%@",selectedFileURL];
         //赋值主文件data
         self.app_info.mainFileData = fileData;
         // 释放当前文件的安全访问权限
@@ -2103,7 +2188,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     } else if ([self isVideoType:fileType]) {
         // 视频类型：返回通用视频图标
         return [UIImage systemImageNamed:@"video"];
-    } else if ([@"ipa" isEqualToString:fileType] || [@"ipas" isEqualToString:fileType]) {
+    } else if ([@"ipa" isEqualToString:fileType] || [@"tipa" isEqualToString:fileType]) {
         // IPA类型：返回应用图标
         return [UIImage systemImageNamed:@"app"];
     } else if ([@"zip" isEqualToString:fileType]) {

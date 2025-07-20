@@ -14,6 +14,7 @@
 #import <mach/task.h>
 #import "EditUserProfileViewController.h"
 #import "FeedbackViewController.h"
+#import "PrivacyPolicyViewController.h"
 @interface ProfileRightViewController ()<UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) UILabel *topTitle;
@@ -33,17 +34,22 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    NSLog(@"Do any additional setup after loading the view.");
     [self setTopTitle];
+    NSLog(@"setTopTitle");
     [self setTableView];
+    NSLog(@"setTableView");
     [self setupSettingsData];
+    NSLog(@"setupSettingsData");
     [self updateViewConstraints];
+    NSLog(@"updateViewConstraints");
     
     
 }
 
 
 - (void)setTopTitle {
-    self.topTitle = [[UILabel alloc] initWithFrame:CGRectMake(20,  [UIApplication sharedApplication].statusBarFrame.size.height, [UIScreen mainScreen].bounds.size.width, 30)];
+    self.topTitle = [[UILabel alloc] initWithFrame:CGRectMake(20,  get_TOP_NAVIGATION_BAR_HEIGHT, [UIScreen mainScreen].bounds.size.width, 30)];
     self.topTitle.text = @"设置中心";
     self.topTitle.font = [UIFont boldSystemFontOfSize:20];
     self.topTitle.textAlignment = NSTextAlignmentLeft;
@@ -69,24 +75,29 @@
 }
 
 - (void)setupSettingsData {
+    NSLog(@"setupSettingsData开始");
     // 账号与安全分组
     NSArray<NSString *> *accountSecurityGroup = @[@"账号信息"];
     NSMutableArray<NSString *> *accountSecuritySubTitles = [@[@"查看和修改账号信息"] mutableCopy];
+    NSLog(@"账号与安全分组:%@",accountSecuritySubTitles);
     // 隐私设置分组
-    NSArray<NSString *> *privacyGroup = @[@"隐私权限"];
+    NSArray<NSString *> *privacyGroup = @[@"权限"];
     NSMutableArray<NSString *> *privacySubTitles = [@[@"权限检查"] mutableCopy];
-   
+    NSLog(@"隐私设置分组:%@",privacySubTitles);
     // 关于应用分组
     NSArray<NSString *> *aboutAppGroup = @[@"版本信息", @"检查更新", @"意见反馈", @"隐私政策"];
     NSMutableArray<NSString *> *aboutAppSubTitles = [@[@"查看应用当前版本", @"检查是否有新版本", @"提交使用意见和反馈", @"查看应用隐私政策"] mutableCopy];
     // 清理缓存分组
-    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"应用内存占用", @"清理整个APP缓存"];
+//    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"应用内存占用", @"清理整个APP缓存"];
+    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"应用内存占用"];
     NSUInteger sdImageCacheSize = [[SDImageCache sharedImageCache] totalDiskSize];
+    NSLog(@"sdImageCacheSize:%ld",sdImageCacheSize);
     int64_t usedMemory = [self getUsedMemory];
-    int64_t sandboxSize = [self getSandboxSize];
+    NSLog(@"usedMemory:%lld",usedMemory);
+//    int64_t sandboxSize = [self getSandboxSize];
+//    NSLog(@"sandboxSize:%lld",sandboxSize);
     NSMutableArray<NSString *> *cacheSubTitles = [@[[NSString stringWithFormat:@"当前占用 %.2f MB", (float)sdImageCacheSize / (1024 * 1024)],
-                                                    [NSString stringWithFormat:@"已使用 %.2f MB", (float)usedMemory / (1024 * 1024)],
-                                                    [NSString stringWithFormat:@"当前占用 %.2f MB", (float)sandboxSize / (1024 * 1024)]] mutableCopy];
+                                                    [NSString stringWithFormat:@"已使用 %.2f MB", (float)usedMemory / (1024 * 1024)]] mutableCopy];
     NSArray<NSString *> *testGroup = @[@""];
     NSMutableArray<NSString *> *testSubTitles = [@[@""] mutableCopy];
     
@@ -169,7 +180,12 @@
                 [self presentPanModal:vc];
                 break;
             }
-
+            case 3: {
+                PrivacyPolicyViewController *vc = [PrivacyPolicyViewController new];
+                [self presentPanModal:vc];
+                break;
+            }
+                
             default:
                 break;
         }
@@ -262,9 +278,11 @@
     NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
     NSString *tmpPath = NSTemporaryDirectory();
     NSArray *paths = @[documentsPath, cachePath, tmpPath];
+    NSLog(@"沙盒文件数量:%ld",paths.count);
     int64_t totalSize = 0;
     for (NSString *path in paths) {
         NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:path];
+        NSLog(@"沙盒文件数量files:%ld",files.count);
         for (NSString *file in files) {
             NSString *filePath = [path stringByAppendingPathComponent:file];
             NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:nil];

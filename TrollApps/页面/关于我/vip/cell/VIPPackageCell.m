@@ -88,8 +88,8 @@
     self.recommendedLabel.userInteractionEnabled = NO; // 禁用点击事件
     [self.cardView addSubview:self.recommendedLabel];
     
-    [self.cardView addColorBallsWithCount:10 ballradius:100 minDuration:50 maxDuration:200 UIBlurEffectStyle:UIBlurEffectStyleProminent UIBlurEffectAlpha:0.8 ballalpha:1];
-    [self.cardView setRandomGradientBackgroundWithColorCount:2 alpha:0.2];
+    [self.cardView addColorBallsWithCount:10 ballradius:100 minDuration:50 maxDuration:200 UIBlurEffectStyle:UIBlurEffectStyleProminent UIBlurEffectAlpha:0.2 ballalpha:0.5];
+    [self.cardView setRandomGradientBackgroundWithColorCount:2 alpha:0.8];
 }
 
 - (void)bindViewModel:(id)viewModel {

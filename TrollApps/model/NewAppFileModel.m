@@ -39,7 +39,7 @@ static NSDictionary<NSString *, NSNumber *> *fileExtensionMap;
     if (self == [NewAppFileModel class]) {
         fileExtensionMap = @{
             @"ipa": @(FileTypeIPA),
-            @"ipas": @(FileTypeIPAS),
+            @"tipa": @(FileTypeTIPA),
             @"zip": @(FileTypeZIP),
             @"js": @(FileTypeJS),
             @"html": @(FileTypeHTML),
@@ -78,7 +78,7 @@ static NSDictionary<NSString *, NSNumber *> *fileExtensionMap;
     switch (fileType) {
         case FileTypeIPA:
             return @"iPA安装包";
-        case FileTypeIPAS:
+        case FileTypeTIPA:
             return @"iPAS巨魔安装包";
         case FileTypeZIP:
             return @"ZIP压缩文件";

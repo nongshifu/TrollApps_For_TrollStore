@@ -6,11 +6,11 @@
 //
 
 #import "TemplateCell.h"
-#import "AppComment.h"
+#import "CommentModel.h"
 NS_ASSUME_NONNULL_BEGIN
 
 @interface AppCommentCell : TemplateCell
-@property (nonatomic, strong) AppComment *appComment;
+@property (nonatomic, strong) CommentModel *appComment;
 @end
 
 NS_ASSUME_NONNULL_END

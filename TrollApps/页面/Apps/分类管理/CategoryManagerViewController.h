@@ -6,6 +6,7 @@
 //
 
 #import "DemoBaseViewController.h"
+#import "loadData.h"
 
 #define SAVE_LOCAL_TAGS_KEY @"SAVE_LOCAL_TAGS_KEY"
 

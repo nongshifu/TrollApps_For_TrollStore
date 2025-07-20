@@ -5,15 +5,15 @@
 //  Created by 十三哥 on 2025/7/1.
 //
 
-#import "AppComment.h"
+#import "CommentModel.h"
 
-@implementation AppComment
+@implementation CommentModel
 
 #pragma mark - IGListDiffable
 
 - (BOOL)isEqualToDiffableObject:(nullable id<NSObject>)object {
     if (self == object) return YES;
-    if (![object isKindOfClass:[AppComment class]]) return NO;
+    if (![object isKindOfClass:[CommentModel class]]) return NO;
     return [self isEqual:object];
 }
 
@@ -23,8 +23,8 @@
 
 - (BOOL)isEqual:(id)object {
     if (self == object) return YES;
-    if (![object isKindOfClass:[AppComment class]]) return NO;
-    AppComment *other = (AppComment *)object;
+    if (![object isKindOfClass:[CommentModel class]]) return NO;
+    CommentModel *other = (CommentModel *)object;
     return self.comment_id == other.comment_id &&
            [self.content isEqualToString:other.content] &&
            [self.user_udid isEqualToString:other.user_udid] &&
@@ -32,7 +32,8 @@
            self.userInfo == other.userInfo &&
            self.like_count == other.like_count &&
            self.isLiked == other.isLiked &&
-    
+           self.status == other.status &&
+           self.action_type == other.action_type &&
     
            [self.create_time isEqualToString:other.create_time] &&
            [self.update_time isEqualToString:other.update_time];

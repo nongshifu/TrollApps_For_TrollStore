@@ -58,6 +58,17 @@ typedef void(^InstallCompletionHandler)(BOOL success, NSError * _Nullable error)
  */
 - (FileType)fileTypeForPath:(NSString *)filePath;
 
+/**
+ * 下载远程URL文件 自带URL中文编码
+ * @param urlString 文件URL
+ */
+- (void)downloadFileWithURLString:(NSString *)urlString completion:(void(^)(NSURL * _Nullable fileLocalURL, NSError * _Nullable error))completion ;
+/**
+ * 下载远程URL文件
+ * @param url 文件URL
+ */
+- (void)downloadFileWithURL:(NSURL *)url completion:(void(^)(NSURL * _Nullable fileLocalURL, NSError * _Nullable error))completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -55,6 +55,7 @@
     if (![self.track_id isEqualToString:other.track_id]) return NO;
     if (![self.add_date isEqualToString:other.add_date]) return NO;
     if (![self.update_date isEqualToString:other.update_date]) return NO;
+    if (![self.mainFileUrl isEqualToString:other.mainFileUrl]) return NO;
     
     // 数组对比（标签和文件名）
     if (![self.tags isEqualToArray:other.tags]) return NO;

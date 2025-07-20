@@ -9,7 +9,7 @@
 //
 #import "AppDelegate.h"
 #import "MyTabBarController.h"
-
+#import "loadData.h"
 @interface AppDelegate ()
 
 @end
@@ -26,6 +26,7 @@
     self.window.rootViewController = self.sideMenuController;
     
     [self.window makeKeyAndVisible];
+    [loadData sharedInstance];
     
     return YES;
 }

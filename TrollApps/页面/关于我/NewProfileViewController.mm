@@ -18,8 +18,9 @@
 #import "NetworkClient.h"
 #import "ProfileRightViewController.h"
 #import "FeedbackViewController.h"
+
 // 是否打印日志
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
 NSString *className = NSStringFromClass([self class]); \
@@ -33,6 +34,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIButton *udidButton;     // UDID获取按钮
 @property (nonatomic, strong) UILabel *statusLabel;     // 显示获取状态
 @property (nonatomic, strong) UILabel *vipExpireLabel;
+@property (nonatomic, strong) UILabel *serialNumberLabel;
 
 @property (nonatomic, strong) UIAlertController *loadingAlert;
 
@@ -60,31 +62,35 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.templateListDelegate = self;
-    
-   
-    
+    NSLog(@"初始化长效Token相关");
     // 初始化长效Token相关
     [self loadLongTermToken];
     
     // 设置UI
     [self setupSubviews];
     //设置左右视图
+    NSLog(@"设置左右视图");
     [self setupSideMenuController];
     // 导航
+    NSLog(@"导航");
     [self setupNavigationBar];
     // 设置约束
     [self setupViewConstraints];
     //更新约束
     [self updateViewConstraints];
     // 加载用户数据
+    NSLog(@"加载用户数据");
     [self loadUserInfo];
     
     // 先加载本地VIP缓存
+    NSLog(@"先加载本地VIP缓存");
     [self loadLocalPackages];
     // 再加载远程数据
+    NSLog(@"再加载远程数据");
     [self loadVIPPackagesFromRemote];
     
     // 注册通知监听：UDID更新和App回调
+    NSLog(@"注册通知监听：UDID更新和App回调");
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleUDIDUpdatedNotification:)
                                                  name:@"UDIDUpdatedNotification"
@@ -96,6 +102,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.hidesVerticalScrollIndicator = YES;
     self.hidesHorizontalScrollIndicator = YES;
+    [self testgetSerialNumber];
     
 }
 
@@ -208,7 +215,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     if (savedUDID.length > 0) {
         return savedUDID;
     }
-    
+    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
     // 否则尝试通过系统接口获取（可能失败，仅作为备用）
     static CFStringRef (*$MGCopyAnswer)(CFStringRef);
     void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
@@ -226,6 +233,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     CFStringRef udidRef = $MGCopyAnswer(CFSTR("UniqueDeviceID"));
     NSString *udid = (__bridge_transfer NSString *)udidRef;
+    NSLog(@"读取的UDID:%@",udid);
     dlclose(gestalt);
     return udid;
 }
@@ -233,6 +241,24 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 /// 获取本机IDFV
 - (NSString *)getIDFV {
     return [KeychainTool readAndSaveIDFV];
+}
+
+- (NSString*)getSerialNumber{
+    
+    static CFStringRef (*$MGCopyAnswer)(CFStringRef);
+    void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
+    $MGCopyAnswer = reinterpret_cast<CFStringRef (*)(CFStringRef)>(dlsym(gestalt, "MGCopyAnswer"));
+    
+    return (__bridge NSString *)$MGCopyAnswer(CFSTR("SerialNumber"));
+}
+
+- (void)testgetSerialNumber{
+    NSString *serialNumber = [self getSerialNumber];
+    if(!serialNumber || serialNumber.length<5){
+        [self showAlertFromViewController:self title:@"权限失效" message:@"请用巨魔商店安装本APP\n就可以享受高级权限"];
+    }else{
+        self.serialNumberLabel.text = serialNumber;
+    }
 }
 
 
@@ -293,21 +319,34 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.collectionView removeFromSuperview];
     
     [self.view addSubview:self.collectionView];
+    
+    // 昵称
+    self.serialNumberLabel = [[UILabel alloc] init];
+    self.serialNumberLabel.text = @"未获得ROOT权限 请用巨魔安装"; // 默认未注册
+    self.serialNumberLabel.font = [UIFont boldSystemFontOfSize:10];
+    self.serialNumberLabel.textAlignment = NSTextAlignmentCenter;
+    self.serialNumberLabel.userInteractionEnabled = YES;
+    [self.serialNumberLabel addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(testgetSerialNumber)]];
+    [self.view addSubview:self.serialNumberLabel];
 }
 
 
 //设置左侧菜单
 - (void)setupSideMenuController {
     self.sideMenuController = [self getLGSideMenuController];
-    
+    NSLog(@"读取self.sideMenuController:%@",self.sideMenuController);
     // 设置侧滑阈值，这里设置为从屏幕边缘开始 20 点的距离才触发侧滑
     self.sideMenuController.leftViewController = [DemoBaseViewController new];
+    NSLog(@"leftViewController:%@",self.sideMenuController.leftViewController);
     self.sideMenuController.rightViewController = [ProfileRightViewController new];
+    NSLog(@"rightViewController:%@",self.sideMenuController.rightViewController);
     //设置宽度
+    NSLog(@"设置宽度:%@",self.sideMenuController);
     self.sideMenuController.leftViewWidth = 200;
     self.sideMenuController.rightViewWidth = 200;
     // 设置左侧菜单的滑动触发范围
     self.sideMenuController.swipeGestureArea = LGSideMenuSwipeGestureAreaBorders;//全屏可触摸
+    NSLog(@"设置左侧菜单的滑动触发范围:%ld",self.sideMenuController.swipeGestureArea);
     //默认不允许触摸侧滑 按钮点击显示
     self.sideMenuController.leftViewSwipeGestureEnabled = YES;
     self.sideMenuController.rightViewSwipeGestureEnabled = YES;
@@ -361,6 +400,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         [self loadUserInfo];
         [self animationUI];
+        [self loadVIPPackagesFromRemote];
     }];
 }
 
@@ -409,6 +449,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.vipExpireLabel.mas_bottom).offset(20);
         make.left.equalTo(self.view).offset(20);
+        make.right.equalTo(self.view).offset(-20);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
+    }];
+    
+    
+    [self.serialNumberLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        
         make.right.equalTo(self.view).offset(-20);
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
     }];
@@ -474,7 +521,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     if (userModel.udid.length > 0) {
         // 已获取UDID
         [self.udidButton setTitle:userModel.udid forState:UIControlStateNormal];
-        [self.udidButton setTitleColor:[UIColor colorWithLightColor:[UIColor greenColor] darkColor:[UIColor whiteColor]] forState:UIControlStateNormal];
+        [self.udidButton setTitleColor:[UIColor colorWithLightColor:[UIColor blueColor] darkColor:[UIColor whiteColor]] forState:UIControlStateNormal];
         self.udidButton.backgroundColor = [UIColor clearColor];
         self.udidButton.layer.borderColor = [UIColor systemGrayColor].CGColor;
         [self.udidButton removeTarget:self action:@selector(handleUDIDButton:) forControlEvents:UIControlEventTouchUpInside];

@@ -13,7 +13,9 @@
 #import "PublishAppViewController.h"
 #import "AppSearchViewController.h"
 #import "NewProfileViewController.h"
-
+#import "DownloadManagerViewController.h"
+#import "loadData.h"
+#include <dlfcn.h>
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -69,6 +71,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     
     [self updateButtonSelectionWithIndex:0];
+    [self getUDID];
 }
 
 // 显示后
@@ -378,7 +381,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)setupSegmentedControl {
     NSArray *lacalTags = [[NSUserDefaults standardUserDefaults] arrayForKey:SAVE_LOCAL_TAGS_KEY];
     if(!lacalTags){
-        self.titles = [NSMutableArray arrayWithArray:@[@"最新", @"最火", @"推荐", @"游戏辅助", @"巨魔iPA", @"无根插件", @"有根deb插件", @"应用多开", @"系统插件", @"老司机", @"无限金币"]];
+        self.titles = [NSMutableArray arrayWithArray:[loadData sharedInstance].tags];
+        NSArray *array = @[@"最新",@"最火",@"推荐"];
+        // 插入到self.titles的最前面（索引0的位置开始）
+        [self.titles insertObjects:array atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, array.count)]];
+        
         [[NSUserDefaults standardUserDefaults] setObject:self.titles forKey:SAVE_LOCAL_TAGS_KEY];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }else{
@@ -456,8 +463,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bottomButton.buttonSpace = 10;
     self.bottomButton.fontSize = 15;
     [self.view addSubview:self.bottomButton];
-    NSArray *titles = @[@"分类", @"收藏",];
-    NSArray *icons = @[@"tag.square", @"star.lefthalf.fill"];
+    NSArray *titles = @[@"分类", @"收藏", @"下载"];
+    NSArray *icons = @[@"tag.square", @"star.lefthalf.fill", @"square.and.arrow.down"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
     [self.bottomButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
@@ -843,21 +850,41 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self presentPanModal:vc];
 
     }else{
-        PublishAppViewController *vc = [PublishAppViewController new];
+        DownloadManagerViewController *vc = [DownloadManagerViewController new];
         [self presentPanModal:vc];
-//        [self.navigationController pushViewController:vc animated:YES];
-//        [self presentViewController:vc animated:YES completion:nil];
-        // 2. 包装到导航控制器中（确保顶部导航栏生效）
-//        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
-//        [self presentViewController:navVC animated:YES completion:nil];
-        
-//        testNavigationViewController *navVC = [[testNavigationViewController alloc] initWithRootViewController:[testViewController new]];
-//        [self presentViewController:navVC animated:YES completion:nil];
-        
-        
+
     }
 }
 
-
+/// 获取本地存储的UDID
+- (NSString *)getUDID {
+    // 优先从本地存储获取（通过描述文件获取的UDID）
+    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
+    NSString *savedUDID = [[NSUserDefaults standardUserDefaults] stringForKey:[vendorID UUIDString]];
+    if (savedUDID.length > 0) {
+        return savedUDID;
+    }
+    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
+    // 否则尝试通过系统接口获取（可能失败，仅作为备用）
+    static CFStringRef (*$MGCopyAnswer)(CFStringRef);
+    void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
+    if (!gestalt) {
+        NSLog(@"无法加载libMobileGestalt.dylib");
+        return nil;
+    }
+    
+    $MGCopyAnswer = reinterpret_cast<CFStringRef (*)(CFStringRef)>(dlsym(gestalt, "MGCopyAnswer"));
+    if (!$MGCopyAnswer) {
+        NSLog(@"找不到MGCopyAnswer函数");
+        dlclose(gestalt);
+        return nil;
+    }
+    
+    CFStringRef udidRef = $MGCopyAnswer(CFSTR("UniqueDeviceID"));
+    NSString *udid = (__bridge_transfer NSString *)udidRef;
+    NSLog(@"读取的UDID:%@",udid);
+    dlclose(gestalt);
+    return udid;
+}
 
 @end

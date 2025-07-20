@@ -14,10 +14,12 @@
 #import "NewProfileViewController.h"
 #import "MyFavoritesListViewController.h"
 #import "NewAppFileModel.h"
+#import "FileInstallManager.h"
 #import "config.h"
-
+#import "ShowOneAppViewController.h"
+#import "DownloadManagerViewController.h"
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -480,18 +482,55 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark - 交互处理
 - (void)downloadButtonTapped {
-    NSLog(@"点击了右侧下载按钮");
-    switch (self.appInfoModel.app_type) {
-        case 0 || 1:
-            //IPA类型  可以在线安装
+    NSLog(@"点击了右侧下载按钮mainFileUrl:%@",self.appInfoModel.mainFileUrl);
+    NSString *mainFile = nil;
+    for (NSString *name in self.appInfoModel.fileNames) {
+        if([name containsString:@"_mainFile_"]){
+            mainFile = name;
             break;
-        case 2:
-            //DEB 越狱插件类型类型 判断是否越狱 终端安装
-            break;
-            
-        default:
-            break;
+        }
     }
+    NSString *url = nil;
+    if(!mainFile && self.appInfoModel.mainFileUrl){
+        url = [NSString stringWithFormat:@"%@",self.appInfoModel.mainFileUrl];
+    }else{
+        url = [NSString stringWithFormat:@"%@/%@%@",localURL,self.appInfoModel.save_path,mainFile];
+    }
+   
+    NSLog(@"主文件安装下载地址:%@",url);
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载提示" message:@"可在下载管理中管理历史下载文件" preferredStyle:UIAlertControllerStyleAlert];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        [[FileInstallManager sharedManager] downloadFileWithURLString:url completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
+            if(error){
+                [self showAlertFromViewController:[self getTopViewController] title:@"下载失败" message:[NSString stringWithFormat:@"%@",error]];
+                return;
+            }
+            DownloadManagerViewController *vc = [DownloadManagerViewController new];
+            [[self getTopViewController] presentPanModal:vc];
+        }];
+        
+    }];
+    [alert addAction:cancelAction];
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        [[FileInstallManager sharedManager] installFileWithURLString:url completion:^(BOOL success, NSError * _Nullable error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if(error){
+                    NSLog(@"安装失败：%@",error);
+                    [self showAlertFromViewController:[self getviewController] title:@"安装失败" message:[NSString stringWithFormat:@"%@",error]];
+                    return;
+                }
+            });
+            
+            
+        }];
+        
+    }];
+    [alert addAction:confirmAction];
+    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+    
+    
     
 }
 
@@ -553,6 +592,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)handleCommentAction {
+    UIViewController *vc = [self getTopViewController];
+    if([vc isKindOfClass:[ShowOneAppViewController class]])return;
     // 处理评论操作
     NSLog(@"处理评论操作");
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"发布评论" message:@"请输入评论内容" preferredStyle:UIAlertControllerStyleAlert];
@@ -584,11 +625,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             return;
         }
         
-        Comment_type comment_type = Comment_type_AppComment;
+        Action_type comment_type = Comment_type_AppComment;
         // 构建请求参数（根据实际接口调整）
         NSDictionary *params = @{
             @"action": @"comment",
-            @"comment_type": @(comment_type),
+            @"action_type": @(comment_type),
             @"to_id": @(self.appInfoModel.app_id),
             @"content": textField.text,
             @"udid": udid
@@ -652,11 +693,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 1. 准备分享内容
     NSMutableArray *shareItems = [NSMutableArray array];
     
-    // 添加应用名称和描述
-    NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
-                           self.appInfoModel.app_name,
-                           self.appInfoModel.app_description ?: @"快来一起看看吧！"];
-    [shareItems addObject:shareText];
+    
     
     // 添加应用URL
     NSString *urlString = [NSString stringWithFormat:@"%@/app_detail.html?app_id=%ld", localURL, self.appInfoModel.app_id];
@@ -664,6 +701,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     if (appURL) {
         [shareItems addObject:appURL];
     }
+    
+    // 添加应用名称和描述
+    NSString *shareText = [NSString stringWithFormat:@"%@\n%@\n%@",
+                           self.appInfoModel.app_name,
+                           self.appInfoModel.app_description ?: @"快来一起看看吧！",
+                           appURL?:@""
+    ];
+    [shareItems addObject:shareText];
     
     // 处理应用图标（异步下载网络图片）
     __block UIImage *appIcon = nil;
@@ -748,12 +793,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // API地址 - 根据实际情况修改
     NSString *urlString = [NSString stringWithFormat:@"%@/app_action.php",localURL];
     
-    Comment_type comment_type = Comment_type_AppComment;
     // 准备请求参数
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"action"] = action;
     params[@"to_id"] = @(self.appInfoModel.app_id);
-    params[@"type"] = @(comment_type);
+    params[@"action_type"] = @(Comment_type_AppComment);
     // 获取设备标识
     params[@"idfv"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     
@@ -891,25 +935,28 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                // 图片格式
                                @"jpg", @"jpeg", @"png", @"gif", @"bmp", @"heic", @"heif",
                                // 视频格式
-                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
+//                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
                                // 其他指定格式
-//                               @"ipa", @"ipas", @"zip", @"js", @"html", @"json", @"deb", @"sh",
+//                               @"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh",
                                nil];
 
     for (NSString *file in appFileModels) {
+        //排除头像 缩略图 和主程序文件
+        if ([file containsString:@"thumbnail"] || [file containsString:@"icon.png"]  || [file containsString:@"_mainFile_"]) {
+            continue;
+        }
         NSURL *url= [NSURL URLWithString:file];
         NSString *fileType = [url pathExtension].lowercaseString;
-        //排除非媒体文件
+        //排除非图片视频文件
         if (![allowedFileTypes containsObject:fileType]) {
             continue;
         }
         //最后排除图标和缩略图 得到剩下
-        if (![file containsString:@"thumbnail"] && ![file containsString:@"icon.png"]) {
-            count++;
-        }
+        count++;
     }
     
     NSLog(@"排除后的媒体数量:%ld",count);
+    if(count ==0) return;
 
     // 最大宽度（左右预留16pt，总32pt）
     CGFloat maxWidth = CGRectGetWidth(self.contentView.frame) - 32;

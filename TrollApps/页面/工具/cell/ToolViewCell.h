@@ -6,11 +6,11 @@
 //
 
 #import "TemplateCell.h"
-#import "ToolModel.h"
+#import "WebToolModel.h"
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ToolViewCell : TemplateCell
-@property (nonatomic, strong) ToolModel *toolModel;
+@property (nonatomic, strong) WebToolModel *toolModel;
 @end
 
 NS_ASSUME_NONNULL_END

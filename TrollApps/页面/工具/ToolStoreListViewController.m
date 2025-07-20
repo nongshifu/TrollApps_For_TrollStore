@@ -7,7 +7,10 @@
 
 #import "ToolStoreListViewController.h"
 #import "ToolViewCell.h"
-#import "ToolModel.h"
+#import "WebToolModel.h"
+#import "loadData.h"
+#import "NewToolViewController.h"
+#import "ShowOneToolViewController.h"
 
 @interface ToolStoreListViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate>
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
@@ -20,16 +23,18 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     NSLog(@"collectionView：%@",self.collectionView);
-    [self setupUI];
+    [self setupViews];
+    [self setupViewConstraints];
+    [self updateViewConstraints];
     //刷新数据
-    [self refreshData];
+    [self refreshLoadInitialData];
     
 }
 
 #pragma mark - 初始化UI
 
-- (void)setupUI{
-    [super setupUI];
+- (void)setupViews{
+    
     //默认
     self.title = @"热门工具";
     self.zx_hideBaseNavBar = YES;
@@ -74,10 +79,10 @@
     self.navigationItem.rightBarButtonItem = countryItem;
     
     // 关闭按钮
-    UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"关闭"
+    UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"最近"
                                                                        style:UIBarButtonItemStylePlain
                                                                       target:self
-                                                                      action:@selector(dismiss)];
+                                                                      action:@selector(recently)];
     closeButton.tintColor = [UIColor labelColor];
     
     // 关键：禁用系统默认的返回按钮
@@ -94,10 +99,11 @@
 //设置约束
 -(void)setupViewConstraints{
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.view).offset(40);
-        make.centerX.equalTo(self.view);
-        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
-        make.width.equalTo(self.view);
+        make.edges.equalTo(self.view);
+//        make.top.equalTo(self.view).offset(40);
+//        make.centerX.equalTo(self.view);
+//        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
+//        make.width.equalTo(self.view);
     }];
     
     
@@ -109,11 +115,12 @@
     [super updateViewConstraints];
     
     [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.view).offset(40);
-        make.centerX.equalTo(self.view);
-        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
-        make.width.equalTo(self.view);
-        
+        make.edges.equalTo(self.view);
+//        make.top.equalTo(self.view).offset(40);
+//        make.centerX.equalTo(self.view);
+//        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
+//        make.width.equalTo(self.view);
+//        
     }];
 }
 
@@ -123,13 +130,16 @@
 - (void)myToolTapped {
     
 }
+//最近使用
+- (void)recently {
+    
+}
 
 #pragma mark - 数据操作
 
 //刷新数据
 - (void)refreshData{
-    //重置关键词
-    self.keyword = @"";
+    [self.dataSource removeAllObjects];
     //重置页码
     self.page = 1;
     //重新搜索
@@ -144,11 +154,6 @@
     
     [self.searchTimer invalidate];
     
-    if (searchText.length == 0) {
-        //重置数据
-        
-        return;
-    }
     
     self.keyword = searchText;
     self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
@@ -162,8 +167,8 @@
 //点击取消时 执行默认搜索
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     [searchBar resignFirstResponder];
-    self.keyword = @"";
-    [self performSearchWithText:@"游戏"];
+    self.page = 1;
+    [self performSearchWithText:@""];
 }
 
 // 执行搜索请求
@@ -185,11 +190,64 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page {
-    [self refreshTable];
-    [self endRefreshing];
-    [self.emptyView configureWithImage:[UIImage systemImageNamed:@"list.bullet.rectangle"]
-                           title:@"暂无数据"
-                     buttonTitle:@"刷新"];
+    NSString *udid = [loadData sharedInstance].userModel.udid ?:@"";
+    NSDictionary *dic = @{
+        @"udid":udid,
+        @"action":@"getToolList",
+        @"category":@"popular",
+        @"page":@(self.page),
+        @"page_size":@(20),
+        @"keyword":self.keyword?:@"",
+        @"sort_field":@"sort_field"//排序
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"请求读取工具stringResult：%@",stringResult);
+            [self endRefreshing];
+            if(self.page <=1){
+                [self.dataSource removeAllObjects];
+            }
+            if(!jsonResult){
+                [self showAlertFromViewController:self title:@"返回数据错误" message:stringResult];
+                return;
+            }
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString *msg = jsonResult[@"msg"];
+            if(code == 200){
+                NSDictionary *data = jsonResult[@"data"];
+                NSArray *tools = data[@"tools"];
+                for (NSDictionary *dic in tools) {
+                    NSLog(@"遍历请求读取工具dic：%@",dic);
+                    WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
+                    if(model){
+                        [self.dataSource addObject:model];
+                    }
+                }
+                //刷新表格
+                [self refreshTable];
+                //解析页码信息
+                NSDictionary *pagination = data[@"pagination"];
+                NSLog(@"请求读取工具pagination：%@",pagination);
+                NSInteger total_pages = [pagination[@"total_pages"] intValue];
+                if(total_pages > self.page){
+                    self.page +=1;
+                }else{
+                    [self handleNoMoreData];
+                }
+            }else{
+                [self showAlertFromViewController:self title:@"数据错误" message:msg];
+            }
+            self.emptyView.hidden = self.dataSource.count>0;
+        });
+        
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self showAlertFromViewController:self title:@"error" message:[NSString stringWithFormat:@"%@",error]];
+        });
+    }];
     
 }
 
@@ -199,8 +257,8 @@
  @return 返回具体的 SectionController 实例
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
-    if([object isKindOfClass:[ToolModel class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[ToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 0, 10, 0) cellHeight:100];
+    if([object isKindOfClass:[WebToolModel class]]){
+        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(10, 10, 0, 10) usingCacheHeight:NO];
     }
     return nil;
 }
@@ -225,7 +283,13 @@
                           atIndex:(NSInteger)index
                              cell:(UICollectionViewCell *)cell {
     NSLog(@"点击了model:%@  index:%ld cell:%@",model,index,cell);
-    
+    if([model isKindOfClass:[WebToolModel class]]){
+        
+        WebToolModel * webToolModel = (WebToolModel *)model;
+        ShowOneToolViewController *vc = [ShowOneToolViewController new];
+        vc.tool_id = webToolModel.tool_id;
+        [self presentPanModal:vc];
+    }
     
 }
 

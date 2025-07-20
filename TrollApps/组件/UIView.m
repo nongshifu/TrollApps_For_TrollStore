@@ -556,6 +556,55 @@ static const void *kColorBallsContainerLayerKey = &kColorBallsContainerLayerKey;
     return image;
 }
 
+- (void)showAlertFromViewController:(UIViewController *)viewController
+                                  title:(NSString *)title
+                                message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                     message:message
+                                                              preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定"
+                                              style:UIAlertActionStyleDefault
+                                            handler:nil]];
+    
+    [viewController presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)showAlertWithConfirmationFromViewController:(UIViewController *)viewController
+                                              title:(NSString *)title
+                                            message:(NSString *)message
+                                       confirmTitle:(NSString *)confirmTitle
+                                        cancelTitle:(NSString *)cancelTitle
+                                        onConfirmed:(void (^)(void))onConfirm
+                                         onCancelled:(void (^)(void))onCancel {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                     message:message
+                                                              preferredStyle:UIAlertControllerStyleAlert];
+    if(confirmTitle){
+        [alert addAction:[UIAlertAction actionWithTitle:confirmTitle
+                                                  style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * _Nonnull action) {
+            if (onConfirm) {
+                onConfirm();
+            }
+        }]];
+    }
+    if(cancelTitle){
+        [alert addAction:[UIAlertAction actionWithTitle:cancelTitle
+                                                  style:UIAlertActionStyleCancel
+                                                handler:^(UIAlertAction * _Nonnull action) {
+            if (onCancel) {
+                onCancel();
+            }
+        }]];
+    }
+    
+    
+    
+    [viewController presentViewController:alert animated:YES completion:nil];
+}
+
+
 
 @end
 

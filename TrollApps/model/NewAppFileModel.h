@@ -15,7 +15,7 @@ typedef NS_ENUM(NSInteger, FileType) {
     
     // 安装包类型
     FileTypeIPA = 0,            // iOS应用安装包
-    FileTypeIPAS,           // 多应用安装包集合
+    FileTypeTIPA,           // 多应用安装包集合
     FileTypeDEB,            // Debian软件包(越狱插件)
     
     // 脚本/配置类型

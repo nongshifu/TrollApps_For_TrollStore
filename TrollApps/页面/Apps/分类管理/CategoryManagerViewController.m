@@ -13,7 +13,7 @@
 @property (nonatomic, strong) UILabel *tagLabel;
 @property (nonatomic, strong) UIButton *saveButton;
 @property (nonatomic, strong) UIButton *addButton;
-@property (nonatomic, strong) NSArray <NSString *>*systemTags;//系统预标签
+@property (nonatomic, strong) NSMutableArray <NSString *>*systemTags;//系统预标签
 @property (nonatomic, strong) MiniButtonView *miniButtonView;
 
 @end
@@ -25,9 +25,7 @@
     self.title = @"管理分类";
     
     // 初始化系统预标签
-    self.systemTags = @[@"巨魔IPA", @"游戏辅助", @"多开软件", @"定位", @"脚本",
-                        @"有根越狱插件", @"无根插件", @"影音", @"工具",
-                        @"系统增强", @"其他"];
+    self.systemTags = [NSMutableArray arrayWithArray:[loadData sharedInstance].tags];
     
     // 初始化数据（从主控制器传递过来的分类列表）
     if(!_titles){

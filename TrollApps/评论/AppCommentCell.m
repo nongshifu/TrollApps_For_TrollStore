@@ -19,7 +19,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UILabel *nicknameLabel;
 @property (nonatomic, strong) UILabel *timeLabel;
 @property (nonatomic, strong) UILabel *contentLabel;
-@property (nonatomic, copy) void(^likeButtonClicked)(AppComment *comment, BOOL isLiked);
+@property (nonatomic, copy) void(^likeButtonClicked)(CommentModel *comment, BOOL isLiked);
 @end
 
 @implementation AppCommentCell
@@ -185,7 +185,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
  */
 - (void)configureWithModel:(id)model {
     self.model = model;
-    self.appComment = (AppComment *)model;
+    self.appComment = (CommentModel *)model;
     
     // 1. 绑定用户信息
     UserModel *userInfo = self.appComment.userInfo;
@@ -242,30 +242,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 /**
- 检查评论是否已点赞
- @param commentId 评论ID
- @return 是否点赞
- */
-- (BOOL)isCommentLiked:(NSInteger)commentId {
-
-    // 若不想依赖YYCache，可使用NSUserDefaults
-     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-     return [defaults boolForKey:[NSString stringWithFormat:@"like_%ld", (long)commentId]];
-}
-
-/**
- 保存点赞状态到本地
- @param commentId 评论ID
- @param isLiked 是否点赞
- */
-- (void)saveCommentLikeStatus:(NSInteger)commentId isLiked:(BOOL)isLiked {
-  
-    // NSUserDefaults版本
-     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-     [defaults setBool:isLiked forKey:[NSString stringWithFormat:@"like_%ld", (long)commentId]];
-     [defaults synchronize];
-}
-/**
  点赞按钮点击事件
  */
 - (void)likeButtonTapped:(UITapGestureRecognizer *)tap {
@@ -276,7 +252,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [SVProgressHUD showWithStatus: @"处理中..."];
     
     // 获取当前本地缓存的点赞状态（用于对比服务器返回结果）
-    BOOL currentLocalStatus = [self isCommentLiked:self.appComment.comment_id];
+    BOOL currentLocalStatus = self.appComment.isLiked;
     BOOL targetStatus = !currentLocalStatus; // 目标状态（点赞/取消点赞）
     
     // 发起服务器请求
@@ -306,7 +282,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSString *url = [NSString stringWithFormat:@"%@/app_action.php", localURL];
     NSDictionary *params = @{
         @"action": @"toggle_comment_like",
-        @"type": @(self.appComment.comment_type),
+        @"action_type": @(self.appComment.action_type),
         @"to_id": @(self.appComment.comment_id),
         @"to_udid": self.appComment.user_udid
        
@@ -331,13 +307,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 // 假设SUCCESS是服务器定义的成功状态码（如200）
                 // 从服务器返回数据中获取最新状态和点赞数
                 BOOL serverStatus = [jsonResult[@"data"][@"newStatus"] boolValue];
-                NSInteger newRating = [jsonResult[@"data"][@"like_count"] integerValue];
+                BOOL newRating = [jsonResult[@"data"][@"like_count"] boolValue];
                 
                 // 1. 更新本地缓存状态
-                [self saveCommentLikeStatus:commentId isLiked:serverStatus];
+                self.appComment.isLiked = newRating;
                 
                 // 2. 更新数据模型
-                self.appComment.like_count = newRating;
+                self.appComment.like_count = newRating ? self.appComment.like_count+1 :self.appComment.like_count -1;
                 
                 // 3. 更新UI显示
                 [self updateLikeStatus];
@@ -391,7 +367,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 如果需要，恢复到原始状态（避免本地与服务器不一致）
     if (needRestoreStatus) {
-        [self saveCommentLikeStatus:self.appComment.comment_id isLiked:originalStatus];
+        
         [self updateLikeStatus];
     }
 }
@@ -400,7 +376,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
  更新点赞UI状态
  */
 - (void)updateLikeStatus {
-    BOOL isLiked = [self isCommentLiked:self.appComment.comment_id];
+    BOOL isLiked = self.appComment.isLiked;
     
     // 更新点赞图标
     self.likeImageView.image = isLiked ?

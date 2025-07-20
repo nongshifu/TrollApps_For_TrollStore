@@ -172,6 +172,18 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, weak) CALayer *colorBallsContainerLayer;
 
 - (void)updateColorBallsPositions;
+
+- (void)showAlertFromViewController:(UIViewController *)viewController
+                                  title:(NSString *)title
+                            message:(NSString *)message;
+
+- (void)showAlertWithConfirmationFromViewController:(UIViewController *)viewController
+                                              title:(NSString *)title
+                                            message:(NSString *)message
+                                       confirmTitle:(NSString *)confirmTitle
+                                        cancelTitle:(NSString *)cancelTitle
+                                        onConfirmed:(void (^)(void))onConfirm
+                                        onCancelled:(void (^)(void))onCancel;
 @end
 
 

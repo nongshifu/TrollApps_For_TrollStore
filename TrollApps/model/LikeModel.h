@@ -17,7 +17,9 @@ typedef NS_ENUM(NSInteger, Like_type) {
     Like_type_AppCommentLike = 0,     // App评论点赞
     Like_type_UserCommentLike = 1, // 用户评论点赞
     Like_type_AppSecondCommentLike = 2, //  App评论二级评论点赞
-    Like_type_UserSecondCommentLike = 3     // 用户评论二级评论点赞
+    Like_type_UserSecondCommentLike = 3,     // 用户评论二级评论点赞
+    Like_type_ToolCommentLike = 4,     // 工具评论点赞
+    Like_type_ToolSecondCommentLike = 5, // 工具二级评论点赞
 };
 
 

@@ -167,9 +167,9 @@
                     NSLog(@"返回数量:%ld",comments.count);
                     for (NSDictionary *dic in comments) {
                         NSLog(@"赋值前:%@",dic);
-                        AppComment *model = [AppComment yy_modelWithDictionary:dic];
-                        model.comment_type = Comment_type_UserComment;
-                        NSLog(@"赋值后comment_type:%ld",model.comment_type);
+                        CommentModel *model = [CommentModel yy_modelWithDictionary:dic];
+                        model.action_type = Comment_type_UserComment;//标记为用户评论
+                        NSLog(@"赋值后comment_type:%ld",model.action_type);
                         [self.dataSource addObject:model];
                     }
                     
@@ -212,8 +212,8 @@
     }else if([object isKindOfClass:[AppInfoModel class]]){
         return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
     }
-    else if([object isKindOfClass:[AppComment class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class] modelClass:[AppComment class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
+    else if([object isKindOfClass:[CommentModel class]]){
+        return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class] modelClass:[CommentModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
     }
     return nil;
 }

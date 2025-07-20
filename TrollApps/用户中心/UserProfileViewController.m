@@ -55,12 +55,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // Do any additional setup after loading the view.
     self.view.backgroundColor = UIColor.systemBackgroundColor;
     self.title = @"用户中心";
-//    self.hidesVerticalScrollIndicator = YES;
-//
-//    self.templateListDelegate = self;
-    
 
-    
     self.originalInputHeight = 50;
     self.expandedInputHeight = 80;
     self.keyboardIsShow = NO;
@@ -322,6 +317,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         
     }
+    [self.currentVC.scrollToTopButton mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.currentVC.collectionView.mas_bottom).offset(-10);
+        make.width.height.equalTo(@35);
+        make.right.equalTo(self.currentVC.collectionView.mas_right).offset(-10);
+    }];
     
     
     // 表格视图约束
@@ -638,12 +638,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     
                     for (UserListViewController *vc in self.viewControllers) {
                         vc.user_udid = self.userInfo.udid;
-                        
-                        static dispatch_once_t onceToken;
-                        dispatch_once(&onceToken, ^{
-                            [vc loadDataWithPage:1];
-                            
-                        });
+                        [vc loadDataWithPage:1];
                         
                     }
                     
@@ -691,7 +686,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                              cell:(UICollectionViewCell *)cell {
     NSLog(@"点击了model:%@  index:%ld cell:%@",model,index,cell);
     if([model isKindOfClass:[AppInfoModel class]]){
+        
         AppInfoModel *appInfoModel = (AppInfoModel *)model;
+        if([appInfoModel.udid isEqualToString:self.userInfo.udid] || [self.user_udid isEqualToString:self.userInfo.udid]) return;
         NSLog(@"appInfoModel：%@",appInfoModel.app_name);
         ShowOneAppViewController *vc = [ShowOneAppViewController new];
         vc.app_id = appInfoModel.app_id;
@@ -804,12 +801,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 隐藏键盘
     [self.commentInputView.textView resignFirstResponder];
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
-    Comment_type comment_type = Comment_type_UserComment;
     // 构建请求参数（根据实际接口调整）
     NSDictionary *params = @{
         @"action": @"user_comment",
         @"to_id": self.user_udid,
-        @"comment_type": @(comment_type),
+        @"action_type": @(Comment_type_UserComment),
         @"content": commentContent,
         
     };
@@ -887,7 +883,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 获取下标
         NSUInteger arrayIndex = [title indexOfObject:self.currentVC.typeString];
         
-        NSString *buttonTitle = !arrayIndex ?@"HOT":@"NEW";
+        NSString *buttonTitle = arrayIndex ? @"HOT":@"NEW";
         [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
         
         // 表格视图约束

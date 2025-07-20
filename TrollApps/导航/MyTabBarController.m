@@ -18,7 +18,7 @@
 #import "EditUserProfileViewController.h"
 #import "config.h"
 #import "NewProfileViewController.h"
-#import "testViewController.h"
+
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -229,7 +229,7 @@
                                                               imageName:@"t.circle"
                                                           selectedImage:@"t.circle.fill"]
     ];
-    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[testViewController new]
+    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[DemoBaseViewController new]
                                                                   title:@""
                                                               imageName:@""
                                                           selectedImage:@""]

@@ -167,6 +167,7 @@
     //更新UI
     [self configureWithUserModel:self.userModel];
 }
+
 - (void)configureWithUserModel:(UserModel *)model {
     if (!model) return;
     

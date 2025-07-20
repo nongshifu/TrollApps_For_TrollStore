@@ -32,23 +32,24 @@
     return sharedInstance;
 }
 
+// 在init方法中修改临时目录为统一下载目录
 - (instancetype)init {
     self = [super init];
     if (self) {
-        // 初始化网络会话管理器
+        // 初始化网络会话管理器（保持不变）
         NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
         self.sessionManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
         
-        // 创建临时目录
-        NSString *tempDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"InstallTemp"];
+        // 创建统一下载目录（Documents/Downloads）
+        NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Downloads"];
         NSError *error;
-        if (![[NSFileManager defaultManager] fileExistsAtPath:tempDir]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:tempDir withIntermediateDirectories:YES attributes:nil error:&error];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:docDir]) {
+            [[NSFileManager defaultManager] createDirectoryAtPath:docDir withIntermediateDirectories:YES attributes:nil error:&error];
         }
-        self.tempDirectory = tempDir;
+        self.tempDirectory = docDir; // 替换原tempDirectory为统一目录
         
         if (error) {
-            NSLog(@"创建临时目录失败: %@", error.localizedDescription);
+            NSLog(@"创建下载目录失败: %@", error.localizedDescription);
         }
     }
     return self;
@@ -91,8 +92,10 @@
         }
         return;
     }
-    
-    NSURL *url = [NSURL URLWithString:urlString];
+    // 对URL字符串进行编码（关键步骤）
+    NSString *encodedURLString = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+
+    NSURL *url = [NSURL URLWithString:encodedURLString];
     if (!url) {
         if (completion) {
             completion(NO, [NSError errorWithDomain:@"FileInstallManager" code:1004 userInfo:@{NSLocalizedDescriptionKey: @"无法解析URL"}]);
@@ -145,7 +148,7 @@
     
     // 安装包类型
     if ([extension isEqualToString:@"ipa"]) return FileTypeIPA;
-    if ([extension isEqualToString:@"ipas"]) return FileTypeIPAS;
+    if ([extension isEqualToString:@"tipa"]) return FileTypeTIPA;
     if ([extension isEqualToString:@"deb"]) return FileTypeDEB;
     
     // 脚本/配置类型
@@ -165,26 +168,76 @@
 }
 
 #pragma mark - Private Methods
-
-- (void)downloadFileWithURL:(NSURL *)url completion:(void(^)(NSURL * _Nullable localURL, NSError * _Nullable error))completion {
-    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+- (void)downloadFileWithURLString:(NSString *)urlString completion:(void(^)(NSURL * _Nullable fileLocalURL, NSError * _Nullable error))completion {
+    // 判断URL是否需要编码
+    BOOL needsEncoding = NO;
     
-    // 创建下载任务
-    NSURLSessionDownloadTask *downloadTask = [self.sessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        // 更新下载进度
+    // 检查是否包含需要编码的字符
+    NSCharacterSet *allowedCharacters = [NSCharacterSet URLQueryAllowedCharacterSet];
+    if ([urlString rangeOfCharacterFromSet:[allowedCharacters invertedSet]].location != NSNotFound) {
+        needsEncoding = YES;
+    }
+    
+    // 处理空格（URL中常见问题）
+    if ([urlString containsString:@" "]) {
+        needsEncoding = YES;
+    }
+    
+    NSString *encodedURLString = urlString;
+    if (needsEncoding) {
+        // 对URL进行编码，保留特殊字符如:/?&=等
+        encodedURLString = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        NSLog(@"URL需要编码，编码后的URL: %@", encodedURLString);
+    }
+    
+    // 创建URL对象
+    NSURL *url = [NSURL URLWithString:encodedURLString];
+    if (!url) {
+        // 处理无效URL的情况
+        NSError *error = [NSError errorWithDomain:@"FileInstallManager" code:1005 userInfo:@{NSLocalizedDescriptionKey: @"无效的URL"}];
+        NSLog(@"无效的URL: %@", urlString);
+        if (completion) {
+            completion(nil, error);
+        }
+        return;
+    }
+    
+    // 调用第二个函数
+    [self downloadFileWithURL:url completion:completion];
+}
+
+- (void)downloadFileWithURL:(NSURL *)url completion:(void(^)(NSURL * _Nullable fileLocalURL, NSError * _Nullable error))completion {
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    
+    // 创建可取消的下载任务
+    NSURLSessionDownloadTask *downloadTask = [manager downloadTaskWithRequest:[NSURLRequest requestWithURL:url]
+                                                                       progress:^(NSProgress * _Nonnull downloadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD showProgress:downloadProgress.fractionCompleted status:@"下载中..."];
         });
     } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        // 确定下载文件的保存位置
-        NSString *fileName = response.suggestedFilename ?: [NSString stringWithFormat:@"downloaded_file_%ld", (long)NSDate.date.timeIntervalSince1970];
+        // 自动处理文件名（含中文编码）
+        NSString *fileName = response.suggestedFilename ?: [NSString stringWithFormat:@"downloaded_file_%ld", (long)[NSDate date].timeIntervalSince1970];
         NSString *filePath = [self.tempDirectory stringByAppendingPathComponent:fileName];
+        
+        // 确保目录存在
+        NSError *dirError;
+        NSFileManager *fm = [NSFileManager defaultManager];
+        if (![fm fileExistsAtPath:self.tempDirectory]) {
+            [fm createDirectoryAtPath:self.tempDirectory withIntermediateDirectories:YES attributes:nil error:&dirError];
+            if (dirError) {
+                NSLog(@"创建目录失败: %@", dirError);
+            }
+        }
+        
         return [NSURL fileURLWithPath:filePath];
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
             
             if (error || !filePath) {
+                NSLog(@"下载失败: %@", error);
                 if (completion) {
                     completion(nil, error ?: [NSError errorWithDomain:@"FileInstallManager" code:1006 userInfo:@{NSLocalizedDescriptionKey: @"下载失败"}]);
                 }
@@ -200,7 +253,6 @@
     
     [downloadTask resume];
 }
-
 - (void)handleLocalFileWithURL:(NSURL *)localURL completion:(InstallCompletionHandler)completion {
     if (!localURL) {
         if (completion) {
@@ -233,6 +285,7 @@
         
         switch (fileType) {
             case FileTypeIPA:
+            case FileTypeTIPA:
                 success = [self installIPAFileWithURL:fileURL error:&error];
                 break;
                 
@@ -255,13 +308,7 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
-            
-            if (success) {
-                [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"%@ 安装成功", fileName]];
-            } else {
-                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"%@ 安装失败: %@", fileName, error.localizedDescription]];
-            }
-            
+
             if (completion) {
                 completion(success, error);
             }
@@ -277,20 +324,27 @@
         }
         return NO;
     }
+    NSString *urlString = [NSString stringWithFormat:@"%@",ipaURL];
+    // 对URL字符串进行编码（关键步骤）
+    NSString *encodedURLString = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+
     
     // 使用itms-services协议安装IPA
-    NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:@"itms-services://?action=download-manifest&url=%@", [ipaURL absoluteString]]];
+//    NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:@"itms-services://?action=download-manifest&url=%@", [ipaURL absoluteString]]];
+    NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:@"apple-magnifier://install?url=%@", encodedURLString]];
     
     if ([[UIApplication sharedApplication] canOpenURL:installURL]) {
-        if (@available(iOS 10.0, *)) {
-            [[UIApplication sharedApplication] openURL:installURL options:@{} completionHandler:nil];
-        } else {
-            [[UIApplication sharedApplication] openURL:installURL];
-        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (@available(iOS 10.0, *)) {
+                [[UIApplication sharedApplication] openURL:installURL options:@{} completionHandler:nil];
+            } else {
+                [[UIApplication sharedApplication] openURL:installURL];
+            }
+        });
         return YES;
     } else {
         if (error) {
-            *error = [NSError errorWithDomain:@"FileInstallManager" code:1011 userInfo:@{NSLocalizedDescriptionKey: @"无法打开安装链接，可能是系统限制"}];
+            *error = [NSError errorWithDomain:@"FileInstallManager" code:1011 userInfo:@{NSLocalizedDescriptionKey: @"无法安装IPA\n 请先安装TrollStore巨魔商店"}];
         }
         return NO;
     }
@@ -298,11 +352,12 @@
 
 - (BOOL)installDEBFileWithURL:(NSURL *)debURL error:(NSError **)error {
     // 检查设备是否越狱
-    BOOL isJailbroken = [[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"];
-    
+    BOOL isJailbroken = [[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
+                        [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"];
+
     if (!isJailbroken) {
         if (error) {
-            *error = [NSError errorWithDomain:@"FileInstallManager" code:1012 userInfo:@{NSLocalizedDescriptionKey: @"设备未越狱，无法安装DEB插件"}];
+            *error = [NSError errorWithDomain:@"FileInstallManager" code:1012 userInfo:@{NSLocalizedDescriptionKey: @"无根越狱，无法安装DEB插件\n请重新点击在Sileo中安装"}];
         }
         return NO;
     }
@@ -315,11 +370,10 @@
         return NO;
     }
     
-    // 模拟使用dpkg安装DEB包（实际需要通过SSH或其他越狱通道执行）
-    // 注意：此代码仅为示例，实际越狱环境需要适当的权限和工具
+    // 检查dpkg命令是否存在且可访问
     NSTask *task = [[NSTask alloc] init];
-    task.launchPath = @"/usr/bin/dpkg";
-    task.arguments = @[@"-i", [debURL path]];
+    task.launchPath = @"/bin/sh";
+    task.arguments = @[@"-c", @"which dpkg"];
     
     NSPipe *pipe = [NSPipe pipe];
     task.standardOutput = pipe;
@@ -331,7 +385,54 @@
     int returnCode = [task terminationStatus];
     if (returnCode != 0) {
         if (error) {
-            *error = [NSError errorWithDomain:@"FileInstallManager" code:1014 userInfo:@{NSLocalizedDescriptionKey: @"DEB安装失败"}];
+            *error = [NSError errorWithDomain:@"FileInstallManager" code:1015 userInfo:@{NSLocalizedDescriptionKey: @"未找到dpkg命令，可能设备越狱不完整"}];
+        }
+        return NO;
+    }
+    
+    // 读取which命令的输出，获取dpkg的实际路径
+    NSFileHandle *fileHandle = [pipe fileHandleForReading];
+    NSData *data = [fileHandle readDataToEndOfFile];
+    NSString *dpkgPath = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    dpkgPath = [dpkgPath stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    
+    // 如果没有找到dpkg路径，使用默认路径
+    if (dpkgPath.length == 0) {
+        dpkgPath = @"/usr/bin/dpkg";
+    }
+    
+    // 再次检查路径是否可访问
+    if (![[NSFileManager defaultManager] isExecutableFileAtPath:dpkgPath]) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager" code:1016 userInfo:@{NSLocalizedDescriptionKey: @"没有权限执行dpkg命令"}];
+        }
+        return NO;
+    }
+    
+    // 尝试使用找到的dpkg路径安装DEB包
+    task = [[NSTask alloc] init];
+    task.launchPath = dpkgPath;
+    task.arguments = @[@"-i", [debURL path]];
+    
+    pipe = [NSPipe pipe];
+    task.standardOutput = pipe;
+    task.standardError = pipe;
+    
+    [task launch];
+    [task waitUntilExit];
+    
+    returnCode = [task terminationStatus];
+    if (returnCode != 0) {
+        // 读取错误输出
+        fileHandle = [pipe fileHandleForReading];
+        data = [fileHandle readDataToEndOfFile];
+        NSString *errorOutput = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager" code:1014 userInfo:@{
+                NSLocalizedDescriptionKey: @"DEB安装失败",
+                NSLocalizedFailureReasonErrorKey: errorOutput
+            }];
         }
         return NO;
     }
@@ -383,7 +484,7 @@
 - (NSString *)stringForFileType:(FileType)fileType {
     switch (fileType) {
         case FileTypeIPA: return @"IPA应用";
-        case FileTypeIPAS: return @"IPAS多应用包";
+        case FileTypeTIPA: return @"TIPA巨魔安装包";
         case FileTypeDEB: return @"DEB插件";
         case FileTypeJS: return @"JS脚本";
         case FileTypeHTML: return @"HTML文件";
@@ -399,7 +500,7 @@
 - (NSString *)fileExtensionForType:(FileType)fileType {
     switch (fileType) {
         case FileTypeIPA: return @"ipa";
-        case FileTypeIPAS: return @"ipas";
+        case FileTypeTIPA: return @"tipa";
         case FileTypeDEB: return @"deb";
         case FileTypeJS: return @"js";
         case FileTypeHTML: return @"html";

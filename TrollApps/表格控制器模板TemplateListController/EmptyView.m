@@ -76,7 +76,7 @@
    
     // 添加动画效果
     [UIView animateWithDuration:0.3 animations:^{
-        self.transform = CGAffineTransformMakeScale(1.3, 1.3);
+        self.transform = CGAffineTransformMakeScale(1.1, 1.1);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.3 animations:^{
             self.transform = CGAffineTransformIdentity;

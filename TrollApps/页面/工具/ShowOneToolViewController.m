@@ -1,31 +1,22 @@
 //
-//  ShowOneAppViewController.m
+//  ShowOneToolViewController.m
 //  TrollApps
 //
-//  Created by 十三哥 on 2025/7/3.
+//  Created by 十三哥 on 2025/7/20.
+//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
-#import "ShowOneAppViewController.h"
-#import "config.h"
-#import "AppInfoCell.h"
-#import "AppInfoModel.h"
-#import "CommentModel.h"
-#import "NewProfileViewController.h"
-#import "PublishAppViewController.h"
+#import "ShowOneToolViewController.h"
+#import "NewToolViewController.h"
+#import "CommentInputView.h"
 #import "AppCommentCell.h"
 #import "TipBarCell.h"
-#import "CommentInputView.h"
+#import "loadData.h"
+#import "NewProfileViewController.h"
+#import "ToolViewCell.h"
+#import "AppCommentCell.h"
 #import "CommentModel.h"
-//是否打印
-#define MY_NSLog_ENABLED YES
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
-
-@interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
+@interface ShowOneToolViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
 @property (nonatomic, strong) CommentInputView *commentInputView;// 输入框容器（含发送按钮）
 @property (nonatomic, assign) CGFloat originalInputHeight; // 输入框原始高度（默认40）
@@ -34,10 +25,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIButton *editButton;//编辑软件更新按钮
 @property (nonatomic, strong) UIButton *editAppStatuButton;//删除软件按照
 
-
 @end
 
-@implementation ShowOneAppViewController
+@implementation ShowOneToolViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -68,7 +58,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)setupNavigationBar {
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 5, kWidth, 40)];
-    label.text = @"查看软件";
+    label.text = @"查看工具";
     label.font = [UIFont systemFontOfSize:18];
     label.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:label];
@@ -172,16 +162,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //左上角更新按钮
 - (void)updateApp:(UIButton *)button {
-    NSLog(@"点击更新按钮 准备更新软件:%@",self.appInfo.app_name);
-    PublishAppViewController *vc = [PublishAppViewController new];
-    vc.category = CategoryTypeUpdate;
-    vc.app_info = self.appInfo;
+    NSLog(@"点击更新按钮 准备更新工具:%@",self.webToolModel.tool_name);
+    NewToolViewController *vc = [NewToolViewController new];
+    vc.isUpdating = YES;
+    vc.editingTool = self.webToolModel;
     [self presentPanModal:vc];
 }
 
 //左上角状态按钮
 - (void)editAppStatu:(UIButton *)button {
-    NSLog(@"点击删除按钮 准备更新软件:%@",self.appInfo.app_name);
+    NSLog(@"点击删除按钮 准备更新软件:%@",self.webToolModel.tool_name);
     NSArray *title = @[@"正常发布", @"已失效", @"更新中", @"锁定", @"上传中", @"隐藏软件"];
     
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"操作提示" message:@"修改APP的显示状态" preferredStyle:UIAlertControllerStyleActionSheet];
@@ -208,7 +198,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)editAppInfoStatuWithIndex:(NSInteger )index title:(NSString *)title{
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    NSString *udid = [loadData sharedInstance].userModel.udid;
     if(!udid || udid.length<5){
         [SVProgressHUD showInfoWithStatus:@"请先获取UDID进行绑定登录"];
         [SVProgressHUD dismissWithDelay:3];
@@ -217,10 +207,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSDictionary *dic = @{
         @"action":@"updateAppStatus",
         @"status_index":@(index),
-        @"app_id":@(self.appInfo.app_id),
+        @"app_id":@(self.webToolModel.tool_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:dic
@@ -239,7 +229,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             if(code == 200){
                
                 [self showAlertWithConfirmationFromViewController:[self.view getTopViewController] title:@"操作完成" message:[NSString stringWithFormat:@"已成功修改为\n%@",title] confirmTitle:@"确定" cancelTitle:@"取消" onConfirmed:^{
-                    self.appInfo.app_status = new_status;
+                    self.webToolModel.tool_status = new_status;
                     [self refreshLoadInitialData];
                 } onCancelled:^{
                     
@@ -270,7 +260,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSDictionary *dic = @{
         @"action": @"getUserInfo",
         @"type": @"user_id",
-        @"queryValue":self.appInfo.udid,
+        @"queryValue":self.webToolModel.udid,
     };
     NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
     
@@ -521,15 +511,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
     // 构建请求参数
     NSDictionary *dic = @{
-        @"action": @"getAppDetail",
+        @"action": @"getToolDetail",
         @"sort": @(self.sort),
-        @"app_id": @(self.app_id),
+        @"tool_id": @(self.tool_id),
         @"pageSize": @(30),
         @"udid": udid,
         @"page": @(currentPage)
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
     NSLog(@"请求URL:%@ 参数:%@", url, dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -555,29 +545,30 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             if(code == 200){
                 // 解析数据
                 NSDictionary *data = jsonResult[@"data"];
-                NSLog(@"请求查看帖子成功，返回数据: %@", data);
-                // 解析应用信息（始终放在数据源的第一个位置）
-                NSDictionary *appInfoDic = data[@"appInfo"];
-                self.appInfo = [AppInfoModel yy_modelWithDictionary:appInfoDic];
                 
+                // 解析应用信息（始终放在数据源的第一个位置）
+                NSDictionary *tool_info = data[@"tool"];
+                NSLog(@"请求查看成功，tool_info: %@", tool_info);
+                self.webToolModel = [WebToolModel yy_modelWithDictionary:tool_info];
+                NSLog(@"请求查看工具成功，返回数据self.webToolModel: %@", self.webToolModel);
                 // 确保应用信息有效
-                if (self.appInfo && self.appInfo.app_name) {
-                    self.appInfo.isShowAll = YES;
+                if (self.webToolModel && self.webToolModel.tool_name) {
+                    NSLog(@"确保应用信息有效tool_name: %@", self.webToolModel.tool_name);
                     
                     // 如果是第一页，替换原有应用信息；否则忽略（避免重复添加）
                     if (currentPage <= 1) {
-                        if (self.dataSource.count > 0 && [self.dataSource[0] isKindOfClass:[AppInfoModel class]]) {
-                            [self.dataSource replaceObjectAtIndex:0 withObject:self.appInfo];
+                        if (self.dataSource.count > 0 && [self.dataSource[0] isKindOfClass:[WebToolModel class]]) {
+                            [self.dataSource replaceObjectAtIndex:0 withObject:self.webToolModel];
                         } else {
-                            [self.dataSource insertObject:self.appInfo atIndex:0];
+                            [self.dataSource insertObject:self.webToolModel atIndex:0];
                         }
                     }
                     //显示更新按钮
-                    BOOL isUpdateAPP = [self.appInfo.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid];
+                    BOOL isUpdateAPP = [self.webToolModel.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid];
                     self.editButton.alpha = isUpdateAPP;
                     self.editAppStatuButton.alpha = isUpdateAPP;
                     if(isUpdateAPP){
-                        NSLog(@"显示更新按钮 准备更新软件:%@",self.appInfo.app_name);
+                        NSLog(@"显示更新按钮 准备更新软件:%@",self.webToolModel.tool_name);
                     }
                     
                 }
@@ -591,7 +582,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     for (NSDictionary *commentDic in comments) {
                         NSLog(@"评论数据:%@",commentDic);
                         CommentModel *comment = [CommentModel yy_modelWithDictionary:commentDic];
-                        comment.action_type = 0;//标记为软件评论
                         comment.userInfo = [UserModel yy_modelWithDictionary:commentDic[@"userInfo"]];
                         NSLog(@"评论用户数据nickname:%@",comment.userInfo.nickname);
                         if (comment) {
@@ -611,7 +601,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     }
                     
                     [self refreshTable];
-                    BOOL hasMore = [commentsData[@"hasMore"] boolValue];
+                    NSDictionary *pagination = commentsData[@"pagination"];
+                    BOOL hasMore = [pagination[@"hasMore"] boolValue];
                     if(!hasMore || comments.count ==0){
                         [self handleNoMoreData];
                         
@@ -651,10 +642,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
  @return 返回具体的 SectionController 实例
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
-    if ([object isKindOfClass:[AppInfoModel class]]) {
+    if ([object isKindOfClass:[WebToolModel class]]) {
         // 移除 cellHeight 参数，启用高度缓存
-        return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class]
-                                                         modelClass:[AppInfoModel class]
+        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class]
+                                                         modelClass:[WebToolModel class]
                                                           delegate:self
                                                         edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10)
                                                    usingCacheHeight:YES];
@@ -697,11 +688,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"点击了model:%@  index:%ld cell:%@",model,index,cell);
     [[UIApplication sharedApplication] sendAction:@selector(resignFirstResponder) to:nil from:nil forEvent:nil];
     
-    if([model isKindOfClass:[AppInfoModel class]]){
-        AppInfoModel *appInfo = (AppInfoModel *)model;
-        if(appInfo.app_id != self.app_id){
-            ShowOneAppViewController *vc = [ShowOneAppViewController new];
-            vc.app_id = appInfo.app_id;
+    if([model isKindOfClass:[WebToolModel class]]){
+        WebToolModel *tool_info = (WebToolModel *)model;
+        if(tool_info.tool_id != self.tool_id){
+            ShowOneToolViewController *vc = [ShowOneToolViewController new];
+            vc.tool_id = tool_info.tool_id;
             [self presentPanModal:vc];
         }
         
@@ -733,9 +724,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 构建请求参数（根据实际接口调整）
     Action_type comment_type = Comment_type_AppComment;
     NSDictionary *params = @{
-        @"action": @"comment",
+        @"action": @"addComment",
         @"type": @(comment_type),
-        @"to_id": @(self.app_id),
+        @"tool_id": @(self.tool_id),
         @"content": commentContent,
         @"sort": @(self.sort),
         @"udid": udid
@@ -743,8 +734,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [SVProgressHUD showWithStatus:@"发送中..."];
     
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/app_action.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/tool_api.php",localURL]
                                              parameters:params
                                                    udid:udid
                                                progress:^(NSProgress *progress) {
@@ -791,6 +783,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 #pragma mark - 提示条按钮的点击通知监听
+
 - (void)tipBarCellTapped:(NSNotification *)notification {
     TipBarCell *tipBarCell = (TipBarCell *)notification.object;
     TipBarModel *model = notification.userInfo[@"model"];

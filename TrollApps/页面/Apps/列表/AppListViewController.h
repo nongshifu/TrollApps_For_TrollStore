@@ -7,7 +7,7 @@
 
 #import "TemplateListController.h"
 
-#import "AppComment.h"
+#import "CommentModel.h"
 #import "AppInfoModel.h"
 
 #define LOAD_DATA_Notice_KEY @"LOAD_DATA_Notice_KEY"
