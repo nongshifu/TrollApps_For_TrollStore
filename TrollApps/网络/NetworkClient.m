@@ -279,4 +279,57 @@
 }
 
 
+
++ (NSURL *)encodedURLFromString:(NSString *)urlString {
+    if (!urlString || urlString.length == 0) {
+        NSLog(@"URL字符串为空");
+        return nil;
+    }
+    
+    // 1. 拆分URL为"协议://"和"路径部分"（避免对协议部分二次编码）
+    NSRange schemeRange = [urlString rangeOfString:@"://"];
+    NSString *scheme = @"";
+    NSString *pathPart = urlString;
+    
+    if (schemeRange.location != NSNotFound) {
+        scheme = [urlString substringToIndex:schemeRange.location + schemeRange.length];
+        pathPart = [urlString substringFromIndex:schemeRange.location + schemeRange.length];
+    }
+    
+    // 2. 对路径部分进行编码（仅编码非URL安全字符，保留/和空格）
+    NSString *encodedPathPart = [self encodeURLPathPart:pathPart];
+    if (!encodedPathPart) {
+        return nil;
+    }
+    
+    // 3. 拼接编码后的完整URL字符串
+    NSString *encodedURLString = [scheme stringByAppendingString:encodedPathPart];
+    
+    // 4. 转换为NSURL（自动处理URL格式校验）
+    NSURL *encodedURL = [NSURL URLWithString:encodedURLString];
+    if (!encodedURL) {
+        NSLog(@"URL格式无效：%@", encodedURLString);
+    }
+    
+    return encodedURL;
+}
+
+/**
+ 编码URL路径部分（保留/和空格）
+ 
+ @param pathPart URL中的路径部分（不含协议头）
+ @return 编码后的路径部分
+ */
++ (NSString *)encodeURLPathPart:(NSString *)pathPart {
+    if (!pathPart) return nil;
+    
+    // URL安全字符集：保留字母、数字、以及;/?:@&=+$,#和/、空格
+    // 注意：空格在这里不替换为%20，保持原始空格（根据需求）
+    NSCharacterSet *allowedChars = [NSCharacterSet characterSetWithCharactersInString:@"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;= "];
+    
+    // 对不在安全字符集中的字符进行编码（如中文、特殊符号）
+    return [pathPart stringByAddingPercentEncodingWithAllowedCharacters:allowedChars];
+}
+
+
 @end

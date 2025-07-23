@@ -6,11 +6,19 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "Config.h"
+#import <UIKit/UIKit.h>
+#import <IGListKit/IGListKit.h>
+#import <YYModel/YYModel.h>
+
 
 NS_ASSUME_NONNULL_BEGIN
+@class UserModel;
 
-@interface UserModel : NSObject<IGListDiffable>
+typedef void(^UserInfoSuccessBlock)(UserModel *userModel);
+typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
+
+
+@interface UserModel : NSObject<IGListDiffable,YYModel>
 @property (nonatomic, assign) NSInteger user_id;
 @property (nonatomic, copy) NSString *nickname;
 @property (nonatomic, copy) NSString *avatar;
@@ -57,7 +65,18 @@ NS_ASSUME_NONNULL_BEGIN
  统一更新云端用户信息
  @param userModel 用户信息模型
  */
-- (void)updateCloudUserInfoWithUserModel:(UserModel *)userModel;
++ (void)updateCloudUserInfoWithUserModel:(UserModel *)userModel;
+
+
+/// 通过 user_id 获取用户信息
++ (void)getUserInfoWithUserId:(NSString *)userId
+                     success:(UserInfoSuccessBlock)success
+                     failure:(UserInfoFailureBlock)failure;
+
+/// 通过 udid 获取用户信息
++ (void)getUserInfoWithUdid:(NSString *)udid
+                    success:(UserInfoSuccessBlock)success
+                    failure:(UserInfoFailureBlock)failure;
 @end
 
 NS_ASSUME_NONNULL_END

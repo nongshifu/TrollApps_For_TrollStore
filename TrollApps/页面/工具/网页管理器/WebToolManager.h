@@ -3,7 +3,6 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/19.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -14,6 +13,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface WebToolManager : NSObject
 /// 获取单例实例
 + (instancetype)sharedManager;
+
+/// 最大保留实例数量 默认10个页面
+@property (nonatomic, assign) NSInteger maxVcCount;
 
 /// 添加网页工具
 - (void)addWebToolWithModel:(WebToolModel *)toolModel
@@ -45,6 +47,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 移除所有网页工具
 - (void)removeAllWebTools;
+
+/// 隐藏控制器（不销毁）
+- (void)hideWebToolWithId:(NSInteger)toolId;
 
 @end
 

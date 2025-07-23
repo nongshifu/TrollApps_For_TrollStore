@@ -11,7 +11,7 @@
 #import "ShowOneAppViewController.h"
 #import "NetworkClient.h"
 //是否打印
-#define MY_NSLog_ENABLED YES
+#define MY_NSLog_ENABLED NO
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -46,26 +46,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page{
-    NSInteger index  =self.tagPageIndex;
-    NSArray *array = @[@"newest", @"hottest", @"recommend"];
-    //初始化分类为空
-    NSString * type = @"";
-    //前面三个 使用系统分类
-    if(index<3){
-        type = array[index];
-    }else{
-        //超过三个 采用 自定义分类接口和关键字
-        type = @"tag";
-        self.tag = self.title;
-    }
-    
+  
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :[[NewProfileViewController sharedInstance] getIDFV];
     NSLog(@"请求的UDID:%@",udid);
     
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
         @"action":@"getAppList",
-        @"type":type,
+        @"sortType":@(self.sortType),
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
         @"pageSize":@(20),
@@ -83,7 +71,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                if(!jsonResult) {
+                if(!jsonResult && stringResult) {
                     NSLog(@"返回数据类型错误: %@", stringResult);
                     [SVProgressHUD showErrorWithStatus:@"返回数据类型错误"];
                     [SVProgressHUD dismissWithDelay:2 completion:nil];
@@ -146,7 +134,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if ([object isKindOfClass:[AppInfoModel class]]) {
         
-        return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) cellHeight:100];
+        return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
     }
     return nil;
 }

@@ -34,7 +34,7 @@ typedef NS_ENUM(NSInteger, WebToolStatus) {
 @property (nonatomic, strong) NSString *tool_description;
 
 /** 工具核心内容（对应数据库content） */
-@property (nonatomic, strong) NSString *content;
+@property (nonatomic, strong) NSString *html_content;
 
 /** 工具文件存储路径（对应数据库tool_path） */
 @property (nonatomic, strong) NSString *tool_path;

@@ -65,4 +65,12 @@ typedef void(^WebFailureBlock)(NSError *error);
                         success:(WebSuccessBlock)successBlock
                         failure:(WebFailureBlock)failureBlock;
 
+/**
+ 将字符串URL转换为编码后的NSURL（保留原始空格和/）
+ 
+ @param urlString 原始URL字符串（可能包含未编码的中文或特殊字符）
+ @return 编码后的NSURL（nil表示转换失败）
+ */
++ (NSURL *)encodedURLFromString:(NSString *)urlString;
+
 @end

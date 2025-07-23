@@ -15,6 +15,9 @@
 #import "NewProfileViewController.h"
 #import "DownloadManagerViewController.h"
 #import "loadData.h"
+#import "MyCollectionViewController.h"
+#import "ArrowheadMenu.h"
+
 #include <dlfcn.h>
 //是否打印
 #define MY_NSLog_ENABLED NO
@@ -25,13 +28,9 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface AppsViewController () <TemplateListDelegate, UIScrollViewDelegate, UISearchBarDelegate, UIPageViewControllerDelegate, UIPageViewControllerDataSource,MiniButtonViewDelegate, UIContextMenuInteractionDelegate>
+@interface AppsViewController () <TemplateListDelegate, UIScrollViewDelegate, UISearchBarDelegate, UIPageViewControllerDelegate, UIPageViewControllerDataSource,MiniButtonViewDelegate, UIContextMenuInteractionDelegate, MenuViewControllerDelegate,JXCategoryViewDelegate>
 //顶部分类
 @property (nonatomic, strong) NSMutableArray *titles; //分类标题数组
-@property (nonatomic, strong) UIScrollView *tagsSubView;//按钮容器滚动视图
-@property (nonatomic, strong) UIStackView *tagsStackView;//按钮容器
-@property (nonatomic, strong) NSMutableArray<UIButton *> *tagButtons;//按钮数组
-
 @property (nonatomic, strong) MiniButtonView * bottomButton; // 底部按钮
 
 @property (nonatomic, strong) NSMutableArray<AppListViewController *> *viewControllers;
@@ -44,11 +43,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 @property (nonatomic, strong) dispatch_source_t searchDebounceTimer; // 搜索防抖定时器
 @property (nonatomic, assign) NSTimeInterval searchDebounceInterval; // 防抖间隔时间
-@property (nonatomic, strong) UIImageView *logoImageView;
+@property (nonatomic, strong) UIImageView *logoImageView; //左侧头像
 
-//全部APP 还是我的APP
-@property (nonatomic, assign) BOOL showMyApp;
-@property (nonatomic, strong) UIButton * switchAppListButton;
+@property (nonatomic, assign) BOOL showMyApp; //全部APP 还是我的APP
+
+@property (nonatomic, strong) UIButton * switchAppListButton;//导航上我的和全部切换按钮
+
+@property (nonatomic, strong) UIButton * sortButton;//右上角 排序按钮
+
+@property (nonatomic, strong) JXCategoryTitleView *categoryView; // 顶部的分类按钮
 
 @end
 
@@ -69,8 +72,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotification:) name:SAVE_LOCAL_TAGS_KEY object:nil];
     // 注册通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-    
-    [self updateButtonSelectionWithIndex:0];
+
     [self getUDID];
 }
 
@@ -80,11 +82,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"显示后");
     self.navigationController.navigationBarHidden = YES;
     self.tabBarController.tabBar.hidden = NO;
-//    NSArray *titles = @[@"分类", @"收藏",];
-//    NSArray *icons = @[@"tag.square", @"star.lefthalf.fill"];
-//    [self.bottomButton updateButtonsWithStrings:titles icons:icons];
-//    [self setupNavigationBar];
-    
+
 }
 
 // 消失之前
@@ -115,10 +113,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             self.titles = [NSMutableArray arrayWithArray:newTitles];
             NSLog(@"更新后的标题: %@", self.titles);
             [SVProgressHUD showWithStatus:@"设置分类中"];
+            self.categoryView.titles = self.titles;
+            [self.categoryView reloadData];
+            // 移除分页控制器
+            [self.pageViewController.view removeFromSuperview];
+            [self.pageViewController removeFromParentViewController];
+            self.pageViewController = nil;
+            [self.viewControllers removeAllObjects];
             
-            [self cleanOldUI];
-            
-            [self setupSegmentedControl];
             
             [self setupViewControllers];
             
@@ -140,7 +142,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)keyboardWillHide:(NSNotification *)notification {
     self.keyboardHeight = 0;
     self.keyboardIsShow = NO;
-    self.searchView.alpha = 0;
+    self.searchView.alpha = self.currentSearchKeyword.length > 0;
     [self updateViewConstraints];
     NSLog(@"键盘隐藏");
 }
@@ -183,33 +185,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [self setupAddButton];
     
+    [self  setupSortButton];
+    
     [self setupViewConstraints];
     
     [self updateViewConstraints];
     
     [self setupSideMenuController];
     
-   
     
 }
 
-- (void)cleanOldUI {
-    // 移除顶部分类标签相关视图
-    [self.tagsSubView removeFromSuperview];
-    self.tagsSubView = nil;
-    self.tagsStackView = nil;
-    [self.tagButtons enumerateObjectsUsingBlock:^(UIButton * _Nonnull btn, NSUInteger idx, BOOL * _Nonnull stop) {
-        [btn removeFromSuperview];
-    }];
-    [self.tagButtons removeAllObjects];
-    
-    // 移除分页控制器
-    [self.pageViewController.view removeFromSuperview];
-    [self.pageViewController removeFromParentViewController];
-    self.pageViewController = nil;
-    [self.viewControllers removeAllObjects];
-    
-}
 
 #pragma mark -导航
 
@@ -246,10 +232,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 设置右侧搜索按钮
     [self zx_setRightBtnWithImg:[UIImage systemImageNamed:@"magnifyingglass.circle"]
                     clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
+        
+        weakSelf.searchView.alpha = 1;
+        [weakSelf updateViewConstraints];
+        
         [UIView animateWithDuration:0.3 animations:^{
-            weakSelf.searchView.alpha = 1;
-            weakSelf.zx_navRightBtn.alpha = 0;
-            weakSelf.switchAppListButton.alpha = 0;
+            [weakSelf.view layoutIfNeeded];
         } completion:^(BOOL finished) {
             [weakSelf.searchView becomeFirstResponder];
         }];
@@ -391,65 +379,22 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }else{
         self.titles = [NSMutableArray arrayWithArray:lacalTags];
     }
+    
+    self.categoryView = [[JXCategoryTitleView alloc] initWithFrame:CGRectMake(10, CGRectGetMaxY(self.zx_navBar.frame)+5, kWidth - 115, 35)];
+    self.categoryView.delegate = self;
+    self.categoryView.titles = self.titles;
+    self.categoryView.titleColorGradientEnabled = YES;
+    self.categoryView.titleSelectedFont = [UIFont boldSystemFontOfSize:17];
+    self.categoryView.titleFont = [UIFont boldSystemFontOfSize:16];
+    self.categoryView.titleColor = [UIColor secondaryLabelColor];
+    self.categoryView.cellSpacing = 15;
+    [self.view addSubview:self.categoryView];
+    
+    JXCategoryIndicatorLineView *lineView = [[JXCategoryIndicatorLineView alloc] init];
+    lineView.indicatorColor = [UIColor redColor];
+    lineView.indicatorWidth = JXCategoryViewAutomaticDimension;
+    self.categoryView.indicators = @[lineView];
    
-    // 标签父视图（滚动视图）
-    self.tagsSubView = [[UIScrollView alloc] init];
-    self.tagsSubView.layer.cornerRadius = 20;
-    
-    self.tagsSubView.userInteractionEnabled = YES;
-    self.tagsSubView.showsHorizontalScrollIndicator = NO; // 隐藏水平滚动条
-    self.tagsSubView.showsVerticalScrollIndicator = NO;   // 隐藏垂直滚动条
-    [self.view addSubview:self.tagsSubView];
-    
-    [self.tagsSubView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.view).offset(10);
-        make.top.equalTo(self.zx_navBar.mas_bottom);
-        make.height.mas_equalTo(50);
-        make.width.mas_equalTo(kWidth - 20);
-    }];
-    
-    // 标签堆栈视图
-    self.tagsStackView = [[UIStackView alloc] init];
-    self.tagsStackView.tag = 0;
-    self.tagsStackView.axis = UILayoutConstraintAxisHorizontal;
-    self.tagsStackView.alignment = UIStackViewAlignmentCenter;
-    self.tagsStackView.spacing = 10.0;
-    [self.tagsSubView addSubview:self.tagsStackView];
-    
-    // 堆栈视图约束（左右留出边距）
-    [self.tagsStackView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagsSubView).offset(10);
-        make.left.equalTo(self.tagsSubView).offset(5);
-        make.right.equalTo(self.tagsSubView).offset(-10); // 右侧留10pt边距
-        
-        make.height.mas_equalTo(30);
-    }];
-    
-    // 初始化按钮数组
-    self.tagButtons = [NSMutableArray array];
-    
-    // 添加标签按钮
-    for (int i = 0; i < self.titles.count; i++) {
-        NSString *title = self.titles[i];
-        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-        button.layer.cornerRadius = 7;
-        button.tag = i;
-        button.contentEdgeInsets = UIEdgeInsetsMake(3, 8, 3, 8);
-        button.titleLabel.font = [UIFont boldSystemFontOfSize:(i == 0 ? 17 : 15)];
-        button.backgroundColor = [UIColor colorWithLightColor:[UIColor randomColorWithAlpha:0.9]
-                                                    darkColor:[UIColor randomColorWithAlpha:0.5]
-        ];
-        [button setTitle:title forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [button addTarget:self action:@selector(tagTap:) forControlEvents:UIControlEventTouchUpInside];
-        [self.tagsStackView addArrangedSubview:button];
-        [self.tagButtons addObject:button];
-    }
-    
-    // 关键：通过堆栈视图的宽度设置滚动视图的contentSize
-    [self.tagsStackView layoutIfNeeded]; // 强制刷新布局，获取实际宽度
-    CGFloat contentWidth = self.tagsStackView.frame.size.width + 20; // 加上左右边距（10+10）
-    self.tagsSubView.contentSize = CGSizeMake(contentWidth, 50);
 }
 
 //设置底部选项卡按钮
@@ -464,7 +409,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bottomButton.fontSize = 15;
     [self.view addSubview:self.bottomButton];
     NSArray *titles = @[@"分类", @"收藏", @"下载"];
-    NSArray *icons = @[@"tag.square", @"star.lefthalf.fill", @"square.and.arrow.down"];
+    NSArray *icons = @[@"tag", @"star.lefthalf.fill"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
     [self.bottomButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
@@ -482,9 +427,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         AppListViewController *controller = [[AppListViewController alloc] init];
         controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
-        controller.tagPageIndex = i;
+        
         controller.showMyApp = NO;
         controller.title = self.titles[i];
+        controller.tag = self.titles[i];
         controller.collectionView.backgroundColor = [UIColor clearColor];
         controller.view.backgroundColor = [UIColor clearColor];
         [controller.view removeDynamicBackground];
@@ -517,6 +463,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.pageViewController didMoveToParentViewController:self];
 }
 
+// 右侧排序按钮
+- (void)setupSortButton{
+    
+    self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.sortButton.layer.cornerRadius = 7;
+    self.sortButton.titleLabel.font = [UIFont systemFontOfSize:15];
+    self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.3];
+    [self.sortButton setTitle:@"最近更新" forState:UIControlStateNormal];
+    [self.sortButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.sortButton addTarget:self action:@selector(sortTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.sortButton];
+}
+
 #pragma mark - Action
 
 - (void)switchAppList:(UIButton*)button{
@@ -534,6 +493,38 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [button setTitle:title forState:UIControlStateNormal];
 }
 
+// 排序按钮点击
+- (void)sortTapped:(UIButton*)button {
+   
+    self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.9];
+    // 处理左边图标点击逻辑
+   
+    NSArray *title = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
+    NSArray *icon = @[@"clock", @"arrow.clockwise.icloud", @"message", @"hand.thumbsup.fill", @"star", @"arrowshape.turn.up.right"];
+    CGSize menuUnitSize = CGSizeMake(130, 40);
+    CGFloat distanceFromTriggerSwitch = 10;
+    UIFont * font = [UIFont boldSystemFontOfSize:13];
+    UIColor * menuFontColor = [UIColor labelColor];
+    UIColor * menuBackColor = [[UIColor tertiarySystemBackgroundColor] colorWithAlphaComponent:0.99];
+    UIColor * menuSegmentingLineColor = [UIColor labelColor];
+    
+    ArrowheadMenu *VC = [[ArrowheadMenu alloc] initCustomArrowheadMenuWithTitle:title
+                                                                           icon:icon
+                                                                   menuUnitSize:menuUnitSize
+                                                                       menuFont:font
+                                                                  menuFontColor:menuFontColor
+                                                                  menuBackColor:menuBackColor
+                                                        menuSegmentingLineColor:menuSegmentingLineColor
+                                                      distanceFromTriggerSwitch:distanceFromTriggerSwitch
+                                                                 menuArrowStyle:MenuArrowStyleRound
+                                                                 menuPlacements:ShowAtBottom
+                                                           showAnimationEffects:ShowAnimationZoom
+    ];
+    VC.iconSize = CGSizeMake(20, 20);
+    VC.delegate = self;
+    [VC presentMenuView:self.sortButton];
+}
+
 #pragma mark - 约束设置
 
 - (void)setupViewConstraints{
@@ -548,7 +539,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 分页控制器约束（充满剩余空间）
     [self.pageViewController.view mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagsStackView.mas_bottom).offset(10);
+        make.top.equalTo(self.categoryView.mas_bottom).offset(5);
         make.left.right.equalTo(self.view);
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
     }];
@@ -559,6 +550,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.left.equalTo(self.view).offset(10);
        
     }];
+    //导航上切换我的 和
     [self.switchAppListButton mas_updateConstraints:^(MASConstraintMaker *make) {
 
         make.width.mas_equalTo(50);
@@ -566,6 +558,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.centerY.equalTo(self.zx_navTitleView);
         make.right.equalTo(self.zx_navRightBtn.mas_left).offset(-10);
 
+    }];
+    // 右上角排序
+    [self.sortButton mas_updateConstraints:^(MASConstraintMaker *make) {
+
+        make.right.equalTo(self.view).offset(-10);
+        make.centerY.equalTo(self.categoryView);
+        make.height.mas_equalTo(25);
+        make.width.mas_equalTo(75);
     }];
     
 
@@ -576,24 +576,36 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super updateViewConstraints];
     // 分页控制器约束（充满剩余空间）
     [self.pageViewController.view mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagsStackView.mas_bottom).offset(10);
+        make.top.equalTo(self.categoryView.mas_bottom).offset(5);
         make.left.right.equalTo(self.view);
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
     }];
     
     [UIView animateWithDuration:0.3 animations:^{
-       
+        
         self.switchAppListButton.alpha = !self.searchView.alpha;
-        self.zx_navRightBtn.alpha = !self.searchView.alpha;
+//        self.zx_navRightBtn.alpha = !self.searchView.alpha;
         
     }];
     
+    // 右上角排序
+    [self.sortButton mas_updateConstraints:^(MASConstraintMaker *make) {
+
+        make.right.equalTo(self.view).offset(-10);
+        make.centerY.equalTo(self.categoryView);
+        make.height.mas_equalTo(25);
+        make.width.mas_equalTo(75);
+
+    }];
+    
+    
 }
+
 
 //读取数据
 - (void)loadDataForCurrentPage {
     AppListViewController *controller = (AppListViewController *)self.viewControllers[self.currentPageIndex];
-    controller.tagPageIndex = self.currentPageIndex;
+    
     //如果存在搜索 并且不等于上次搜索 执行重新搜索
     NSLog(@"controller.currentSearchKeyword:%@ lacal:%@",controller.keyword,self.currentSearchKeyword);
     BOOL bool1 = ![controller.keyword isEqualToString:self.currentSearchKeyword];
@@ -609,6 +621,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
+
+#pragma mark - 监听主题变化
 //监听主题变化
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
@@ -622,71 +636,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 
-- (void)updateButtonSelectionWithIndex:(NSInteger)index {
-    self.currentPageIndex = index;
-    
-    NSLog(@"index:%ld", (long)index);
-    
-    // 先获取目标按钮
-    UIButton *targetButton = nil;
-    for (UIButton *btn in self.tagButtons) {
-        if (btn.tag == index) {
-            targetButton = btn;
-            break;
-        }
-    }
-    
-    // 先更新所有按钮的状态动画
-    for (UIButton *button in self.tagButtons) {
-        [UIView animateWithDuration:0.3
-                              delay:0
-                            options:UIViewAnimationOptionCurveEaseOut
-                         animations:^{
-            if (button.tag == self.currentPageIndex) {
-                // 选中状态：放大1.1倍
-                button.transform = CGAffineTransformMakeScale(1.1, 1.1);
-                button.titleLabel.font = [UIFont boldSystemFontOfSize:15];
-                button.alpha = 1.0;
-            } else {
-                // 未选中状态：恢复原始大小
-                button.transform = CGAffineTransformIdentity;
-                button.titleLabel.font = [UIFont systemFontOfSize:15];
-                button.alpha = 0.5;
-            }
-        } completion:nil];
-    }
-    
-    // 单独处理目标按钮的滚动（确保在按钮状态更新后执行）
-    
-    if (targetButton) {
-        [self.tagsSubView layoutIfNeeded];
-        
-        CGRect buttonFrameInScrollView = [targetButton convertRect:targetButton.bounds toView:self.tagsSubView];
-        CGRect visibleRect = self.tagsSubView.bounds;
-        
-        // 计算按钮中心点
-        CGFloat buttonCenterX = buttonFrameInScrollView.origin.x + buttonFrameInScrollView.size.width / 2;
-        // 计算滚动视图可视区域中心点
-        CGFloat scrollViewCenterX = visibleRect.size.width / 2;
-        
-        // 计算需要滚动的偏移量
-        CGFloat targetOffsetX = buttonCenterX - scrollViewCenterX;
-        // 限制偏移量在有效范围内（不超出内容边界）
-        targetOffsetX = MAX(0, MIN(targetOffsetX, self.tagsSubView.contentSize.width - visibleRect.size.width));
-        
-        // 执行滚动
-        if (ABS(self.tagsSubView.contentOffset.x - targetOffsetX) > 10) { // 超过10pt才滚动
-            [self.tagsSubView setContentOffset:CGPointMake(targetOffsetX, 0) animated:YES];
-        }
-    }
-}
-
-
 #pragma mark - UISearchBarDelegate
 
 // 开始搜索
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar{
-    self.searchView.alpha =1;
+    
     [self updateViewConstraints];
 }
 
@@ -725,15 +679,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     self.currentSearchKeyword = searchBar.searchTextField.text;
     NSLog(@"键盘点击搜索:%@",self.currentSearchKeyword);
+    self.searchView.alpha = self.currentSearchKeyword.length > 0;
     [self performSearchWithKeyword:self.currentSearchKeyword]; // 调用防抖搜索
     [self.view endEditing:YES];
-    if(self.currentSearchKeyword.length ==0){
-        [UIView animateWithDuration:0.3 animations:^{
-            self.searchView.alpha = 0;
-            self.switchAppListButton.alpha = 1;
-            self.zx_navRightBtn.alpha = 1;
-        }];
-    }
+    [self updateViewConstraints];
 }
 
 // 点击取消
@@ -742,16 +691,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"点击清除按钮 搜索:%@",self.currentSearchKeyword);
     [self performSearchWithKeyword:self.currentSearchKeyword]; // 调用防抖搜索
     [self.view endEditing:YES];
-    if(self.currentSearchKeyword.length ==0){
-        [UIView animateWithDuration:0.3 animations:^{
-            self.searchView.alpha = 0;
-            self.switchAppListButton.alpha = 1;
-            self.zx_navRightBtn.alpha = 1;
-        }];
-    }
+    [self updateViewConstraints];
 }
-
-
 
 // 防抖搜索实现（0.5秒延时）
 - (void)performSearchWithKeyword:(NSString *)keyword {
@@ -813,24 +754,34 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 获取当前显示的页面索引
         self.currentVC = pageViewController.viewControllers.firstObject;
         self.currentPageIndex = [self.viewControllers indexOfObject:self.currentVC];
-        [self updateButtonSelectionWithIndex:self.currentPageIndex];
-        NSLog(@"currentPageIndex:%ld",self.currentPageIndex);
         
+        [self.categoryView selectItemAtIndex:self.currentPageIndex];
+        NSLog(@"currentPageIndex:%ld",self.currentPageIndex);
+        self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.3];
+        [self zx_setMultiTitle:@"TrollApps"
+                       subTitle:@"热门App应用 插件 应有尽有！"
+                    subTitleFont:[UIFont boldSystemFontOfSize:10]
+                 subTitleTextColor:[UIColor randomColorWithAlpha:1]];
         
     }
+}
+
+#pragma mark - JXCategoryViewDelegate
+
+- (void)categoryView:(JXCategoryBaseView *)categoryView didSelectedItemAtIndex:(NSInteger)index {
+    // 当选项卡切换时，同步更新分页内容
+    [self.pageViewController setViewControllers:@[self.viewControllers[index]]
+                                      direction:UIPageViewControllerNavigationDirectionForward
+                                       animated:YES
+                                     completion:nil];
+    [self zx_setMultiTitle:@"TrollApps"
+                   subTitle:@"热门App应用 插件 应有尽有！"
+                subTitleFont:[UIFont boldSystemFontOfSize:10]
+             subTitleTextColor:[UIColor randomColorWithAlpha:1]];
+    self.viewControllers[index].tag = self.titles[index];
 }
 
 #pragma mark -顶部导航标签按钮点击代理
-
-
-- (void)tagTap:(UIButton *)button{
-    NSInteger tag = button.tag;
-    [self updateButtonSelectionWithIndex:tag];
-    if (tag < self.viewControllers.count) {
-        UIViewController *postViewController = self.viewControllers[tag];
-        [self.pageViewController setViewControllers:@[postViewController] direction:UIPageViewControllerNavigationDirectionForward animated:YES completion:nil];
-    }
-}
 
 - (void)keyboardHide:(UITapGestureRecognizer *)tap{
     [super keyboardHide:tap];
@@ -844,7 +795,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self presentPanModal:vc];
 //        [self.navigationController pushViewController:vc animated:YES];
     }else if(tag ==1){
-        MyFavoritesListViewController *vc = [MyFavoritesListViewController new];
+        MyCollectionViewController *vc = [MyCollectionViewController new];
    
         
         [self presentPanModal:vc];
@@ -886,5 +837,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     dlclose(gestalt);
     return udid;
 }
+
+
+ #pragma mark -使用不带选中状态的菜单需要实现的协议方法
+
+- (void)menu:(BaseMenuViewController *)menu didClickedItemUnitWithTag:(NSInteger)tag andItemUnitTitle:(NSString *)title {
+    [self.sortButton setTitle:title forState:UIControlStateNormal];
+    for (AppListViewController *vc in self.viewControllers) {
+        vc.sortType = (SortType)tag;
+        [vc refreshLoadInitialData];
+    }
+}
+
 
 @end

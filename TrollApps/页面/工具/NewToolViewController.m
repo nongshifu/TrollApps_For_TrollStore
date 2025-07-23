@@ -11,13 +11,25 @@
 #import "HTMLCodeEditorView.h"
 #import "loadData.h"
 #import "AppSearchViewController.h"
+#import "NewAppFileModel.h"
+#import "ImageGridSearchViewController.h"
 
 #define kTool_Draft_KEY @"kTool_Draft_KEY"
 
-@interface NewToolViewController () <UITextFieldDelegate, UITextViewDelegate, ToolTagsViewDelegate, HTMLCodeEditorViewDelegate,UINavigationControllerDelegate,UIImagePickerControllerDelegate,AppSearchViewControllerDelegate>
+//是否打印
+#define MY_NSLog_ENABLED NO
+
+#define NSLog(fmt, ...) \
+if (MY_NSLog_ENABLED) { \
+NSString *className = NSStringFromClass([self class]); \
+NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
+}
+
+@interface NewToolViewController () <UITextFieldDelegate, UITextViewDelegate, ToolTagsViewDelegate, HTMLCodeEditorViewDelegate,UINavigationControllerDelegate,UIImagePickerControllerDelegate,AppSearchViewControllerDelegate,ImageGridSearchViewControllerDelegate>
 
 @property (nonatomic, strong) UIButton *titleButton;
 @property (nonatomic, strong) UIButton *draftButton;
+@property (nonatomic, strong) UIButton *closeButton;
 // 基本信息输入
 @property (nonatomic, strong) UIImageView *iconView;
 @property (nonatomic, strong) UIImage *iconImage;
@@ -25,11 +37,14 @@
 @property (nonatomic, strong) UITextField *toolNameField;
 
 @property (nonatomic, strong) UITextField *versionField;
+@property (nonatomic, strong) UIButton *incrementButton; // 版本号增加按钮
+
 @property (nonatomic, strong) UILabel *descLabel;
 @property (nonatomic, strong) UITextView *descriptionView;
 @property (nonatomic, strong) UILabel *tagsLabel;
 @property (nonatomic, strong) ToolTagsView *tagsView;
 
+@property (nonatomic, strong) UISegmentedControl *switchInput;
 // HTML代码编辑
 @property (nonatomic, strong) HTMLCodeEditorView *codeEditorView;
 
@@ -49,6 +64,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.isTapViewToHideKeyboard = YES;
+    
     [self setupUI];
     [self setupConstraints];
     [self setupNavigationBar];
@@ -56,7 +72,11 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self loadDraft];
+    if(self.isUpdating){
+        [self setupInitialValues];
+    }else{
+        [self loadDraft];
+    }
 }
 
 - (void)viewDidLayoutSubviews {
@@ -73,7 +93,7 @@
 - (void)setupUI {
     self.view.backgroundColor = [UIColor clearColor];
     //顶头标题
-    _titleButton = [UIButton new];
+    _titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [_titleButton setTitle:@"发布工具" forState:UIControlStateNormal];
     _titleButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
     _titleButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
@@ -86,6 +106,13 @@
     [_draftButton addTarget:self action:@selector(draftButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     
     [self.view addSubview:_draftButton];
+    
+    _closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_closeButton setTitle:@"关闭" forState:UIControlStateNormal];
+    [_closeButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+    [_closeButton addTarget:self action:@selector(onBackButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+    
+    [self.view addSubview:_closeButton];
     
     
     
@@ -101,7 +128,7 @@
     _iconView.contentMode = UIViewContentModeScaleAspectFit;
     _iconView.image = [UIImage systemImageNamed:@"photo.fill"];
     _iconView.userInteractionEnabled = YES;
-    _iconView.layer.cornerRadius = 15;
+    _iconView.layer.cornerRadius = 22;
     _iconView.layer.borderWidth = 1;
     _iconView.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.3].CGColor;
     _iconView.layer.masksToBounds = YES;
@@ -119,9 +146,17 @@
     // 版本号
     _versionField = [[UITextField alloc] init];
     _versionField.placeholder = @"版本号";
+    _versionField.text = @"1.0.0";
     _versionField.borderStyle = UITextBorderStyleRoundedRect;
     _versionField.delegate = self;
     [self.infoContainer addSubview:_versionField];
+    // 递增按钮
+    self.incrementButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.incrementButton setTitle:@"+" forState:UIControlStateNormal];
+    [self.incrementButton.titleLabel setFont:[UIFont systemFontOfSize:24]];
+    [self.incrementButton addTarget:self action:@selector(incrementVersion) forControlEvents:UIControlEventTouchUpInside];
+    [self.infoContainer addSubview:self.incrementButton];
+
     
     // 工具描述
     _descLabel = [[UILabel alloc] init];
@@ -148,9 +183,15 @@
     _tagsView.toolTagsDelegate = self;
     [self.infoContainer addSubview:_tagsView];
     
+    //切换选项卡
+    _switchInput = [[UISegmentedControl alloc] initWithItems:@[@"HTML",@"URL"]];
+    _switchInput.selectedSegmentIndex = 0;
+    [_switchInput addTarget:self action:@selector(switchInputTap) forControlEvents:UIControlEventValueChanged];
+    
+    [self.infoContainer addSubview:_switchInput];
+    
     // HTML代码编辑器
     _codeEditorView = [[HTMLCodeEditorView alloc] init];
-    
     _codeEditorView.delegate = self;
     [self.infoContainer addSubview:_codeEditorView];
     
@@ -179,6 +220,13 @@
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(0); // 顶部对齐安全区
         make.width.equalTo(@50);
         make.right.equalTo(self.view).offset(-16);
+        make.height.equalTo(@45);
+        
+    }];
+    [self.closeButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(0); // 顶部对齐安全区
+        make.width.equalTo(@50);
+        make.left.equalTo(self.view).offset(16);
         make.height.equalTo(@45);
         
     }];
@@ -213,6 +261,13 @@
         make.height.equalTo(@40);
         make.width.equalTo(@120);
     }];
+    //版本号修改
+    [self.incrementButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.versionField);
+        make.left.equalTo(self.versionField.mas_right).offset(10);
+        make.width.equalTo(@50);
+        make.height.equalTo(self.versionField);
+    }];
     
     // 3. 描述相关
     [self.descLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -220,7 +275,7 @@
         make.left.equalTo(self.infoContainer).offset(16);
         
     }];
-    
+    //描述
     [self.descriptionView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.descLabel.mas_bottom).offset(8);
         make.width.equalTo(@(maxWidth - 32));
@@ -232,7 +287,6 @@
     [self.tagsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.descriptionView.mas_bottom).offset(16);
         make.left.equalTo(self.infoContainer).offset(16);
-        //        make.right.equalTo(self.infoContainer).offset(-16);
     }];
     
     [self.tagsView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -242,9 +296,17 @@
         make.height.greaterThanOrEqualTo(@40); // 标签高度动态适应内容
     }];
     
+    //选项卡
+    [self.switchInput mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.tagsView.mas_bottom).offset(8);
+        make.left.equalTo(self.view).offset(16);
+        make.width.equalTo(@110);
+        make.height.equalTo(@35); // 固定高度，或根据需求调整
+    }];
+    
     // 5. 代码编辑器（最后一个子视图，需关联ScrollView底部）
     [self.codeEditorView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagsView.mas_bottom).offset(20);
+        make.top.equalTo(self.switchInput.mas_bottom).offset(10);
         make.width.equalTo(@(maxWidth - 32));
         make.centerX.equalTo(self.infoContainer);
         make.height.equalTo(@300); // 固定高度，或根据需求调整
@@ -269,7 +331,12 @@
     }];
     // 5. 代码编辑器（最后一个子视图，需关联ScrollView底部）
     [self.codeEditorView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagsView.mas_bottom).offset(20);
+        make.top.equalTo(self.switchInput.mas_bottom).offset(10);
+        if(self.switchInput.selectedSegmentIndex == 0){
+            make.height.equalTo(@300);
+        }else{
+            make.height.equalTo(@100);
+        }
     }];
     
     
@@ -290,12 +357,14 @@
 
 - (void)setupInitialValues {
     
-    self.toolNameField.text = self.editingTool.tool_name;
-    self.versionField.text = self.editingTool.version;
-    self.descriptionView.text = self.editingTool.tool_description;
-    [self.tagsView setTags:self.editingTool.tags];
-    [self.codeEditorView setHTMLCode:self.editingTool.content];
-    NSString *url = [NSString stringWithFormat:@"%@/%@/icon.png",localURL,self.editingTool.tool_path];
+    self.toolNameField.text = self.webToolModel.tool_name;
+    self.versionField.text = self.webToolModel.version;
+    self.descriptionView.text = self.webToolModel.tool_description;
+    [self.tagsView setTags:self.webToolModel.tags];
+    [self.codeEditorView setHTMLCode:self.webToolModel.html_content];
+    self.switchInput.selectedSegmentIndex = self.webToolModel.tool_type;
+    [self switchInputTap];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/icon.png",localURL,self.webToolModel.tool_path];
     [self.iconView sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage systemImageNamed:@"photo.fill"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
         if(image){
             self.iconView.image =  image;
@@ -303,13 +372,13 @@
         }
     }];
     
-    if (self.isUpdating && self.editingTool ) {
+    if (self.isUpdating && self.webToolModel ) {
         // 更新模式
        
         [_titleButton setTitle:@"更新工具" forState:UIControlStateNormal];
         [_actionButton setTitle:@"提交更新" forState:UIControlStateNormal];
         
-        [self fetchHtmlFromServerWithToolId:self.editingTool.tool_id];
+        [self fetchHtmlFromServerWithToolId:self.webToolModel.tool_id];
         
     } else {
         // 发布模式
@@ -323,7 +392,11 @@
 - (void)fetchHtmlFromServerWithToolId:(NSInteger )tool_id {
     NSString *udid = [loadData sharedInstance].userModel.udid;
     if(tool_id ==0){
-        
+        return;
+    }
+    if(!udid || udid.length<5){
+        [SVProgressHUD showErrorWithStatus:@"请先获取UDID绑定设备登录"];
+        [SVProgressHUD dismissWithDelay:2];
         return;
     }
     NSDictionary *dic = @{
@@ -372,7 +445,7 @@
 #pragma mark - Actions
 
 - (void)onBackButtonTapped {
-    [self.navigationController popViewControllerAnimated:YES];
+    [self dismiss];
 }
 
 //提交
@@ -434,6 +507,85 @@
     [self presentViewController:alert animated:YES completion:nil];
 }
 
+- (void)switchInputTap {
+    NSInteger index = self.switchInput.selectedSegmentIndex;
+    if(index ==0){
+        [self.codeEditorView.rightButton setTitle:@"HTML" forState:UIControlStateNormal];
+    }else{
+        [self.codeEditorView.rightButton setTitle:@"URL" forState:UIControlStateNormal];
+        NSString * text = self.codeEditorView.codeTextView.text;
+        //检测输入是否是URL
+        BOOL isURL = [NewAppFileModel isValidURL:text];
+        if(!isURL && text.length>0){
+            
+            [self showAlertWithConfirmationFromViewController:self title:@"URL不合法" message:@"URL模式下仅支持http或https开头URL网址" confirmTitle:@"清除输入" cancelTitle:@"取消" onConfirmed:^{
+                self.codeEditorView.codeTextView.text = @"";
+            } onCancelled:^{
+                self.switchInput.selectedSegmentIndex = 0;
+            }];
+            [self updateViewConstraints];
+        }
+    }
+    
+  
+    [self updateViewConstraints];
+}
+
+//修改版本号
+- (void)incrementVersion {
+    NSString *currentVersion = self.versionField.text;
+    
+    // 检查版本号格式是否合法（至少包含一个点号）
+    if (![currentVersion containsString:@"."]) {
+        [self showAlertFromViewController:self title:@"格式错误" message:@"版本号格式错误，应为小写 X.Y.Z \n如 1.1.3"];
+        return;
+    }
+    
+    // 分割版本号为数组
+    NSArray *components = [currentVersion componentsSeparatedByString:@"."];
+    NSMutableArray *versionParts = [components mutableCopy];
+    
+    // 确保有三个部分（X.Y.Z），不足则补0
+    while (versionParts.count < 3) {
+        [versionParts addObject:@"0"];
+    }
+    
+    // 从末尾开始递增
+    BOOL incremented = NO;
+    for (NSInteger i = versionParts.count - 1; i >= 0; i--) {
+        NSInteger part = [versionParts[i] integerValue];
+        part++; // 递增当前部分
+        
+        // 如果递增后超过9，进位并将当前部分置0
+        if (part > 9) {
+            versionParts[i] = @"0";
+            // 如果不是第一部分，继续进位
+            if (i > 0) {
+                continue;
+            } else {
+                // 第一部分进位（如9.9.9 → 10.0.0）
+                versionParts[i] = [NSString stringWithFormat:@"%ld", (long)part];
+                incremented = YES;
+                break;
+            }
+        } else {
+            // 正常递增，无需进位
+            versionParts[i] = [NSString stringWithFormat:@"%ld", (long)part];
+            incremented = YES;
+            break;
+        }
+    }
+    
+    if (incremented) {
+        // 生成新的版本号字符串
+        NSString *newVersion = [versionParts componentsJoinedByString:@"."];
+        self.versionField.text = newVersion;
+    } else {
+        
+        [self showAlertFromViewController:self title:@"错误" message:@"版本号递增失败"];
+    }
+}
+
 #pragma mark - 草稿功能
 
 //保存
@@ -477,6 +629,7 @@
     params[@"tool_description"] = self.descriptionView.text;
     params[@"tags"] = [self.tagsView getTags];
     params[@"version"] = self.versionField.text;
+    params[@"tool_type"] = @(self.switchInput.selectedSegmentIndex);
     params[@"is_public"] = @YES;
     // 获取HTML代码
     NSString *htmlCode = [self.codeEditorView getHTMLCode];
@@ -501,7 +654,7 @@
 
 - (void)dictionaryContentToUI:(NSDictionary*)dictionary {
     // 使用YYModel将字典转换为模型对象
-    self.editingTool = [WebToolModel yy_modelWithDictionary:dictionary];
+    self.webToolModel = [WebToolModel yy_modelWithDictionary:dictionary];
     
     // 设置初始值
     [self setupInitialValues];
@@ -550,6 +703,18 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"设置图标"
                                                                    message:@"请选择图片来源"
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
+    [alert addAction:[UIAlertAction actionWithTitle:@"网络搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        ImageGridSearchViewController *vc = [ImageGridSearchViewController new];
+        vc.delegate = self;
+        vc.maxiMum = 1;
+        vc.searchKeyword = self.toolNameField.text;
+        
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        [self presentViewController:navVC animated:YES completion:nil];
+        
+    }]];
+    
     [alert addAction:[UIAlertAction actionWithTitle:@"商店搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         AppSearchViewController * appSaearchViewController = [AppSearchViewController new];
@@ -644,6 +809,29 @@
         [self showAlertWithTitle:@"提示" message:@"请选择头像"];
         return NO;
     }
+    if(self.codeEditorView.codeTextView.text.length ==0){
+        [self showAlertWithTitle:@"提示" message:@"请输入工具 代码 或 URL"];
+        return NO;
+    }
+    if(self.switchInput.selectedSegmentIndex == 0){
+        if(self.codeEditorView.codeTextView.text.length <100){
+            [self showAlertWithTitle:@"提示" message:@"请输入工完整标准HTML代码"];
+            return NO;
+        }
+    }else{
+        BOOL isURL = [NewAppFileModel isValidURL:self.codeEditorView.codeTextView.text];
+        if(!isURL){
+            [self showAlertWithConfirmationFromViewController:self title:@"URL不合法" message:@"URL模式下仅支持http或https开头URL网址" confirmTitle:@"清除输入" cancelTitle:@"取消" onConfirmed:^{
+                self.codeEditorView.codeTextView.text = @"";
+            } onCancelled:^{
+                self.switchInput.selectedSegmentIndex = 0;
+            }];
+            [self updateViewConstraints];
+            return NO;
+        }
+            
+    }
+    
     return YES;
 }
 
@@ -669,7 +857,7 @@
     return ([string rangeOfCharacterFromSet:nonNumberSet].location == NSNotFound);
 }
 
-#pragma mark - API Requests
+#pragma mark - 发布 API Requests
 
 - (void)requestsToolWithParams:(NSDictionary *)params {
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
@@ -677,14 +865,19 @@
     self.isRuning = YES;
     
     NSString *action = @"updateTool";
-    if (self.isUpdating && self.editingTool && self.editingTool.tool_id > 0){
-        [dic setValue:@(self.editingTool.tool_id) forKey:@"tool_id"];
+    if (self.isUpdating && self.webToolModel && self.webToolModel.tool_id > 0){
+        [dic setValue:@(self.webToolModel.tool_id) forKey:@"tool_id"];
     }else{
         action = @"publishTool";
     }
     [dic setValue:action forKey:@"action"];
     
     NSString *udid = [loadData sharedInstance].userModel.udid;
+    if(!udid || udid.length<5){
+        [SVProgressHUD showErrorWithStatus:@"请先获取UDID绑定设备登录"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
     NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
     
     
@@ -754,8 +947,8 @@
 
 #pragma mark - Setters
 
-- (void)setEditingTool:(WebToolModel *)editingTool {
-    _editingTool = editingTool;
+- (void)setWebToolModel:(WebToolModel *)editingTool {
+    _webToolModel = editingTool;
     
 }
 
@@ -766,11 +959,20 @@
     [self updateViewConstraints];
 }
 
+
 //侧滑手势
 - (BOOL)allowScreenEdgeInteractive{
     return NO;
 }
 
+//禁用键盘遮挡动画
+- (BOOL)isAutoHandleKeyboardEnabled{
+    return YES;
+}
+
+- (CGFloat)keyboardOffsetFromInputView {
+    return 50;
+}
 
 #pragma mark - 商店搜索点击后回调
 
@@ -824,5 +1026,125 @@
     
     
 }
+
+#pragma mark - ImageGridSearchViewControllerDelegate 图片搜索返回
+
+// 点击图片回调（返回图片对象和URL）
+- (void)imageGridSearch:(ImageGridSearchViewController *)controller didSelectImage:(ImageModel *)imageModel cell:(UICollectionViewCell*)cell{
+    NSLog(@"图片搜索返回:%@",imageModel.image);
+    NSLog(@"图片搜索返回imageUrl:%@",imageModel.url);
+    if(imageModel.image && imageModel.isSelected){
+        
+        [self showIconAlert:imageModel.image controller:controller];
+        
+    }
+}
+/// 确认按钮点击后调用代理
+- (void)imageGridSearch:(ImageGridSearchViewController *)controller didSelectImages:(NSArray<ImageModel *> *)imageModels{
+    NSLog(@"多选择模式下返回数组:%@",imageModels);
+    if(imageModels.count>0){
+        ImageModel *model = imageModels.firstObject;
+        UIImage *image = model.image;
+        [self showIconAlert:image controller:controller];
+    }
+}
+#pragma mark - 保存图片到相册
+-(void)showIconAlert:(UIImage*)image controller:(ImageGridSearchViewController*)vc{
+    // 创建弹窗控制器
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    // 1. 选择此图（触发代理）
+    UIAlertAction *selectAction = [UIAlertAction actionWithTitle:@"选择此图"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        self.iconView.image = image;
+        self.iconImage = image;
+        self.iconView.contentMode = UIViewContentModeScaleAspectFit;
+        self.iconView.contentMode = UIViewContentModeScaleAspectFit;
+        
+        [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
+        [SVProgressHUD dismissWithDelay:1];
+        //读取顶层控制器
+        //如果是 转为基类VC 关闭
+        
+        [vc dismissViewControllerAnimated:YES completion:nil];
+        
+    }];
+    [alert addAction:selectAction];
+    
+    // 2. 保存相册
+    UIAlertAction *saveAction = [UIAlertAction actionWithTitle:@"保存相册"
+                                                         style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * _Nonnull action) {
+        [self saveImageToAlbum:image];
+    }];
+    [alert addAction:saveAction];
+    
+    // 3. 剪切（调用系统裁剪工具）
+    UIAlertAction *cropAction = [UIAlertAction actionWithTitle:@"剪切尺寸"
+                                                        style:UIAlertActionStyleDefault
+                                                      handler:^(UIAlertAction * _Nonnull action) {
+        [self presentEditViewControllerWithImage:image];
+    }];
+    [alert addAction:cropAction];
+    
+    // 取消按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [alert addAction:cancelAction];
+    
+    
+    [[self.view getTopViewController] presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)saveImageToAlbum:(UIImage *)image {
+    UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+}
+
+// 保存相册回调
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    if (error) {
+        [self showAlertFromViewController:self title:@"保存失败" message:@"无法保存，请检查相册权限"];
+       
+    } else {
+        [SVProgressHUD showSuccessWithStatus:@"已保存到相册"];
+        [SVProgressHUD dismissWithDelay:1];
+    }
+}
+
+#pragma mark - 调用系统裁剪工具
+- (void)presentEditViewControllerWithImage:(UIImage *)image{
+    __weak typeof(self) weakSelf = self;
+    
+    HXPhotoManager *manager = [[HXPhotoManager alloc] init];
+    HXPhotoModel *photoModel = [HXPhotoModel photoModelWithImage:image];
+    
+    [[self.view getTopViewController] hx_presentPhotoEditViewControllerWithManager:manager photoModel:photoModel delegate:nil done:^(HXPhotoModel *beforeModel, HXPhotoModel *afterModel, HXPhotoEditViewController *viewController) {
+        // 获取编辑后的图片
+        UIImage *editedImage = afterModel.thumbPhoto ?: afterModel.thumbPhoto;
+        weakSelf.iconView.image = editedImage;
+        weakSelf.iconImage = editedImage;
+        weakSelf.iconView.contentMode = UIViewContentModeScaleAspectFit;
+
+        
+        // 关闭编辑器
+        [viewController dismissViewControllerAnimated:YES completion:^{
+            [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
+            [SVProgressHUD dismissWithDelay:1];
+            
+            // 直接 dismiss 当前控制器（ImageGridSearchViewController）
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf dismissViewControllerAnimated:YES completion:nil];
+            });
+        }];
+    } cancel:^(HXPhotoEditViewController *viewController) {
+        [viewController dismissViewControllerAnimated:YES completion:nil];
+    }];
+}
+
+
 
 @end

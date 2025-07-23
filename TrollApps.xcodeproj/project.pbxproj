@@ -93,6 +93,19 @@
 		C28721452E2BE2B200ABC6AE /* WebToolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721442E2BE2B200ABC6AE /* WebToolManager.m */; };
 		C28721482E2BE3A600ABC6AE /* WebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721472E2BE3A600ABC6AE /* WebViewController.m */; };
 		C287214B2E2C2B3C00ABC6AE /* ShowOneToolViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287214A2E2C2B3C00ABC6AE /* ShowOneToolViewController.m */; };
+		C28721552E2D134100ABC6AE /* MyCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721542E2D134100ABC6AE /* MyCollectionViewController.m */; };
+		C28721592E2D366E00ABC6AE /* LeftViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721582E2D366E00ABC6AE /* LeftViewController.m */; };
+		C287215C2E2D3B5E00ABC6AE /* MinWebToolViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C287215B2E2D3B5E00ABC6AE /* MinWebToolViewCell.m */; };
+		C28721622E2F931200ABC6AE /* DownloadProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721612E2F931200ABC6AE /* DownloadProgressView.m */; };
+		C28721652E2F9FD500ABC6AE /* DownloadTaskModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721642E2F9FD500ABC6AE /* DownloadTaskModel.m */; };
+		C28721972E2FC64300ABC6AE /* ArrowheadMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C287218D2E2FC64300ABC6AE /* ArrowheadMenu.m */; };
+		C28721982E2FC64300ABC6AE /* CenterMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C287218E2E2FC64300ABC6AE /* CenterMenu.m */; };
+		C28721992E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m in Sources */ = {isa = PBXBuildFile; fileRef = C287218F2E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m */; };
+		C287219A2E2FC64300ABC6AE /* UIView+DrawGraphics.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721942E2FC64300ABC6AE /* UIView+DrawGraphics.m */; };
+		C287219B2E2FC64300ABC6AE /* BaseMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721962E2FC64300ABC6AE /* BaseMenuViewController.m */; };
+		C287219E2E30051000ABC6AE /* ImageGridSearchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287219D2E30051000ABC6AE /* ImageGridSearchViewController.m */; };
+		C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721A12E30AE6F00ABC6AE /* ContactHelper.m */; };
+		C28721A62E3149B800ABC6AE /* ImageModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721A52E3149B800ABC6AE /* ImageModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -272,6 +285,32 @@
 		C28721472E2BE3A600ABC6AE /* WebViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebViewController.m; sourceTree = "<group>"; };
 		C28721492E2C2B3C00ABC6AE /* ShowOneToolViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShowOneToolViewController.h; sourceTree = "<group>"; };
 		C287214A2E2C2B3C00ABC6AE /* ShowOneToolViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShowOneToolViewController.m; sourceTree = "<group>"; };
+		C28721532E2D134100ABC6AE /* MyCollectionViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyCollectionViewController.h; sourceTree = "<group>"; };
+		C28721542E2D134100ABC6AE /* MyCollectionViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyCollectionViewController.m; sourceTree = "<group>"; };
+		C28721572E2D366E00ABC6AE /* LeftViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeftViewController.h; sourceTree = "<group>"; };
+		C28721582E2D366E00ABC6AE /* LeftViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LeftViewController.m; sourceTree = "<group>"; };
+		C287215A2E2D3B5E00ABC6AE /* MinWebToolViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MinWebToolViewCell.h; sourceTree = "<group>"; };
+		C287215B2E2D3B5E00ABC6AE /* MinWebToolViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MinWebToolViewCell.m; sourceTree = "<group>"; };
+		C28721602E2F931200ABC6AE /* DownloadProgressView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadProgressView.h; sourceTree = "<group>"; };
+		C28721612E2F931200ABC6AE /* DownloadProgressView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadProgressView.m; sourceTree = "<group>"; };
+		C28721632E2F9FD500ABC6AE /* DownloadTaskModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadTaskModel.h; sourceTree = "<group>"; };
+		C28721642E2F9FD500ABC6AE /* DownloadTaskModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadTaskModel.m; sourceTree = "<group>"; };
+		C287218D2E2FC64300ABC6AE /* ArrowheadMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArrowheadMenu.m; sourceTree = "<group>"; };
+		C287218E2E2FC64300ABC6AE /* CenterMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CenterMenu.m; sourceTree = "<group>"; };
+		C287218F2E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArrowheadMenuSelectedState.m; sourceTree = "<group>"; };
+		C28721902E2FC64300ABC6AE /* UIView+DrawGraphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+DrawGraphics.h"; sourceTree = "<group>"; };
+		C28721912E2FC64300ABC6AE /* BaseMenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseMenuViewController.h; sourceTree = "<group>"; };
+		C28721922E2FC64300ABC6AE /* CenterMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CenterMenu.h; sourceTree = "<group>"; };
+		C28721932E2FC64300ABC6AE /* ArrowheadMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrowheadMenu.h; sourceTree = "<group>"; };
+		C28721942E2FC64300ABC6AE /* UIView+DrawGraphics.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+DrawGraphics.m"; sourceTree = "<group>"; };
+		C28721952E2FC64300ABC6AE /* ArrowheadMenuSelectedState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArrowheadMenuSelectedState.h; sourceTree = "<group>"; };
+		C28721962E2FC64300ABC6AE /* BaseMenuViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseMenuViewController.m; sourceTree = "<group>"; };
+		C287219C2E30051000ABC6AE /* ImageGridSearchViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageGridSearchViewController.h; sourceTree = "<group>"; };
+		C287219D2E30051000ABC6AE /* ImageGridSearchViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageGridSearchViewController.m; sourceTree = "<group>"; };
+		C28721A02E30AE6F00ABC6AE /* ContactHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContactHelper.h; sourceTree = "<group>"; };
+		C28721A12E30AE6F00ABC6AE /* ContactHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactHelper.m; sourceTree = "<group>"; };
+		C28721A42E3149B800ABC6AE /* ImageModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageModel.h; sourceTree = "<group>"; };
+		C28721A52E3149B800ABC6AE /* ImageModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageModel.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -308,6 +347,7 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C287219F2E30AE5F00ABC6AE /* 联系作者 */,
 				C28721522E2CD5FE00ABC6AE /* 评论 */,
 				C28721272E28254C00ABC6AE /* runInBg */,
 				C28721032E281D4600ABC6AE /* 安装工具 */,
@@ -400,12 +440,8 @@
 		C2871FB02E2542C300ABC6AE /* 关于我 */ = {
 			isa = PBXGroup;
 			children = (
-				C287207D2E25495D00ABC6AE /* 我的收藏 */,
-				C287207B2E25493100ABC6AE /* 编辑资料 */,
-				C287207C2E25494500ABC6AE /* 右侧菜单 */,
 				C2871FB92E2542C300ABC6AE /* NewProfileViewController.h */,
 				C2871FBB2E2542C300ABC6AE /* NewProfileViewController.mm */,
-				C2871FB12E2542C300ABC6AE /* vip */,
 			);
 			path = "关于我";
 			sourceTree = "<group>";
@@ -440,9 +476,9 @@
 		C2871FC02E2542C300ABC6AE /* 社区 */ = {
 			isa = PBXGroup;
 			children = (
+				C2871FC32E2542C300ABC6AE /* CommunityViewController.h */,
 				C2871FC12E2542C300ABC6AE /* CommunityViewController.m */,
 				C2871FC22E2542C300ABC6AE /* HelpViewController.h */,
-				C2871FC32E2542C300ABC6AE /* CommunityViewController.h */,
 				C2871FC42E2542C300ABC6AE /* HelpViewController.m */,
 			);
 			path = "社区";
@@ -451,6 +487,7 @@
 		C2871FC52E2542C300ABC6AE /* 工具 */ = {
 			isa = PBXGroup;
 			children = (
+				C28721562E2D354D00ABC6AE /* 左右页面 */,
 				C28721422E2BE2A000ABC6AE /* 网页管理器 */,
 				C2871FC92E2542C300ABC6AE /* cell */,
 				C2871FCC2E2542C300ABC6AE /* model */,
@@ -515,9 +552,9 @@
 			isa = PBXGroup;
 			children = (
 				C2871FD52E2542C300ABC6AE /* TaskManager.h */,
-				C2871FD62E2542C300ABC6AE /* UploadTask.m */,
 				C2871FD72E2542C300ABC6AE /* TaskManager.m */,
 				C2871FD82E2542C300ABC6AE /* UploadTask.h */,
+				C2871FD62E2542C300ABC6AE /* UploadTask.m */,
 			);
 			path = "任务管理";
 			sourceTree = "<group>";
@@ -610,9 +647,9 @@
 			isa = PBXGroup;
 			children = (
 				C28720052E2542C300ABC6AE /* AppSearchViewController.h */,
+				C287200C2E2542C300ABC6AE /* AppSearchViewController.m */,
 				C28720062E2542C300ABC6AE /* cell */,
 				C28720092E2542C300ABC6AE /* model */,
-				C287200C2E2542C300ABC6AE /* AppSearchViewController.m */,
 			);
 			path = "图标商店搜索";
 			sourceTree = "<group>";
@@ -638,10 +675,10 @@
 		C287200D2E2542C300ABC6AE /* 网络 */ = {
 			isa = PBXGroup;
 			children = (
-				C287200E2E2542C300ABC6AE /* TokenGenerator.h */,
-				C287200F2E2542C300ABC6AE /* NetworkClient.m */,
-				C28720102E2542C300ABC6AE /* TokenGenerator.m */,
 				C28720112E2542C300ABC6AE /* NetworkClient.h */,
+				C287200F2E2542C300ABC6AE /* NetworkClient.m */,
+				C287200E2E2542C300ABC6AE /* TokenGenerator.h */,
+				C28720102E2542C300ABC6AE /* TokenGenerator.m */,
 			);
 			path = "网络";
 			sourceTree = "<group>";
@@ -678,6 +715,8 @@
 		C287201B2E2542C300ABC6AE /* 组件 */ = {
 			isa = PBXGroup;
 			children = (
+				C28721A32E31408600ABC6AE /* 图片网络搜索 */,
+				C287218C2E2FC64300ABC6AE /* 弹窗小列表 */,
 				C28720232E2542C300ABC6AE /* 动画效果按钮 */,
 				C287201D2E2542C300ABC6AE /* 小按钮 */,
 				C28720282E2542C300ABC6AE /* 钥匙串KEY */,
@@ -765,6 +804,8 @@
 			children = (
 				C2871FBF2E2542C300ABC6AE /* MyFavoritesListViewController.h */,
 				C2871FBC2E2542C300ABC6AE /* MyFavoritesListViewController.m */,
+				C28721532E2D134100ABC6AE /* MyCollectionViewController.h */,
+				C28721542E2D134100ABC6AE /* MyCollectionViewController.m */,
 			);
 			path = "我的收藏";
 			sourceTree = "<group>";
@@ -772,6 +813,10 @@
 		C28720852E255E9300ABC6AE /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
+				C287207D2E25495D00ABC6AE /* 我的收藏 */,
+				C287207B2E25493100ABC6AE /* 编辑资料 */,
+				C287207C2E25494500ABC6AE /* 右侧菜单 */,
+				C2871FB12E2542C300ABC6AE /* vip */,
 				C28721352E2A939400ABC6AE /* 隐私政策 */,
 				C287208A2E25606E00ABC6AE /* cell */,
 				C28720892E25606500ABC6AE /* model */,
@@ -813,11 +858,8 @@
 		C28721032E281D4600ABC6AE /* 安装工具 */ = {
 			isa = PBXGroup;
 			children = (
+				C28721A72E31592F00ABC6AE /* 下载管理 */,
 				C28721072E281E9600ABC6AE /* Jailbreak */,
-				C28721042E281D5400ABC6AE /* FileInstallManager.h */,
-				C28721052E281D5400ABC6AE /* FileInstallManager.m */,
-				C28721312E2A557A00ABC6AE /* DownloadManagerViewController.h */,
-				C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */,
 			);
 			path = "安装工具";
 			sourceTree = "<group>";
@@ -886,6 +928,8 @@
 				C28721442E2BE2B200ABC6AE /* WebToolManager.m */,
 				C28721462E2BE3A600ABC6AE /* WebViewController.h */,
 				C28721472E2BE3A600ABC6AE /* WebViewController.m */,
+				C287215A2E2D3B5E00ABC6AE /* MinWebToolViewCell.h */,
+				C287215B2E2D3B5E00ABC6AE /* MinWebToolViewCell.m */,
 			);
 			path = "网页管理器";
 			sourceTree = "<group>";
@@ -899,6 +943,67 @@
 				C2871FFB2E2542C300ABC6AE /* CommentModel.m */,
 			);
 			path = "评论";
+			sourceTree = "<group>";
+		};
+		C28721562E2D354D00ABC6AE /* 左右页面 */ = {
+			isa = PBXGroup;
+			children = (
+				C28721572E2D366E00ABC6AE /* LeftViewController.h */,
+				C28721582E2D366E00ABC6AE /* LeftViewController.m */,
+			);
+			path = "左右页面";
+			sourceTree = "<group>";
+		};
+		C287218C2E2FC64300ABC6AE /* 弹窗小列表 */ = {
+			isa = PBXGroup;
+			children = (
+				C287218D2E2FC64300ABC6AE /* ArrowheadMenu.m */,
+				C287218E2E2FC64300ABC6AE /* CenterMenu.m */,
+				C287218F2E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m */,
+				C28721902E2FC64300ABC6AE /* UIView+DrawGraphics.h */,
+				C28721912E2FC64300ABC6AE /* BaseMenuViewController.h */,
+				C28721922E2FC64300ABC6AE /* CenterMenu.h */,
+				C28721932E2FC64300ABC6AE /* ArrowheadMenu.h */,
+				C28721942E2FC64300ABC6AE /* UIView+DrawGraphics.m */,
+				C28721952E2FC64300ABC6AE /* ArrowheadMenuSelectedState.h */,
+				C28721962E2FC64300ABC6AE /* BaseMenuViewController.m */,
+			);
+			path = "弹窗小列表";
+			sourceTree = "<group>";
+		};
+		C287219F2E30AE5F00ABC6AE /* 联系作者 */ = {
+			isa = PBXGroup;
+			children = (
+				C28721A02E30AE6F00ABC6AE /* ContactHelper.h */,
+				C28721A12E30AE6F00ABC6AE /* ContactHelper.m */,
+			);
+			path = "联系作者";
+			sourceTree = "<group>";
+		};
+		C28721A32E31408600ABC6AE /* 图片网络搜索 */ = {
+			isa = PBXGroup;
+			children = (
+				C287219C2E30051000ABC6AE /* ImageGridSearchViewController.h */,
+				C287219D2E30051000ABC6AE /* ImageGridSearchViewController.m */,
+				C28721A42E3149B800ABC6AE /* ImageModel.h */,
+				C28721A52E3149B800ABC6AE /* ImageModel.m */,
+			);
+			path = "图片网络搜索";
+			sourceTree = "<group>";
+		};
+		C28721A72E31592F00ABC6AE /* 下载管理 */ = {
+			isa = PBXGroup;
+			children = (
+				C28721042E281D5400ABC6AE /* FileInstallManager.h */,
+				C28721052E281D5400ABC6AE /* FileInstallManager.m */,
+				C28721312E2A557A00ABC6AE /* DownloadManagerViewController.h */,
+				C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */,
+				C28721602E2F931200ABC6AE /* DownloadProgressView.h */,
+				C28721612E2F931200ABC6AE /* DownloadProgressView.m */,
+				C28721632E2F9FD500ABC6AE /* DownloadTaskModel.h */,
+				C28721642E2F9FD500ABC6AE /* DownloadTaskModel.m */,
+			);
+			path = "下载管理";
 			sourceTree = "<group>";
 		};
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
@@ -1047,19 +1152,25 @@
 				C287204D2E2542C300ABC6AE /* PublishAppViewController.m in Sources */,
 				C28720572E2542C300ABC6AE /* NewAppFileModel.m in Sources */,
 				C287205F2E2542C300ABC6AE /* AppSearchCell.m in Sources */,
+				C287219E2E30051000ABC6AE /* ImageGridSearchViewController.m in Sources */,
 				C28720942E268BF100ABC6AE /* LikeModel.m in Sources */,
+				C28721982E2FC64300ABC6AE /* CenterMenu.m in Sources */,
 				C287206B2E2542C300ABC6AE /* UIResponder+DoneButton.m in Sources */,
 				C28720692E2542C300ABC6AE /* UIView.m in Sources */,
 				C287204B2E2542C300ABC6AE /* TaskManager.m in Sources */,
 				C287212B2E28254C00ABC6AE /* RunInBackground.mm in Sources */,
+				C28721592E2D366E00ABC6AE /* LeftViewController.m in Sources */,
+				C287215C2E2D3B5E00ABC6AE /* MinWebToolViewCell.m in Sources */,
 				C28720512E2542C300ABC6AE /* AppsViewController.mm in Sources */,
 				C287204A2E2542C300ABC6AE /* UploadTask.m in Sources */,
 				C28721482E2BE3A600ABC6AE /* WebViewController.m in Sources */,
 				C28720652E2542C300ABC6AE /* UserFeedbackModel.m in Sources */,
+				C28721992E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m in Sources */,
 				C287206F2E2542C300ABC6AE /* MultiIconButton.m in Sources */,
 				C28721382E2A942E00ABC6AE /* PrivacyPolicyViewController.m in Sources */,
 				C28720882E255EAA00ABC6AE /* UserProfileViewController.m in Sources */,
 				C28721412E2BA31000ABC6AE /* ToolTagsView.m in Sources */,
+				C28721622E2F931200ABC6AE /* DownloadProgressView.m in Sources */,
 				4F639DF42272E94500776206 /* ViewController.m in Sources */,
 				C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */,
 				C28720422E2542C300ABC6AE /* NewProfileViewController.mm in Sources */,
@@ -1075,11 +1186,13 @@
 				C28721222E281E9600ABC6AE /* PidModel.mm in Sources */,
 				C28720602E2542C300ABC6AE /* ITunesAppModel.m in Sources */,
 				C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */,
+				C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */,
 				C28720632E2542C300ABC6AE /* TokenGenerator.m in Sources */,
 				C28720552E2542C300ABC6AE /* AppCommentCell.m in Sources */,
 				C28720432E2542C300ABC6AE /* MyFavoritesListViewController.m in Sources */,
 				C28720592E2542C300ABC6AE /* AppInfoModel.m in Sources */,
 				C28720492E2542C300ABC6AE /* ToolStoreListViewController.m in Sources */,
+				C28721972E2FC64300ABC6AE /* ArrowheadMenu.m in Sources */,
 				C28720672E2542C300ABC6AE /* MiniButtonView.m in Sources */,
 				C28721062E281D5400ABC6AE /* FileInstallManager.m in Sources */,
 				C28720792E25484500ABC6AE /* MediaProcessor.m in Sources */,
@@ -1090,17 +1203,22 @@
 				C287203A2E2542C300ABC6AE /* EmptyView.m in Sources */,
 				C287213E2E2BA1D900ABC6AE /* HTMLCodeEditorView.m in Sources */,
 				C28720412E2542C300ABC6AE /* ProfileRightViewController.m in Sources */,
+				C287219A2E2FC64300ABC6AE /* UIView+DrawGraphics.m in Sources */,
 				C28720402E2542C300ABC6AE /* EditUserProfileViewController.m in Sources */,
 				C28720642E2542C300ABC6AE /* FeedbackCell.m in Sources */,
 				C287205D2E2542C300ABC6AE /* ShowOneAppViewController.m in Sources */,
 				4F639DFF2272E94C00776206 /* main.m in Sources */,
 				C287203C2E2542C300ABC6AE /* DemoBaseNavigationController.m in Sources */,
 				C287205A2E2542C300ABC6AE /* CommentModel.m in Sources */,
+				C28721652E2F9FD500ABC6AE /* DownloadTaskModel.m in Sources */,
 				C287203D2E2542C300ABC6AE /* MyTabBarController.m in Sources */,
 				C287207A2E25484500ABC6AE /* HXPhotoURLConverter.m in Sources */,
 				C28720622E2542C300ABC6AE /* NetworkClient.m in Sources */,
+				C28721552E2D134100ABC6AE /* MyCollectionViewController.m in Sources */,
 				C287206C2E2542C300ABC6AE /* KeychainTool.m in Sources */,
 				C28720662E2542C300ABC6AE /* FeedbackViewController.m in Sources */,
+				C28721A62E3149B800ABC6AE /* ImageModel.m in Sources */,
+				C287219B2E2FC64300ABC6AE /* BaseMenuViewController.m in Sources */,
 				C28720382E2542C300ABC6AE /* CellHeightCache.m in Sources */,
 				C287206D2E2542C300ABC6AE /* TimeTool.m in Sources */,
 				C28720372E2542C300ABC6AE /* TemplateSectionController.m in Sources */,

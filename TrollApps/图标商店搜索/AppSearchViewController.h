@@ -10,9 +10,10 @@
 #import "config.h"
 NS_ASSUME_NONNULL_BEGIN
 
+@class AppSearchViewController;
 @protocol AppSearchViewControllerDelegate <NSObject>
 // 点击单元格时回调选中的应用信息
-- (void)didSelectAppModel:(ITunesAppModel *)model;
+- (void)didSelectAppModel:(ITunesAppModel *)model controller:(AppSearchViewController*)controller tableView:(UITableView*)tableView cell:(UITableViewCell*)cell;
 @end
 
 @interface AppSearchViewController : DemoBaseViewController

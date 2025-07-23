@@ -51,6 +51,7 @@
 #import <SDWebImage/SDWebImage.h>
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/SDWebImageManager.h>
+#import "JXCategoryView.h"
 
 //自开发组件
 

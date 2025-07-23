@@ -14,6 +14,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *keyword;
 //分类
 @property (nonatomic, strong) NSString *tag;
+//切换列表
+@property (nonatomic, assign) BOOL sort;
+//列表类型
+@property (nonatomic, assign) NSInteger selectedIndex;
 @end
 
 NS_ASSUME_NONNULL_END

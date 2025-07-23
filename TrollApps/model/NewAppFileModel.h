@@ -12,25 +12,27 @@ NS_ASSUME_NONNULL_BEGIN
 
 // 文件类型枚举
 typedef NS_ENUM(NSInteger, FileType) {
-    
+    FileTypeUnknown = 0,    // 未知类型
     // 安装包类型
-    FileTypeIPA = 0,            // iOS应用安装包
-    FileTypeTIPA,           // 多应用安装包集合
-    FileTypeDEB,            // Debian软件包(越狱插件)
+    FileTypeIPA = 1,            // iOS应用安装包
+    FileTypeTIPA = 2,           // 多应用安装包集合
+    FileTypeDEB = 3,            // Debian软件包(越狱插件)
     
     // 脚本/配置类型
-    FileTypeJS,             // JavaScript脚本
-    FileTypeHTML,           // HTML网页文件
-    FileTypeJSON,           // JSON数据文件
-    FileTypeSH,             // Shell脚本
-    FileTypePLIST,          // Property List配置文件
+    FileTypeJS = 4,             // JavaScript脚本
+    FileTypeHTML = 5,           // HTML网页文件
+    FileTypeJSON = 6,           // JSON数据文件
+    FileTypeSH = 7,             // Shell脚本
+    FileTypePLIST = 8,          // Property List配置文件
     
     // 二进制类型
-    FileTypeDYLIB,          // 动态链接库
+    FileTypeDYLIB = 9,          // 动态链接库
     
     // 压缩包类型
-    FileTypeZIP,            // ZIP压缩文件
-    FileTypeUnknown,    // 未知类型
+    FileTypeZIP = 10,            // ZIP压缩文件
+    
+    FileTypeOther = 11,    // 其他
+    
 };
 
 @interface NewAppFileModel : NSObject
@@ -53,6 +55,9 @@ typedef NS_ENUM(NSInteger, FileType) {
 /// 获取文件类型的中文描述
 + (NSString *)chineseDescriptionForFileType:(FileType)fileType;
 
+/// 获取文件类型对应的文件夹目录
++ (NSString *)getTypeDicForFileType:(FileType)fileType;
+
 
 /// 判断URL对应的文件是否为图片
 + (BOOL)isImageFileWithURL:(NSURL *)url;
@@ -63,6 +68,41 @@ typedef NS_ENUM(NSInteger, FileType) {
 /// 判断URL对应的文件是否为图片或视频（媒体文件）
 + (BOOL)isMediaFileWithURL:(NSURL *)url;
 
+/// 判断是否是合法URL
++ (BOOL)isValidURL:(NSString *)urlString;
+
+/**
+ * 将文件大小（字节）格式化为人类可读的字符串，如 "1.23 MB"
+ * @param fileSize 文件大小（以字节为单位）
+ * @return 格式化后的字符串，包含单位（KB、MB、GB等）
+ */
++ (NSString *)formattedFileSize:(NSNumber *)fileSize;
+
+/**
+ 通过NSURL获取文件名
+ 
+ @param url 文件URL
+ @param shouldDecode 是否解码中文
+ @return 处理后的文件名（特殊字符已替换）
+ */
++ (NSString *)fileNameFromURL:(NSURL *)url shouldDecodeChinese:(BOOL)shouldDecode;
+
+/**
+ 通过文件路径字符串获取文件名
+ 
+ @param path 文件路径字符串
+ @param shouldDecode 是否解码中文
+ @return 处理后的文件名（特殊字符已替换）
+ */
++ (NSString *)fileNameFromPathString:(NSString *)path shouldDecodeChinese:(BOOL)shouldDecode;
+
+/**
+ 将字符串URL转换为编码后的NSURL（保留原始空格和/）
+ 
+ @param urlString 原始URL字符串（可能包含未编码的中文或特殊字符）
+ @return 编码后的NSURL（nil表示转换失败）
+ */
++ (NSURL *)encodedURLFromString:(NSString *)urlString;
 
 @end
 

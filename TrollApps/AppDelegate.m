@@ -2,14 +2,11 @@
 //  AppDelegate.m
 //  CustomTabBarProduct
 //
-//  Created by iMac-1 on 2019/4/26.
-//  Copyright © 2019 iOS_阿玮. All rights reserved.
-//
-//  QQ:71449265  QQ技术交流群:637387838
 //
 #import "AppDelegate.h"
 #import "MyTabBarController.h"
 #import "loadData.h"
+#import "config.h"
 @interface AppDelegate ()
 
 @end
@@ -23,7 +20,15 @@
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     MyTabBarController *tabBar = [[MyTabBarController alloc] init];
     self.sideMenuController = [[LGSideMenuController alloc] initWithRootViewController:tabBar leftViewController:nil rightViewController:nil];
+    
     self.window.rootViewController = self.sideMenuController;
+    
+    self.window.backgroundColor = [UIColor systemBackgroundColor];
+    
+    [self.window setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
+    
+    [self.window addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.5];
+    
     
     [self.window makeKeyAndVisible];
     [loadData sharedInstance];

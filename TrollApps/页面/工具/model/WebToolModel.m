@@ -31,7 +31,7 @@
                 && [self.tool_name isEqualToString:other.tool_name]
                 && (self.tool_type == other.tool_type)
                 && [self.tool_description isEqualToString:other.tool_description]
-                && [self.content isEqualToString:other.content]
+                && [self.html_content isEqualToString:other.html_content]
                 && [self.tool_path isEqualToString:other.tool_path]
                 && [self.tags isEqualToArray:other.tags]
                 && (self.tool_status == other.tool_status)

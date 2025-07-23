@@ -8,10 +8,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "ITunesAppModel.h"
+#import "UserModel.h"
 #import <IGListKit/IGListKit.h>
+
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AppInfoModel : NSObject<IGListDiffable>
+
+#define MAIN_File_KEY @"_mainFile_"
+#define ICON_KEY @"icon.png"
+
+@interface AppInfoModel : NSObject<IGListDiffable,YYModel>
 //OC属性
 @property (nonatomic, strong, nullable) UIImage *appIcon; // 软件图标
 @property (nonatomic, strong, nullable) NSString *iconBase64String;
@@ -55,6 +61,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *version_name;
 @property (nonatomic, copy) NSString *release_notes;
 @property (nonatomic, strong) NSMutableArray<NSString *> *fileNames;
+
+@property (nonatomic, strong) UserModel*userModel;
 
 @end
 

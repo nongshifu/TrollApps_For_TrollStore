@@ -69,10 +69,11 @@
     
     // 4. 标签容器（预留，用户后期实现）
     self.tagsContainerView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 100, 25)];
-    self.tagsContainerView.buttonBcornerRadius  =3;
+    self.tagsContainerView.buttonBcornerRadius  = 7;
     self.tagsContainerView.autoLineBreak = YES;
     self.tagsContainerView.space = 3;
     self.tagsContainerView.buttonSpace = 7;
+    self.tagsContainerView.buttonBackgroundColorAlpha = 0.5;
     [self.contentView addSubview:self.tagsContainerView];
     
     // 5. 简介（最多4行）
@@ -216,6 +217,10 @@
         make.height.equalTo(@(25));
         make.bottom.lessThanOrEqualTo(self.contentView.mas_bottom).offset(-15); // 底部与contentView底部间距15
     }];
+    
+    // 更新按钮状态
+    [self configuseButtonWithStatus:self.toolModel.tool_status];
+    
     // 更新约束
     [self setNeedsUpdateConstraints];
     [self updateConstraintsIfNeeded];
@@ -252,6 +257,42 @@
     [self.statsContainerView updateButtonsWithStrings:statsTitles icons:imageNames];
 }
 
+// 更新使用按钮状态
+- (void)configuseButtonWithStatus:(NSInteger)status{
+    switch (status) {
+        case 0:
+            [self.useButton setTitle:@"使用" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [UIColor systemBlueColor];
+            
+            break;
+        case 1:
+            [self.useButton setTitle:@"已失效" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.5];
+            break;
+        case 2:
+            [self.useButton setTitle:@"更新中" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [[UIColor systemPinkColor] colorWithAlphaComponent:0.5];
+            break;
+        case 3:
+            [self.useButton setTitle:@"锁定" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
+            break;
+        case 4:
+            [self.useButton setTitle:@"上传中" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [UIColor purpleColor];
+            break;
+        case 5:
+            [self.useButton setTitle:@"已隐藏" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [UIColor grayColor];
+            break;
+            
+        default:
+            [self.useButton setTitle:@"使用" forState:UIControlStateNormal];
+            self.useButton.backgroundColor = [UIColor systemBlueColor];
+            break;
+    }
+}
+
 #pragma mark - 辅助函数
 //重命名数量
 - (NSString *)formatCount:(NSInteger)count {
@@ -278,10 +319,10 @@
     NSString *action;
     switch (tag) {
         case 0:
-            
-            break;
-        case 1:
             action = @"";
+            return;
+        case 1:
+            action = @"collect";
             break;
         case 2:
             action = @"toggleToolLike";
@@ -341,23 +382,20 @@
 }
 
 - (void)openHtml:(UIButton*)button {
-    // 假设self.toolModel是一个WebToolModel实例
-    WebToolModel *toolModel = self.toolModel;
-    
-    // 创建网页控制器
-    WebViewController *webVC = [[WebViewController alloc] initWithToolModel:toolModel];
-    
-    // 添加到单例管理类
-    [[WebToolManager sharedManager] addWebToolWithModel:toolModel controller:webVC];
-    
-    // 显示网页控制器
-//    [[self getTopViewController] presentPanModal:webVC];
-    
-    [[self getTopViewController] presentViewController:webVC animated:YES completion:nil];
+    // 直接初始化，内部会自动判断单例中是否存在
+    WebViewController *webVC = [[WebViewController alloc] initWithToolModel:self.toolModel];
+    // 显示控制器（无论新创建还是复用已有实例，直接 present 即可）
+//    [[self getTopViewController] presentViewController:webVC animated:YES completion:nil];
+    [[self getTopViewController] presentPanModal:webVC];
 }
 
 - (void)buttonActionWith:(NSString *)action button:(UIButton *)button{
     NSString *udid = [loadData sharedInstance].userModel.udid;
+    if(!udid || udid.length<5){
+        [SVProgressHUD showErrorWithStatus:@"请先获取UDID绑定设备登录"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
     NSDictionary *dic = @{
         @"action" : action,
         @"udid" : udid,
@@ -380,9 +418,40 @@
             NSString * msg = jsonResult[@"msg"];
             if(code ==200){
                 NSDictionary *data = jsonResult[@"data"];
-               
-                [SVProgressHUD showImage:button.imageView.image status:msg];
+                BOOL status = [data[@"status"] boolValue];
+                NSInteger tag = button.tag;
+                NSLog(@"查看点赞回复:%d",status);
+                UIImage *iconImage = [UIImage new];
+                switch (tag) {
+                    case 1:
+                        //收藏
+                        iconImage = status ? [UIImage systemImageNamed:@"star.fill"] : [UIImage systemImageNamed:@"star"];
+                        self.toolModel.collect_count = status ? self.toolModel.collect_count+1 : self.toolModel.collect_count -1;
+                        self.toolModel.isCollect = status;
+                        break;
+                    case 2:
+                        //点赞
+                        iconImage = status ? [UIImage systemImageNamed:@"heart.fill"] : [UIImage systemImageNamed:@"heart"];
+                        self.toolModel.like_count = status ? self.toolModel.like_count+1 : self.toolModel.like_count -1;
+                        self.toolModel.isLike = status;
+                        break;
+                    case 3:
+                        //踩一踩
+                        iconImage = status ? [UIImage systemImageNamed:@"hand.thumbsdown.fill"] : [UIImage systemImageNamed:@"hand.thumbsdown"];
+                        self.toolModel.dislike_count = status ? self.toolModel.dislike_count+1 : self.toolModel.dislike_count -1;
+                        self.toolModel.isDislike = status;
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
+                [button setImage:iconImage forState:UIControlStateNormal];
+                [SVProgressHUD showImage:iconImage status:msg];
                 [SVProgressHUD dismissWithDelay:1];
+                //重新调用赋值
+                [self configureStatsButtonsWithAppInfo:self.toolModel];
+                
                 
             }else{
                 [SVProgressHUD showErrorWithStatus:msg];
@@ -426,11 +495,9 @@
     }
     
     // 添加应用名称和描述
-    NSString *shareText = [NSString stringWithFormat:@"%@\n%@\n%@",
+    NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
                            self.toolModel.tool_name,
-                           self.toolModel.tool_description ?: @"快来一起看看吧！",
-                           appURL?:@""
-    ];
+                           self.toolModel.tool_description ?: @"快来一起看看吧！"];
     [shareItems addObject:shareText];
     
     NSString *iconURL = [NSString stringWithFormat:@"%@/%@/icon.png", localURL,self.toolModel.tool_path];
@@ -476,6 +543,7 @@
         }
         if (completed) {
             [SVProgressHUD showSuccessWithStatus:@"分享成功"];
+            [SVProgressHUD dismissWithDelay:1];
             NSLog(@"分享完成，活动类型: %@", activityType);
         } else {
             NSLog(@"分享取消");
@@ -495,4 +563,5 @@
     // 6. 显示分享控制器
     [[self getTopViewController] presentViewController:activityVC animated:YES completion:nil];
 }
+
 @end

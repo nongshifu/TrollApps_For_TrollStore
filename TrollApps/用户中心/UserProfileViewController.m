@@ -3,7 +3,6 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/14.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import "UserProfileViewController.h"
@@ -18,7 +17,7 @@
 #import "EditUserProfileViewController.h"
 
 //是否打印
-#define MY_NSLog_ENABLED YES
+#define MY_NSLog_ENABLED NO
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -608,6 +607,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 // 请求用户数据
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
     _user_udid = udid;
+    
+    if (udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
     NSDictionary *dic = @{
         @"action":@"getUserInfo",
         @"udid":udid,
@@ -790,6 +795,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 /// 发送评论
 - (void)sendComment {
+    
     NSLog(@"点击发送按钮");
     NSString *commentContent = [self.commentInputView.textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if (commentContent.length == 0) {
@@ -800,7 +806,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 隐藏键盘
     [self.commentInputView.textView resignFirstResponder];
-    NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    if (udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
     // 构建请求参数（根据实际接口调整）
     NSDictionary *params = @{
         @"action": @"user_comment",

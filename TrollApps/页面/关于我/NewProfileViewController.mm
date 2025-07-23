@@ -8,7 +8,7 @@
 #import <Masonry/Masonry.h>
 #include <sys/sysctl.h>
 #include <dlfcn.h>
-#import "MyFavoritesListViewController.h"
+#import "MyCollectionViewController.h"
 #import "UserModel.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "PublishAppViewController.h"
@@ -18,9 +18,9 @@
 #import "NetworkClient.h"
 #import "ProfileRightViewController.h"
 #import "FeedbackViewController.h"
-
+#import "loadData.h"
 // 是否打印日志
-#define MY_NSLog_ENABLED YES
+#define MY_NSLog_ENABLED NO
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
 NSString *className = NSStringFromClass([self class]); \
@@ -62,35 +62,35 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.templateListDelegate = self;
-    NSLog(@"初始化长效Token相关");
+   
     // 初始化长效Token相关
     [self loadLongTermToken];
     
     // 设置UI
     [self setupSubviews];
     //设置左右视图
-    NSLog(@"设置左右视图");
+   
     [self setupSideMenuController];
     // 导航
-    NSLog(@"导航");
+   
     [self setupNavigationBar];
     // 设置约束
     [self setupViewConstraints];
     //更新约束
     [self updateViewConstraints];
     // 加载用户数据
-    NSLog(@"加载用户数据");
+   
     [self loadUserInfo];
     
     // 先加载本地VIP缓存
-    NSLog(@"先加载本地VIP缓存");
+   
     [self loadLocalPackages];
     // 再加载远程数据
-    NSLog(@"再加载远程数据");
+   
     [self loadVIPPackagesFromRemote];
     
     // 注册通知监听：UDID更新和App回调
-    NSLog(@"注册通知监听：UDID更新和App回调");
+   
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleUDIDUpdatedNotification:)
                                                  name:@"UDIDUpdatedNotification"
@@ -384,7 +384,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.zx_navBarBackgroundColorAlpha = 0;
     
     [self zx_setLeftBtnWithImg:[UIImage systemImageNamed:@"star.lefthalf.fill"] clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
-        MyFavoritesListViewController *vc = [MyFavoritesListViewController new];
+        MyCollectionViewController *vc = [MyCollectionViewController new];
         [self presentPanModal:vc];
     }];
     [self zx_setSubLeftBtnWithText:@"反馈" clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
@@ -495,7 +495,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 保存最新用户模型
     self.userInfo = userModel;
-    
+    [loadData sharedInstance].userModel = userModel;
     // 1. 更新昵称
     self.nicknameLabel.text = userModel.nickname.length > 0 ? userModel.nickname : @"未注册用户";
     
@@ -638,9 +638,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         });
     } failure:^(NSError *error) {
         NSLog(@"从服务器获取IDFV 读取资料失败：%@",error);
-        [SVProgressHUD showErrorWithStatus:@"读取用户资料失败\n可尝试刷新"];
-        [SVProgressHUD dismissWithDelay:2];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showErrorWithStatus:@"读取用户资料失败\n可尝试刷新"];
+            [SVProgressHUD dismissWithDelay:2];
 
+        });
     }];
 }
 
@@ -890,6 +892,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)updateUserInfoWithNickname:(NSString *)nickname {
+    
+    NSString *udid = self.userInfo.udid;
+    if (udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
     [SVProgressHUD showWithStatus:@"正在更新昵称...."];
     // 使用统一的更新方法
     self.userInfo.nickname = nickname;
@@ -1168,6 +1177,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)handlePurchaseWithPackage:(VIPPackage *)package {
+    
     self.loadingAlert = [UIAlertController alertControllerWithTitle:@"处理中"
                                                             message:@"正在处理购买请求..."
                                                      preferredStyle:UIAlertControllerStyleAlert];

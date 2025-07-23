@@ -11,23 +11,31 @@
 #import "loadData.h"
 #import "NewToolViewController.h"
 #import "ShowOneToolViewController.h"
+#import "NewProfileViewController.h"
+#import "LeftViewController.h"
 
 @interface ToolStoreListViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate>
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
 @property (nonatomic, strong)  NSString *keyword;
+@property (nonatomic, assign)  BOOL isMyTool;
 @end
 
 @implementation ToolStoreListViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
     // Do any additional setup after loading the view.
     NSLog(@"collectionView：%@",self.collectionView);
     [self setupViews];
+    //设置约束
     [self setupViewConstraints];
+    //更新约束
     [self updateViewConstraints];
     //刷新数据
     [self refreshLoadInitialData];
+    //设置左右列表
+    [self setupSideMenuController];
     
 }
 
@@ -71,10 +79,7 @@
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
     
     // 地区选择按钮（移至右侧）
-    UIBarButtonItem *countryItem = [[UIBarButtonItem alloc] initWithTitle:@"我的发布"
-                                                       style:UIBarButtonItemStylePlain
-                                                      target:self
-                                                      action:@selector(myToolTapped)];
+    UIBarButtonItem *countryItem = [[UIBarButtonItem alloc] initWithTitle:@"我的" style:UIBarButtonItemStylePlain target:self action:@selector(myToolTapped:)];
     countryItem.tintColor = [UIColor labelColor];
     self.navigationItem.rightBarButtonItem = countryItem;
     
@@ -94,16 +99,61 @@
 }
 
 
+//设置左侧菜单
+- (void)setupSideMenuController {
+    self.sideMenuController = [self getLGSideMenuController];
+   
+    // 设置侧滑阈值，这里设置为从屏幕边缘开始 20 点的距离才触发侧滑
+    self.sideMenuController.leftViewController = [LeftViewController new];
+    
+    self.sideMenuController.rightViewController = [LeftViewController new];
+   
+    //设置宽度
+   
+    self.sideMenuController.leftViewWidth = 200;
+    self.sideMenuController.rightViewWidth = 200;
+    // 设置左侧菜单的滑动触发范围
+//    self.sideMenuController.swipeGestureArea = LGSideMenuSwipeGestureAreaBorders;//全屏可触摸
+   
+    //默认不允许触摸侧滑 按钮点击显示
+    self.sideMenuController.leftViewSwipeGestureEnabled = YES;
+    self.sideMenuController.rightViewSwipeGestureEnabled = YES;
+
+    // 创建弱引用
+    __weak typeof(self) weakSelf = self;
+    //侧面出现后才可以滑动 用来隐藏
+    self.sideMenuController.willShowLeftView = ^(LGSideMenuController * _Nonnull sideMenuController, UIView * _Nonnull view) {
+        // 禁用侧滑手势
+        weakSelf.sideMenuController.leftViewSwipeGestureEnabled = YES;
+        LeftViewController *vc = (LeftViewController *)weakSelf.sideMenuController.leftViewController;
+        [vc refreshLoadInitialData];
+    };
+
+    self.sideMenuController.willHideLeftView = ^(LGSideMenuController * _Nonnull sideMenuController, UIView * _Nonnull view) {
+        // 在左侧菜单即将隐藏时，禁用左滑关闭菜单的手势
+        weakSelf.sideMenuController.leftViewSwipeGestureEnabled = YES;
+    };
+
+    self.sideMenuController.willShowRightView = ^(LGSideMenuController * _Nonnull sideMenuController, UIView * _Nonnull view) {
+        // 禁用侧滑手势
+        weakSelf.sideMenuController.rightViewSwipeGestureEnabled = YES;
+    };
+
+    self.sideMenuController.willHideRightView = ^(LGSideMenuController * _Nonnull sideMenuController, UIView * _Nonnull view) {
+        // 在左侧菜单即将隐藏时，禁用左滑关闭菜单的手势
+        weakSelf.sideMenuController.rightViewSwipeGestureEnabled = YES;
+    };
+}
+
+
+
 #pragma mark - 约束相关
 
 //设置约束
 -(void)setupViewConstraints{
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view);
-//        make.top.equalTo(self.view).offset(40);
-//        make.centerX.equalTo(self.view);
-//        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
-//        make.width.equalTo(self.view);
+        make.left.right.top.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
     }];
     
     
@@ -115,24 +165,22 @@
     [super updateViewConstraints];
     
     [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view);
-//        make.top.equalTo(self.view).offset(40);
-//        make.centerX.equalTo(self.view);
-//        make.bottom.equalTo(self.view.mas_bottom).offset(-20);
-//        make.width.equalTo(self.view);
-//        
+        make.left.right.top.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
     }];
 }
 
 #pragma mark - action 函数
 
 //查看我的发布工具
-- (void)myToolTapped {
-    
+- (void)myToolTapped:(UIBarButtonItem*)item {
+    self.isMyTool = !self.isMyTool;
+    [self refreshLoadInitialData];
+    item.title = self.isMyTool ? @"市场":@"我的";
 }
 //最近使用
 - (void)recently {
-    
+    [self.sideMenuController showLeftViewAnimated:YES completionHandler:nil];
 }
 
 #pragma mark - 数据操作
@@ -190,15 +238,16 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page {
-    NSString *udid = [loadData sharedInstance].userModel.udid ?:@"";
+    NSString *udid = [loadData sharedInstance].userModel.udid ?:[[NewProfileViewController sharedInstance] getIDFV];
     NSDictionary *dic = @{
         @"udid":udid,
         @"action":@"getToolList",
         @"category":@"popular",
         @"page":@(self.page),
         @"page_size":@(20),
+        @"isMyTool":@(self.isMyTool),
         @"keyword":self.keyword?:@"",
-        @"sort_field":@"sort_field"//排序
+        @"sort_field":@"update_time"//排序['create_time', 'update_time', 'like_count', 'comment_count', 'view_count']
     };
     NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
@@ -258,7 +307,7 @@
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if([object isKindOfClass:[WebToolModel class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(10, 10, 0, 10) usingCacheHeight:NO];
+        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:YES];
     }
     return nil;
 }
@@ -302,7 +351,11 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
+    [self setBackgroundUI];
+    [self topBackageView];
     [self updateViewConstraints];
+
+    
 }
 
 - (void)viewDidLayoutSubviews {
@@ -321,5 +374,58 @@
     
 }
 
+
+
+
+- (void)topBackageView{
+    //创建一个空视图渐变色
+    
+    UIView * navigationControllerBackageView =[[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, 150)];
+    navigationControllerBackageView.backgroundColor = [UIColor clearColor];
+   
+    UIImage *image = [UIView convertViewToPNG:navigationControllerBackageView];
+    
+    
+    //先判断下系统
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
+        appearance.backgroundColor = [UIColor clearColor];
+        appearance.backgroundEffect = nil; // 完全透明，无磨砂
+        appearance.backgroundImage = image;
+        appearance.shadowImage = [UIImage new];
+        appearance.shadowColor = nil;
+        
+        self.navigationController.navigationBar.standardAppearance = appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
+        self.navigationController.navigationBar.compactAppearance = appearance;
+        
+    }else{
+        //顶部背景图
+        [self.navigationController.navigationBar setBackgroundImage:image forBarMetrics:UIBarMetricsDefault];
+        //清除分割线
+        [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    }
+
+}
+
+
+- (void)setBackgroundUI {
+
+    // 设置背景颜色和透明度
+    self.view.backgroundColor = [UIColor clearColor];
+    [self.view removeDynamicBackground];
+    
+}
+
+
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    
+    NSLog(@"界面模式发生变化");
+    [self setBackgroundUI];
+    [self topBackageView];
+    
+}
 
 @end

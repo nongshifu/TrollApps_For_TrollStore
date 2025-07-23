@@ -82,12 +82,25 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)addFileData:(NSData *)fileData fileName:(NSString *)fileName toTask:(UploadTask *)task {
     NSLog(@"开始添加追加文件data到缓存目录");
+    
+    // 检查是否已存在同名文件
+    for (UploadFileItem *existingItem in task.fileItems) {
+        if ([existingItem.fileName isEqualToString:fileName]) {
+            NSLog(@"文件已存在，跳过添加: %@", fileName);
+            return;
+        }
+    }
+    
+    // 文件不存在，执行原有逻辑
     UploadFileItem *fileItem = [[UploadFileItem alloc] init];
     fileItem.fileName = fileName;
     fileItem.status = UploadFileStatusReady;
-    if(!task.fileItems)task.fileItems = [NSMutableArray array];
+    
+    if (!task.fileItems) {
+        task.fileItems = [NSMutableArray array];
+    }
+    
     // 保存文件数据到临时目录
-    NSLog(@"保存文件数据到临时目录fileName:%@",fileName);
     NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
     NSString *filePath = [documentsPath stringByAppendingPathComponent:[NSString stringWithFormat:@"upload_temp/%@", fileName]];
     NSURL *fileURL = [NSURL fileURLWithPath:filePath];
@@ -104,13 +117,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [fileData writeToURL:fileURL atomically:YES];
     fileItem.fileURL = fileURL.absoluteString;
     NSLog(@"写入文件后fileURL: %@", fileItem.fileURL);
+    
     // 添加到任务
     [task.fileItems addObject:fileItem];
     NSLog(@"添加到任务fileItems: %@", task.fileItems);
+    
     // 保存任务
     [[TaskManager sharedManager] saveTask:task];
 }
-
 - (void)startTask:(UploadTask *)task
          progress:(UploadProgressOnlyBlock)progressBlock
           success:(UploadSuccessBlock)successBlock

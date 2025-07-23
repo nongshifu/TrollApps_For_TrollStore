@@ -356,11 +356,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     ITunesAppModel *selectedModel = self.dataSource[indexPath.row];
     
     // 回调选中的模型（包含所有参数）
-    if ([self.delegate respondsToSelector:@selector(didSelectAppModel:)]) {
-        [self.delegate didSelectAppModel:selectedModel];
+    if ([self.delegate respondsToSelector:@selector(didSelectAppModel:controller:tableView:cell:)]) {
+        [self.delegate didSelectAppModel:selectedModel controller:self tableView:tableView cell:cell];
     }
     
     // 示例：打印选中的信息

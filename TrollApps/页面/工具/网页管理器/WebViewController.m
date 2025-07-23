@@ -3,12 +3,12 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/19.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import "WebViewController.h"
 #import "WebToolManager.h"
-
+#import "NewAppFileModel.h"
+#import <Masonry/Masonry.h>
 @interface WebViewController () <WKUIDelegate, WKNavigationDelegate>
 
 
@@ -17,21 +17,66 @@
 @implementation WebViewController
 
 #pragma mark - Lifecycle
+// WebViewController.m
 - (instancetype)initWithToolModel:(WebToolModel *)toolModel {
+    // 第一步：查询单例中是否已存在该工具的控制器
+    WebToolManager *manager = [WebToolManager sharedManager];
+    WebViewController *existingVC = (WebViewController *)[manager getControllerForToolId:toolModel.tool_id];
+    
+    // 如果存在，直接返回已有实例（不创建新对象）
+    if (existingVC) {
+        // 更新打开时间（可选，根据需求决定是否在初始化时更新）
+        [manager updateOpenTimeForToolId:toolModel.tool_id];
+        return existingVC;
+    }
+    
+    // 如果不存在，继续初始化新实例
     self = [super init];
     if (self) {
         _toolModel = toolModel;
+        
+        // 初始化时自动添加到单例（关键：新实例才会执行这步）
+        [manager addWebToolWithModel:toolModel controller:self];
+        
+        // 设置关闭回调（隐藏而非销毁）
+        __weak typeof(manager) weakSelf = manager;
+        self.onClose = ^{
+            [weakSelf hideWebToolWithId:toolModel.tool_id];
+        };
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    // 自定义导航栏（覆盖系统默认关闭按钮）
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭"
+                                                                             style:UIBarButtonItemStylePlain
+                                                                            target:self
+                                                                            action:@selector(customCloseAction)];
     
-    [self loadWebContent];
+    // 首次加载时创建SFSafariViewController
+    if (!self.safariVC) {
+        [self loadWebContent];
+    }
+    
+    
     
     // 添加到WebToolManager
     [[WebToolManager sharedManager] addWebToolWithModel:self.toolModel controller:self];
+    
+    
+}
+
+- (void)updateViewConstraints{
+    [super updateViewConstraints];
+    [self.safariVC.view mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
+        make.width.equalTo(self.view);
+    }];
+    [UIView animateWithDuration:0.4 animations:^{
+        [self.view layoutIfNeeded];
+    }];
 }
 
 #pragma mark - WebView Loading
@@ -44,8 +89,11 @@
     }
     
     // 构建完整的URL
-//    NSString *localURL = [self getLocalBaseURL];
     NSString *fullURLString = [NSString stringWithFormat:@"%@/%@/%@", localURL, self.toolModel.tool_path, self.toolModel.html_file ?: @"index.html"];
+    if(self.toolModel.tool_type == 1 && self.toolModel.html_content.length>0 && [NewAppFileModel isValidURL:self.toolModel.html_content]){
+        //URL模式下
+        fullURLString = self.toolModel.html_content;
+    }
     
     // 处理特殊字符
     fullURLString = [fullURLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
@@ -80,6 +128,19 @@
     return [paths firstObject];
 }
 
+// 自定义关闭：仅隐藏，不销毁
+- (void)customCloseAction {
+    if (self.onClose) {
+        self.onClose(); // 通知父控制器处理隐藏逻辑
+    }
+}
+
+// 阻止系统默认的关闭行为（关键）
+- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
+    // 不调用dismiss，改为触发自定义关闭
+    [self customCloseAction];
+}
+
 #pragma mark - Error Handling
 
 - (void)showErrorWithMessage:(NSString *)message {
@@ -90,10 +151,10 @@
 
 #pragma mark - SFSafariViewControllerDelegate
 
-- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
-    // 用户点击完成按钮
-    [self closeWebView];
-}
+//- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
+//    // 用户点击完成按钮
+//    [self closeWebView];
+//}
 
 - (void)closeWebView {
     // 从导航栈中移除

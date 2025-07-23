@@ -7,6 +7,10 @@
 
 #import "HXPhotoURLConverter.h"
 #import "SVProgressHUD.h"
+#import "Demo9Model.h"
+#import "HXCustomAssetModel.h"
+#import "config.h"
+#import "AppInfoModel.h"
 @implementation HXPhotoURLConverter
 
 + (void)convertPhotoModelsToURLs:(NSArray<HXPhotoModel *> * _Nonnull)photoModels
@@ -157,6 +161,229 @@
     
     // 解锁
     dispatch_semaphore_signal(semaphore);
+}
+
+
+- (Demo9Model *)getAssetModels:(NSArray<NSString *> *)appFileModels{
+    NSLog(@"传进来的:%@",appFileModels);
+    
+    Demo9Model *Models = [[Demo9Model alloc] init];
+    
+    NSMutableArray *assetModels = [NSMutableArray array];
+    
+    
+    // 创建文件名到URL的映射，用于快速查找缩略图
+    NSMutableDictionary<NSString *, NSString *> *fileNameToURLMap = [NSMutableDictionary dictionary];
+    for (NSString *urlString in appFileModels) {
+        if([urlString containsString:MAIN_File_KEY]) continue;
+        NSURL *url = [NSURL URLWithString:urlString];
+        NSString *fileName = [url lastPathComponent];
+        NSLog(@"封装urlString：%@",urlString);
+        [fileNameToURLMap setObject:urlString forKey:fileName];
+    }
+    
+    for (NSString *urlString in appFileModels) {
+        
+        //排除主图图标
+        if([urlString containsString:ICON_KEY]) continue;
+        if([urlString containsString:MAIN_File_KEY]) continue;
+        
+        NSURL *fileURL = [NSURL URLWithString:urlString];
+     
+        
+        // 2. 判断是否为媒体文件（图片/视频）
+        if (![self isMediaFileWithURL:fileURL]) {
+            NSLog(@"跳过非媒体文件：%@", fileURL);
+            continue;
+        }
+        
+        // 排除缩略图文件
+        if ([urlString containsString:@"thumbnail"]) {
+            NSLog(@"跳过缩略图文件：%@", urlString);
+            continue;
+        }
+        
+        if ([self isImageFileWithURL:fileURL]) {
+            // 执行封装模型（图片文件）
+            HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkImageURL:fileURL networkThumbURL:fileURL selected:YES];
+            [assetModels addObject:assetModel];
+        }
+        else if ([self isVideoFileWithURL:fileURL]) {
+            // 根据视频文件名查找对应的缩略图
+            NSString *thumbnailURLString = nil;
+            CGFloat videoDuration = 0;
+            
+            // 获取视频文件名（不含扩展名）
+            NSString *videoNameWithoutExt = [urlString stringByDeletingPathExtension];
+            
+            // 构建可能的缩略图文件名
+            NSString *expectedThumbnailName = [NSString stringWithFormat:@"%@_thumbnail", videoNameWithoutExt];
+            
+            // 在映射中查找匹配的缩略图
+            for (NSString *possibleThumbnailName in fileNameToURLMap.keyEnumerator) {
+                if ([possibleThumbnailName containsString:expectedThumbnailName] &&
+                    [possibleThumbnailName containsString:@"thumbnail"] &&
+                    [self isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
+                    thumbnailURLString = fileNameToURLMap[possibleThumbnailName];
+                    
+                    // 从缩略图文件名中提取时长信息
+                    NSArray *components = [possibleThumbnailName componentsSeparatedByString:@"_thumbnail_"];
+                    if (components.count == 2) {
+                        NSString *durationPart = [components[1] stringByDeletingPathExtension];
+                        videoDuration = [durationPart floatValue];
+                        NSLog(@"从文件名提取视频时长: %@ -> %.1f秒", possibleThumbnailName, videoDuration);
+                    }
+                    break;
+                }
+            }
+            
+            // 如果找到缩略图，使用它；否则使用默认值
+            NSURL *thumbnailURL = thumbnailURLString ? [NSURL URLWithString:thumbnailURLString] : [NSURL URLWithString:@""];
+            
+            // 视频（使用找到的缩略图URL和提取的时长）
+            HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkVideoURL:fileURL
+                                                                                videoCoverURL:thumbnailURL
+                                                                                videoDuration:videoDuration
+                                                                                    selected:YES];
+            [assetModels addObject:assetModel];
+        }
+    }
+    
+    NSLog(@"最后的媒体数量:%lu", (unsigned long)assetModels.count);
+    Models.customAssetModels = assetModels;
+    return Models;
+}
+
+//填装图片视频文件
+- (HXPhotoManager *)getManager:(Demo9Model *)model {
+    HXPhotoManager *manager = [[HXPhotoManager alloc] initWithType:HXPhotoManagerSelectedTypePhotoAndVideo];
+    manager.configuration.maxNum = 12;
+    manager.configuration.photoMaxNum = 0;
+    manager.configuration.videoMaxNum = 0;
+    manager.configuration.selectVideoBeyondTheLimitTimeAutoEdit =YES;//视频过大自动跳转编辑
+    manager.configuration.videoMaximumDuration = 60;//视频最大时长
+    manager.configuration.saveSystemAblum = YES;//是否保存系统相册
+    manager.configuration.lookLivePhoto = YES; //是否开启查看LivePhoto功能呢 - 默认 NO
+    manager.configuration.photoCanEdit = YES;
+    manager.configuration.photoCanEdit = YES;
+    manager.configuration.videoCanEdit = YES;
+    manager.configuration.selectTogether = YES;//同时选择视频图片
+    manager.configuration.showOriginalBytes =YES;//原图显示大小
+    manager.configuration.showOriginalBytesLoading =YES;
+    manager.configuration.requestOriginalImage = NO;//默认非圆图
+    manager.configuration.clarityScale = 2.0f;
+    manager.configuration.allowPreviewDirectLoadOriginalImage =NO;//预览大图时允许不先加载小图，直接加载原图
+    manager.configuration.livePhotoAutoPlay =NO;//查看LivePhoto是否自动播放，为NO时需要长按才可播放
+    manager.configuration.replacePhotoEditViewController = NO;
+    manager.configuration.editAssetSaveSystemAblum = YES;
+    manager.configuration.customAlbumName = @"TrollApps";
+    
+    [manager changeAfterCameraArray:model.endCameraList];
+    [manager changeAfterCameraPhotoArray:model.endCameraPhotos];
+    [manager changeAfterCameraVideoArray:model.endCameraVideos];
+    [manager changeAfterSelectedCameraArray:model.endSelectedCameraList];
+    [manager changeAfterSelectedCameraPhotoArray:model.endSelectedCameraPhotos];
+    [manager changeAfterSelectedCameraVideoArray:model.endSelectedCameraVideos];
+    [manager changeAfterSelectedArray:model.endSelectedList];
+    [manager changeAfterSelectedPhotoArray:model.endSelectedPhotos];
+    [manager changeAfterSelectedVideoArray:model.endSelectedVideos];
+    [manager changeICloudUploadArray:model.iCloudUploadArray];
+    
+    // 这些操作需要放在manager赋值的后面，不然会出现重用..
+    manager.configuration.albumShowMode = HXPhotoAlbumShowModePopup;
+    manager.configuration.photoMaxNum = model.customAssetModels.count;
+    manager.configuration.videoMaxNum = 1;
+    if (!model.addCustomAssetComplete && model.customAssetModels.count) {
+        [manager addCustomAssetModel:model.customAssetModels];
+        model.addCustomAssetComplete = YES;
+    }
+    
+    // 创建弱引用
+    __weak typeof(manager) weakmanager = manager;
+    
+    manager.configuration.previewRespondsToLongPress = ^(UILongPressGestureRecognizer *longPress, HXPhotoModel *photoModel, HXPhotoManager *manager, HXPhotoPreviewViewController *previewViewController) {
+        HXPhotoBottomViewModel *saveModel = [[HXPhotoBottomViewModel alloc] init];
+        saveModel.title = @"保存";
+        saveModel.customData = photoModel.tempImage;
+        [HXPhotoBottomSelectView showSelectViewWithModels:@[saveModel] selectCompletion:^(NSInteger index, HXPhotoBottomViewModel * _Nonnull model) {
+            
+            if (photoModel.subType == HXPhotoModelMediaSubTypePhoto) {
+                if (photoModel.cameraPhotoType == HXPhotoModelMediaTypeCameraPhotoTypeNetWork ||
+                    photoModel.cameraPhotoType == HXPhotoModelMediaTypeCameraPhotoTypeNetWorkGif) {
+                    NSSLog(@"需要自行保存网络图片");
+                    
+//                    return;
+                }
+            }else if (photoModel.subType == HXPhotoModelMediaSubTypeVideo) {
+                if (photoModel.cameraVideoType == HXPhotoModelMediaTypeCameraVideoTypeNetWork) {
+                    NSSLog(@"需要自行保存网络视频");
+//                    return;
+                }
+            }
+            [previewViewController.view hx_showLoadingHUDText:@"保存中"];
+            if (photoModel.subType == HXPhotoModelMediaSubTypePhoto) {
+                [HXPhotoTools savePhotoToCustomAlbumWithName:weakmanager.configuration.customAlbumName photo:model.customData location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
+                    [previewViewController.view hx_handleLoading];
+                    if (success) {
+                        [previewViewController.view hx_showImageHUDText:@"保存成功"];
+                    }else {
+                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
+                    }
+                }];
+            }else if (photoModel.subType == HXPhotoModelMediaSubTypeVideo) {
+                if (photoModel.cameraVideoType == HXPhotoModelMediaTypeCameraVideoTypeNetWork) {
+                    [[HXPhotoCommon photoCommon] downloadVideoWithURL:photoModel.videoURL progress:nil downloadSuccess:^(NSURL * _Nullable filePath, NSURL * _Nullable videoURL) {
+                        [HXPhotoTools saveVideoToCustomAlbumWithName:nil videoURL:filePath location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
+                            [previewViewController.view hx_handleLoading];
+                            if (success) {
+                                [previewViewController.view hx_showImageHUDText:@"保存成功"];
+                            }else {
+                                [previewViewController.view hx_showImageHUDText:@"保存失败"];
+                            }
+                        }];
+                    } downloadFailure:^(NSError * _Nullable error, NSURL * _Nullable videoURL) {
+                        [previewViewController.view hx_handleLoading];
+                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
+                    }];
+                    return;
+                }
+                [HXPhotoTools saveVideoToCustomAlbumWithName:nil videoURL:photoModel.videoURL location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
+                    [previewViewController.view hx_handleLoading];
+                    if (success) {
+                        [previewViewController.view hx_showImageHUDText:@"保存成功"];
+                    }else {
+                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
+                    }
+                }];
+            }
+        } cancelClick:nil];
+        
+    };
+    return manager;
+    
+}
+
+- (BOOL)isImageFileWithURL:(NSURL *)url {
+    if (!url) return NO;
+    // 常见图片扩展名
+    NSArray *imageExtensions = @[@"jpg", @"jpeg", @"png", @"gif", @"heic", @"webp", @"bmp"];
+    return [self _isFileWithURL:url inExtensions:imageExtensions];
+}
+
+- (BOOL)isVideoFileWithURL:(NSURL *)url {
+    if (!url) return NO;
+    // 常见视频扩展名
+    NSArray *videoExtensions = @[@"mp4", @"mov", @"avi", @"mkv", @"flv", @"wmv", @"mpeg", @"mpg"];
+    return [self _isFileWithURL:url inExtensions:videoExtensions];
+}
+
+- (BOOL)isMediaFileWithURL:(NSURL *)url {
+    return [self isImageFileWithURL:url] || [self isVideoFileWithURL:url];
+}
+/// 私有方法：判断URL的扩展名是否在目标列表中
+- (BOOL)_isFileWithURL:(NSURL *)url inExtensions:(NSArray<NSString *> *)extensions {
+    NSString *ext = url.pathExtension.lowercaseString;
+    return [extensions containsObject:ext];
 }
 
 @end

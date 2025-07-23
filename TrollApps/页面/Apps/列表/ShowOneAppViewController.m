@@ -16,6 +16,7 @@
 #import "TipBarCell.h"
 #import "CommentInputView.h"
 #import "CommentModel.h"
+#import "ContactHelper.h"
 //是否打印
 #define MY_NSLog_ENABLED YES
 
@@ -182,13 +183,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 //左上角状态按钮
 - (void)editAppStatu:(UIButton *)button {
     NSLog(@"点击删除按钮 准备更新软件:%@",self.appInfo.app_name);
-    NSArray *title = @[@"正常发布", @"已失效", @"更新中", @"锁定", @"上传中", @"隐藏软件"];
+    NSArray *title = @[@"正常发布", @"已失效", @"更新中", @"锁定", @"上传中", @"隐藏软件", @"删除软件"];
     
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"操作提示" message:@"修改APP的显示状态" preferredStyle:UIAlertControllerStyleActionSheet];
     for (int i = 0; i<title.count; i++) {
         NSString *actionTitle = title[i];
         UIAlertActionStyle style = UIAlertActionStyleDefault;
-        if(i>=1 && i<=4){
+        if(i>=1 ){
             style = UIAlertActionStyleDestructive;
         }
         // 添加按钮
@@ -199,7 +200,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [alert addAction:action];
     }
     // 添加按钮
-    UIAlertAction*cancel = [UIAlertAction actionWithTitle:@"取消操作" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction*cancel = [UIAlertAction actionWithTitle:@"取消操作" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         
         
     }];
@@ -220,7 +221,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"app_id":@(self.appInfo.app_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app_action.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:dic
@@ -230,6 +231,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if(!jsonResult && stringResult){
+                NSLog(@"修改状态返回stringResult:%@",stringResult);
                 [self showAlertFromViewController:[self.view getTopViewController] title:@"返回解析错误" message:stringResult];
                 return;
             }
@@ -237,13 +239,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             NSInteger new_status = [jsonResult[@"new_status"] intValue];
             NSString *msg = jsonResult[@"msg"];
             if(code == 200){
-               
-                [self showAlertWithConfirmationFromViewController:[self.view getTopViewController] title:@"操作完成" message:[NSString stringWithFormat:@"已成功修改为\n%@",title] confirmTitle:@"确定" cancelTitle:@"取消" onConfirmed:^{
+                [self showAlertFromViewController:self title:@"操作完成" message:[NSString stringWithFormat:@"已成功修改为\n%@",title]];
+                if(index<6){
                     self.appInfo.app_status = new_status;
                     [self refreshLoadInitialData];
-                } onCancelled:^{
-                    
-                }];
+                }else{
+                    [self dismiss];
+                }
             }else{
                 [self showAlertFromViewController:[self.view getTopViewController] title:@"操作失败" message:msg];
             }
@@ -266,215 +268,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [SVProgressHUD dismissWithDelay:3];
         return;
     }
-    
-    NSDictionary *dic = @{
-        @"action": @"getUserInfo",
-        @"type": @"user_id",
-        @"queryValue":self.appInfo.udid,
-    };
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
-    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
-                                             parameters:dic
-                                                   udid:udid
-                                               progress:^(NSProgress *progress) {
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!jsonResult && stringResult) {
-                [self showAlertFromViewController:self title:@"请求错误" message:stringResult];
-                return;
-            }
-            
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSString *msg = jsonResult[@"msg"];
-            if (code == 200) {
-                UserModel *userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                [self showContactActionSheetWithUserInfo:userInfo];
-            } else {
-                [self showAlertFromViewController:self title:@"错误" message:msg];
-            }
+            [[ContactHelper shared] showContactActionSheetWithUserInfo:userModel];
         });
-    } failure:^(NSError *error) {
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self showAlertFromViewController:self title:@"请求错误" message:error.localizedDescription];
+            [self showAlertFromViewController:self title:@"错误" message:errorMsg];
         });
     }];
-}
-
-// 显示联系作者的操作菜单
-- (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"联系作者"
-                                                                             message:nil
-                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    // 1. 手机号（拨打电话）
-    if (userInfo.phone.length == 11) {
-        UIAlertAction *phoneAction = [UIAlertAction actionWithTitle:@"联系作者手机"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction *action) {
-            [self makePhoneCall:userInfo.phone];
-        }];
-        [alertController addAction:phoneAction];
-    }
-    
-    // 2. Email（发送邮件）
-    if (userInfo.email.length > 0 && [self isValidEmail:userInfo.email]) {
-        UIAlertAction *emailAction = [UIAlertAction actionWithTitle:@"联系作者Email"
-                                                            style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction *action) {
-            [self sendEmailTo:userInfo.email];
-        }];
-        [alertController addAction:emailAction];
-    }
-    
-    // 3. QQ（打开QQ聊天）
-    if (userInfo.qq.length > 4) {
-        UIAlertAction *qqAction = [UIAlertAction actionWithTitle:@"联系作者QQ"
-                                                          style:UIAlertActionStyleDefault
-                                                        handler:^(UIAlertAction *action) {
-            [self openQQChat:userInfo.qq];
-        }];
-        [alertController addAction:qqAction];
-    }
-    
-    // 4. 微信（提示复制微信号）
-    if (userInfo.wechat.length > 4) {
-        UIAlertAction *wechatAction = [UIAlertAction actionWithTitle:@"联系作者微信"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction *action) {
-            [self copyWechatID:userInfo.wechat];
-        }];
-        [alertController addAction:wechatAction];
-    }
-    
-    // 5. TG（打开Telegram聊天）
-    if (userInfo.tg.length > 4) {
-        UIAlertAction *tgAction = [UIAlertAction actionWithTitle:@"联系作者TG"
-                                                          style:UIAlertActionStyleDefault
-                                                        handler:^(UIAlertAction *action) {
-            [self openTelegramChat:userInfo.tg];
-        }];
-        [alertController addAction:tgAction];
-    }
-    
-    // 取消按钮
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
-                                                           style:UIAlertActionStyleCancel
-                                                         handler:nil];
-    [alertController addAction:cancelAction];
-    
-    // 显示菜单
-    
-    [[self.view getTopViewController] presentViewController:alertController animated:YES completion:nil];
-    
-}
-
-#pragma mark - 联系方式具体实现
-
-// 拨打电话
-- (void)makePhoneCall:(NSString *)phoneNumber {
-    // 移除可能的空格或特殊字符
-    NSString *cleanedPhone = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSURL *phoneURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", cleanedPhone]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:phoneURL]) {
-        [[UIApplication sharedApplication] openURL:phoneURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开拨号界面"];
-            }
-        }];
-    } else {
-        [SVProgressHUD showErrorWithStatus:@"设备不支持拨打电话功能"];
-    }
-}
-
-// 发送邮件
-- (void)sendEmailTo:(NSString *)emailAddress {
-    if (![self isValidEmail:emailAddress]) {
-        [SVProgressHUD showErrorWithStatus:@"邮箱地址无效"];
-        return;
-    }
-    
-    NSURL *emailURL = [NSURL URLWithString:[NSString stringWithFormat:@"mailto:%@", emailAddress]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:emailURL]) {
-        [[UIApplication sharedApplication] openURL:emailURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开邮件应用"];
-            }
-        }];
-    } else {
-        [SVProgressHUD showErrorWithStatus:@"未安装邮件应用"];
-    }
-}
-
-// 打开QQ聊天（需要QQ客户端）
-- (void)openQQChat:(NSString *)qqNumber {
-    // QQ URL Scheme格式：mqq://im/chat?chat_type=wpa&uin=QQ号&version=1&src_type=web
-    NSURL *qqURL = [NSURL URLWithString:[NSString stringWithFormat:@"mqq://im/chat?chat_type=wpa&uin=%@&version=1&src_type=web", qqNumber]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:qqURL]) {
-        [[UIApplication sharedApplication] openURL:qqURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开QQ"];
-            }
-        }];
-    } else {
-        // 未安装QQ时提示复制QQ号
-        [self copyTextToPasteboard:qqNumber tip:@"QQ号已复制，请手动添加好友"];
-    }
-}
-
-// 复制微信号（微信没有直接聊天的URL Scheme，只能复制）
-- (void)copyWechatID:(NSString *)wechatID {
-    [self copyTextToPasteboard:wechatID tip:@"微信号已复制，请在微信中添加好友"];
-}
-
-// 打开Telegram聊天
-- (void)openTelegramChat:(NSString *)tgUsername {
-    // Telegram URL Scheme格式：tg://resolve?domain=用户名（不带@）
-    NSString *cleanedUsername = [tgUsername stringByReplacingOccurrencesOfString:@"@" withString:@""];
-    NSURL *tgURL = [NSURL URLWithString:[NSString stringWithFormat:@"tg://resolve?domain=%@", cleanedUsername]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:tgURL]) {
-        [[UIApplication sharedApplication] openURL:tgURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开Telegram"];
-            }
-        }];
-    } else {
-        // 未安装Telegram时提示复制用户名
-        [self copyTextToPasteboard:tgUsername tip:@"TG用户名已复制，请在Telegram中搜索"];
-    }
-}
-
-#pragma mark - 工具方法
-
-// 验证邮箱格式
-- (BOOL)isValidEmail:(NSString *)email {
-    NSString *emailRegex = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}";
-    NSPredicate *emailTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", emailRegex];
-    return [emailTest evaluateWithObject:email];
-}
-
-// 复制文本到剪贴板并提示
-- (void)copyTextToPasteboard:(NSString *)text tip:(NSString *)tip {
-    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-    pasteboard.string = text;
-    [SVProgressHUD showSuccessWithStatus:tip];
-}
-
-// 显示弹窗（复用方法）
-- (void)showAlertFromViewController:(UIViewController *)vc title:(NSString *)title message:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
-                                                                   message:message
-                                                            preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定"
-                                                       style:UIAlertActionStyleDefault
-                                                     handler:nil];
-    [alert addAction:okAction];
-    [vc presentViewController:alert animated:YES completion:nil];
+   
 }
 
 #pragma mark - 约束相关
@@ -558,8 +361,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 NSLog(@"请求查看帖子成功，返回数据: %@", data);
                 // 解析应用信息（始终放在数据源的第一个位置）
                 NSDictionary *appInfoDic = data[@"appInfo"];
+                NSLog(@"请求查看帖子成功，返回数据userModel: %@", appInfoDic[@"userModel"]);
                 self.appInfo = [AppInfoModel yy_modelWithDictionary:appInfoDic];
-                
+                NSLog(@"请求查看帖子成功，返回数据self.appInfo.userModel: %@", self.appInfo.userModel);
+                NSLog(@"请求查看帖子成功，返回数据sself.appInfoPhone: %@", self.appInfo.userModel.phone);
                 // 确保应用信息有效
                 if (self.appInfo && self.appInfo.app_name) {
                     self.appInfo.isShowAll = YES;
@@ -585,6 +390,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 
                 // 解析评论数据
                 NSDictionary *commentsData = data[@"commentsData"];
+                BOOL hasMore = YES;
                 NSLog(@"请求查看帖子成功，commentsData: %@", commentsData);
                 if(commentsData){
                     NSArray * comments = commentsData[@"comments"];
@@ -598,36 +404,37 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                             [self.dataSource  addObject:comment];
                         }
                     }
-                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"phone.circle" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
                     
-                    if(self.dataSource.count > 2){
-                        id model = [self.dataSource objectAtIndex:1];
-                        if (![model isKindOfClass:[TipBarModel class]]){
-                            [self.dataSource insertObject:tipBarModel atIndex:1];
-                        }
-                    }else if(self.dataSource.count == 1){
-                        
-                        [self.dataSource insertObject:tipBarModel atIndex:1];
-                    }
                     
-                    [self refreshTable];
-                    BOOL hasMore = [commentsData[@"hasMore"] boolValue];
-                    if(!hasMore || comments.count ==0){
-                        [self handleNoMoreData];
-                        
-                    }else{
+                    hasMore = [commentsData[@"hasMore"] boolValue];
+                    if(hasMore){
                         self.page +=1;
                     }
-                }else{
-                    [self refreshTable];
                 }
+                NSString *tipmMessage =  self.appInfo.app_status != 0 ? @"点击左侧图标可联系作者催更\n应用怎么样 点评下吧！" :@"这个应用怎么样？点评下吧！";
+                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"phone.circle" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
+                
+                if(self.dataSource.count >= 2){
+                    id model = [self.dataSource objectAtIndex:1];
+                    if (![model isKindOfClass:[TipBarModel class]]){
+                        [self.dataSource insertObject:tipBarModel atIndex:1];
+                    }
+                }else{
+                    [self.dataSource insertObject:tipBarModel atIndex:1];
+                }
+                
+                [self refreshTable];
+                
+                if(!hasMore){
+                    [self handleNoMoreData];
+                }
+                
                 
             } else {
                 [self handleErrorWithMessage:[NSString stringWithFormat:@"请求失败: %@", message]];
             }
         });
-    }
-                                                failure:^(NSError *error) {
+    } failure:^(NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"网络请求失败: %@", error);
             [self handleErrorWithMessage:[NSString stringWithFormat:@"网络错误\n%@", error.localizedDescription]];
@@ -657,7 +464,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                          modelClass:[AppInfoModel class]
                                                           delegate:self
                                                         edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10)
-                                                   usingCacheHeight:YES];
+                                                   usingCacheHeight:YES
+                                                         cellHeight:150];
     } else if ([object isKindOfClass:[CommentModel class]]) {
         // 同理，移除 cellHeight
         return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class]
@@ -804,7 +612,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             break;
         case 1:
             NSLog(@"文本标签被点击，cell: %@，model: %@", tipBarCell, model);
-            
+            // 选中输入框并弹出键盘
+            [self.commentInputView.textView becomeFirstResponder];
             break;
         case 2:
             NSLog(@"左按钮被点击，cell: %@，model: %@", tipBarCell, model);

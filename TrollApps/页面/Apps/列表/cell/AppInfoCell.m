@@ -12,14 +12,17 @@
 #import <AFNetworking/AFNetworking.h>
 #import "MiniButtonView.h"
 #import "NewProfileViewController.h"
-#import "MyFavoritesListViewController.h"
+#import "MyCollectionViewController.h"
 #import "NewAppFileModel.h"
 #import "FileInstallManager.h"
 #import "config.h"
 #import "ShowOneAppViewController.h"
 #import "DownloadManagerViewController.h"
+#import "ContactHelper.h"
+#import "HXPhotoURLConverter.h"
+
 //是否打印
-#define MY_NSLog_ENABLED YES
+#define MY_NSLog_ENABLED NO
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -70,9 +73,24 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 应用图标
     self.appIconImageView = [[UIImageView alloc] init];
-    self.appIconImageView.layer.cornerRadius = 12.0;
+    self.appIconImageView.layer.cornerRadius = 15.0;
     self.appIconImageView.layer.masksToBounds = YES;
     self.appIconImageView.contentMode = UIViewContentModeScaleAspectFill;
+    
+    // 下载按钮
+    self.downloadButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.downloadButton setTitle:@"下载" forState:UIControlStateNormal];
+    [self.downloadButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.downloadButton.titleLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightMedium];
+    self.downloadButton.backgroundColor = [UIColor systemBlueColor];
+    self.downloadButton.layer.cornerRadius = 12.0;
+    self.downloadButton.layer.masksToBounds = YES;
+    [self.downloadButton addTarget:self action:@selector(downloadButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    
+    //下载统计
+    self.downloadLabel = [UILabel new];
+    self.downloadLabel.font = [UIFont systemFontOfSize:10];
+    self.downloadLabel.textColor = [UIColor secondaryLabelColor];
     
     // 应用名称
     self.appNameLabel = [[UILabel alloc] init];
@@ -105,6 +123,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appUpdateTimeButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.6];
     self.appUpdateTimeButton.layer.cornerRadius = 3;
     
+    // 标签堆栈视图
+    self.tagMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 130, 20)];
+    self.tagMiniButtonView.tag = 0;
+    self.tagMiniButtonView.userInteractionEnabled = NO;
+    self.tagMiniButtonView.buttonDelegate = self;
+    self.tagMiniButtonView.buttonSpace = 5;
+    self.tagMiniButtonView.buttonBcornerRadius = 5;
+    self.tagMiniButtonView.autoLineBreak = YES;
+    self.tagMiniButtonView.fontSize = 10;
+    self.tagMiniButtonView.tintIconColor = [UIColor whiteColor];
+    self.tagMiniButtonView.buttonBackageColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
+    
     
     // 应用描述
     self.appDescriptionLabel = [[UILabel alloc] init];
@@ -127,49 +157,34 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     ];
     self.statsMiniButtonView.tintIconColor = [UIColor whiteColor];
     
-    
-    // 下载按钮
-    self.downloadButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.downloadButton setTitle:@"下载" forState:UIControlStateNormal];
-    [self.downloadButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.downloadButton.titleLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightMedium];
-    self.downloadButton.backgroundColor = [UIColor systemBlueColor];
-    self.downloadButton.layer.cornerRadius = 12.0;
-    self.downloadButton.layer.masksToBounds = YES;
-    [self.downloadButton addTarget:self action:@selector(downloadButtonTapped) forControlEvents:UIControlEventTouchUpInside];
-    
-    self.downloadLabel = [UILabel new];
-    self.downloadLabel.font = [UIFont systemFontOfSize:10];
-    self.downloadLabel.textColor = [UIColor secondaryLabelColor];
-    
-    // 标签堆栈视图
-    self.tagMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 130, 20)];
-    self.tagMiniButtonView.tag = 0;
-    self.tagMiniButtonView.userInteractionEnabled = NO;
-    self.tagMiniButtonView.buttonDelegate = self;
-    self.tagMiniButtonView.buttonSpace = 5;
-    self.tagMiniButtonView.buttonBcornerRadius = 5;
-    self.tagMiniButtonView.autoLineBreak = YES;
-    self.tagMiniButtonView.fontSize = 10;
-    self.tagMiniButtonView.tintIconColor = [UIColor whiteColor];
-    self.tagMiniButtonView.buttonBackageColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
-    
     //照片容器
     self.imageStackView = [[UIView alloc] init];
     
-    // 添加子视图
+    // 头像
     [self.contentView addSubview:self.appIconImageView];
-    [self.contentView addSubview:self.appNameLabel];
-    [self.contentView addSubview:self.appTypeButton];
-    [self.contentView addSubview:self.appVersionButton];
-    [self.contentView addSubview:self.appUpdateTimeButton];
-    [self.contentView addSubview:self.appDescriptionLabel];
-    [self.contentView addSubview:self.statsMiniButtonView];
+    //下载按钮
     [self.contentView addSubview:self.downloadButton];
+    //下载统计
     [self.contentView addSubview:self.downloadLabel];
+    
+    //名字
+    [self.contentView addSubview:self.appNameLabel];
+    //类型
+    [self.contentView addSubview:self.appTypeButton];
+    //版本
+    [self.contentView addSubview:self.appVersionButton];
+    //时间
+    [self.contentView addSubview:self.appUpdateTimeButton];
+    //标签
     [self.contentView addSubview:self.tagMiniButtonView];
+    //描述
+    [self.contentView addSubview:self.appDescriptionLabel];
+    //统计按钮
+    [self.contentView addSubview:self.statsMiniButtonView];
+    //底部图片视图
     [self.contentView addSubview:self.imageStackView];
     
+   
     [self setupConstraints];
 }
 
@@ -197,7 +212,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.downloadLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.downloadButton.mas_bottom).offset(5);
         make.centerX.equalTo(self.downloadButton);
-        
     }];
     
     // 应用名称约束
@@ -216,52 +230,52 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 应用版本
     [self.appVersionButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appNameLabel.mas_bottom).offset(8);
         make.left.equalTo(self.appTypeButton.mas_right).offset(6);
-        make.height.equalTo(@15);
+        make.centerY.equalTo(self.appTypeButton);
+        make.height.equalTo(self.appTypeButton);
     }];
     
     // 应用更新时间
     [self.appUpdateTimeButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appNameLabel.mas_bottom).offset(8);
         make.left.equalTo(self.appVersionButton.mas_right).offset(6);
-        make.height.equalTo(@15);
+        make.centerY.equalTo(self.appTypeButton);
+        make.height.equalTo(self.appTypeButton);
     }];
     
-    
-    // 标签堆栈视图约束
-    [self.tagMiniButtonView mas_remakeConstraints:^(MASConstraintMaker *make) {
+    //标签堆栈视图约束
+    [self.tagMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.appTypeButton.mas_bottom).offset(8);
         make.left.equalTo(self.appIconImageView.mas_right).offset(12);
         make.right.equalTo(self.contentView.mas_right).offset(-12);
-        
     }];
-
-    // 应用描述约束
-    [self.appDescriptionLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.tagMiniButtonView.mas_bottom).offset(10);
-        make.left.equalTo(self.contentView).offset(16);
-        make.right.equalTo(self.contentView.mas_right).offset(-16);
-        make.width.equalTo(@(CGRectGetWidth(self.contentView.frame) -32));
-    }];
+    
+     // 应用描述约束
+     [self.appDescriptionLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+         make.top.equalTo(self.tagMiniButtonView.mas_bottom).offset(10);
+         make.left.equalTo(self.contentView).offset(16);
+         make.right.equalTo(self.contentView.mas_right).offset(-16);
+         make.width.equalTo(@(CGRectGetWidth(self.contentView.frame) -32));
+     }];
     
     // 统计信息按钮约束
-    [self.statsMiniButtonView mas_remakeConstraints:^(MASConstraintMaker *make) {
+    [self.statsMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.appDescriptionLabel.mas_bottom).offset(8);
         make.left.equalTo(self.contentView).offset(16);
-        make.height.mas_equalTo(25);
         make.right.equalTo(self.contentView);
-        
+        make.height.equalTo(@25);
     }];
-    
     // 图片容器
     [self.imageStackView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
         make.left.equalTo(self.contentView).offset(16);
         make.right.equalTo(self.contentView);
         make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
-
     }];
+    
+}
+
+- (void)updateConstraints{
+    [super updateConstraints];
     
 }
 
@@ -272,6 +286,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         AppInfoModel *appInfo = (AppInfoModel *)viewModel;
         self.model = appInfo;
         self.appInfoModel = appInfo;
+        
+        // 设置应用图标
+        
+        NSLog(@"iconURL:%@",appInfo.icon_url);
+        [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+            if(image){
+                self.appIconImageView.image = image;
+            }
+            
+        }];
+        // 根据应用状态调整下载按钮
+        [self updateDownloadButtonForAppStatus:appInfo.app_status];
+        
         // 设置应用名称
         self.appNameLabel.text = appInfo.app_name;
         
@@ -285,84 +312,20 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         //时间
         NSString *appUpdateTimeTitle = [NSString stringWithFormat:@"更新: %@",[TimeTool getTimeDiyWithString:appInfo.update_date]];
         [self.appUpdateTimeButton setTitle:appUpdateTimeTitle forState:UIControlStateNormal];
-        
-        // 设置应用描述
-        if(appInfo.isShowAll){
-            self.appDescriptionLabel.numberOfLines = 0;
-        }
-        self.appDescriptionLabel.text = appInfo.app_description ?appInfo.app_description:@"暂无介绍";
-        
-        // 配置统计按钮
-        [self configureStatsButtonsWithAppInfo:appInfo];
-        
-        // 设置应用图标
-        
-        NSLog(@"iconURL:%@",appInfo.icon_url);
-        
-        [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if(image){
-                self.appIconImageView.image = image;
-            }
-            
-        }];
-        
+
         // 配置标签
         [self configureTagsWithArray:appInfo.tags];
         
-        // 根据应用状态调整下载按钮
-        [self updateDownloadButtonForAppStatus:appInfo.app_status];
+        //设置描述
+        [self configureDescriptionLabelTextWith:appInfo.app_description];
+
+        // 配置统计按钮
+        [self configureStatsButtonsWithAppInfo:appInfo];
         
-        //图片视频
-        NSLog(@"AppInfoModel.fileNames:%@",self.appInfoModel.fileNames);
-        if(self.appInfoModel.fileNames.count>1 && self.appInfoModel.isShowAll){
-            [self addAssModelToManagerWith:self.appInfoModel.fileNames];
-        }else{
-            [self.photoView removeFromSuperview];
-            self.photoView = nil;
-        }
+        //视频图片
+        [self configureFilesWithAppInfo:appInfo];
+
     }
-}
-
-// 配置统计按钮
-- (void)configureStatsButtonsWithAppInfo:(AppInfoModel *)appInfo {
-    // 下载量
-    if (appInfo.download_count > 0) {
-        self.downloadLabel.text = [NSString stringWithFormat:@"↓ %@", [self formatCount:appInfo.download_count]];
-    }
-    
-    // 创建统计按钮
-    NSArray *statsTitles = @[
-        appInfo.collect_count > 0 ? [self formatCount:appInfo.collect_count] : @"收藏",
-        appInfo.like_count > 0 ? [self formatCount:appInfo.like_count] : @"点赞",
-        appInfo.dislike_count > 0 ? [self formatCount:appInfo.dislike_count] : @"踩",
-        appInfo.comment_count > 0 ? [self formatCount:appInfo.comment_count] : @"评论",
-        appInfo.share_count > 0 ? [self formatCount:appInfo.share_count] : @"分享"
-    ];
-    NSLog(@"点赞等状态isCollect：%d isLike:%d isDislike:%d",appInfo.isCollect,appInfo.isLike,appInfo.isDislike);
-    NSArray *imageNames = @[
-        appInfo.isCollect ? @"star.fill" : @"star",
-        appInfo.isLike ? @"heart.fill" : @"heart",
-        appInfo.isDislike ? @"hand.thumbsdown.fill" : @"hand.thumbsdown",
-        @"bubble.right",
-        @"square.and.arrow.up"
-    ];
-    
-    [self.statsMiniButtonView updateButtonsWithStrings:statsTitles icons:imageNames];
-}
-
-// 配置标签
-- (void)configureTagsWithArray:(NSArray<NSString *> *)tags {
-    // 清除现有标签
-    [self.tagMiniButtonView updateButtonsWithStrings:tags icons:nil];
-
-    [self.tagMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appTypeButton.mas_bottom).offset(8);
-        make.height.equalTo(@(self.tagMiniButtonView.refreshHeight)); // 允许高度自适应
-
-    }];
-    
-    
-    
 }
 
 // 根据应用状态调整下载按钮
@@ -412,6 +375,94 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
             break;
     }
+    // 下载量
+    if (self.appInfoModel.download_count > 0) {
+        self.downloadLabel.text = [NSString stringWithFormat:@"↓ %@", [self formatCount:self.appInfoModel.download_count]];
+    }
+    
+}
+
+// 配置标签
+- (void)configureTagsWithArray:(NSArray<NSString *> *)tags {
+    // 清除现有标签
+    [self.tagMiniButtonView updateButtonsWithStrings:tags icons:nil];
+    [self.tagMiniButtonView refreshHeight];
+    
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    [self.tagMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
+       
+        make.height.equalTo(@(self.tagMiniButtonView.refreshHeight));
+    }];
+}
+
+// 设置应用描述
+- (void)configureDescriptionLabelTextWith :(NSString *)description{
+    // 设置应用描述
+    if(self.appInfoModel.isShowAll){
+        self.appDescriptionLabel.numberOfLines = 0;
+    }
+    self.appDescriptionLabel.text = description ? description :@"暂无介绍";
+   
+}
+
+// 配置统计按钮
+- (void)configureStatsButtonsWithAppInfo:(AppInfoModel *)appInfo {
+    
+    
+    // 创建统计按钮
+    NSArray *statsTitles = @[
+        appInfo.collect_count > 0 ? [self formatCount:appInfo.collect_count] : @"收藏",
+        appInfo.like_count > 0 ? [self formatCount:appInfo.like_count] : @"点赞",
+        appInfo.dislike_count > 0 ? [self formatCount:appInfo.dislike_count] : @"踩",
+        appInfo.comment_count > 0 ? [self formatCount:appInfo.comment_count] : @"评论",
+        appInfo.share_count > 0 ? [self formatCount:appInfo.share_count] : @"分享"
+    ];
+    NSLog(@"点赞等状态isCollect：%d isLike:%d isDislike:%d",appInfo.isCollect,appInfo.isLike,appInfo.isDislike);
+    NSArray *imageNames = @[
+        appInfo.isCollect ? @"star.fill" : @"star",
+        appInfo.isLike ? @"heart.fill" : @"heart",
+        appInfo.isDislike ? @"hand.thumbsdown.fill" : @"hand.thumbsdown",
+        @"bubble.right",
+        @"square.and.arrow.up"
+    ];
+    
+    [self.statsMiniButtonView updateButtonsWithStrings:statsTitles icons:imageNames];
+    
+    [self.statsMiniButtonView refreshLayout];
+    [self.statsMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
+      
+        make.height.equalTo(@(25));
+        
+    }];
+    
+}
+
+// 文件图片视频
+- (void)configureFilesWithAppInfo:(AppInfoModel *)appInfo{
+    
+    //图片视频
+    NSLog(@"AppInfoModel.fileNames:%@",self.appInfoModel.fileNames);
+    if(self.appInfoModel.fileNames.count>1 && self.appInfoModel.isShowAll){
+        [self addAssModelToManagerWith:self.appInfoModel.fileNames];
+        [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
+            make.left.equalTo(self.contentView).offset(16);
+            make.right.equalTo(self.contentView);
+            make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
+        }];
+    }else{
+        [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(0);
+            make.left.equalTo(self.contentView).offset(16);
+            make.right.equalTo(self.contentView);
+            make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
+        }];
+        [self.photoView removeFromSuperview];
+        self.photoView = nil;
+        
+    }
+   
 }
 
 
@@ -427,6 +478,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - 辅助函数
+
 //重命名数量
 - (NSString *)formatCount:(NSInteger)count {
     if (count < 1000) {
@@ -439,6 +491,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - 底部点击代理
+
 - (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
     NSString *action = nil;
     NSString *successMsg = nil;
@@ -481,40 +534,100 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 #pragma mark - 交互处理
-- (void)downloadButtonTapped {
+
+- (void)downloadButtonTapped:(UIButton*)button {
+    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.phone);
+    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.qq);
+    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.wechat);
+    // 查看详情可以催更
+    if(self.appInfoModel.app_status != 0 && self.appInfoModel.isShowAll) {
+        [[ContactHelper shared] showContactActionSheetWithUserInfo:self.appInfoModel.userModel title:@"联系作者催更"];
+        return;
+    }
+    //列表模式 跳过 不显示
+    if(self.appInfoModel.app_status != 0) {
+        [self showAlertWithConfirmationFromViewController:[self getTopViewController] title:button.titleLabel.text message:@"可查看详情\n点击电话图标催更" confirmTitle:@"查看" cancelTitle:@"关闭" onConfirmed:^{
+            ShowOneAppViewController *vc = [ShowOneAppViewController new];
+            vc.appInfo = self.appInfoModel;
+            vc.app_id = self.appInfoModel.app_id;
+            [[self getTopViewController] presentPanModal:vc];
+        } onCancelled:^{
+            
+        }];
+        return;
+    }
     NSLog(@"点击了右侧下载按钮mainFileUrl:%@",self.appInfoModel.mainFileUrl);
-    NSString *mainFile = nil;
-    for (NSString *name in self.appInfoModel.fileNames) {
-        if([name containsString:@"_mainFile_"]){
-            mainFile = name;
+    NSString *mainURL = nil;
+    for (NSString *url in self.appInfoModel.fileNames) {
+        if([url containsString:MAIN_File_KEY]){
+            mainURL = url;
             break;
         }
     }
-    NSString *url = nil;
-    if(!mainFile && self.appInfoModel.mainFileUrl){
-        url = [NSString stringWithFormat:@"%@",self.appInfoModel.mainFileUrl];
-    }else{
-        url = [NSString stringWithFormat:@"%@/%@%@",localURL,self.appInfoModel.save_path,mainFile];
-    }
-   
-    NSLog(@"主文件安装下载地址:%@",url);
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载提示" message:@"可在下载管理中管理历史下载文件" preferredStyle:UIAlertControllerStyleAlert];
+    
+    NSLog(@"主文件安装下载地址:%@",mainURL);
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载提示" message:@"可在下载管理中管理历史下载文件" preferredStyle:UIAlertControllerStyleActionSheet];
     // 添加取消按钮
-    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        [[FileInstallManager sharedManager] downloadFileWithURLString:url completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
-            if(error){
-                [self showAlertFromViewController:[self getTopViewController] title:@"下载失败" message:[NSString stringWithFormat:@"%@",error]];
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[FileInstallManager sharedManager] downloadFileWithURLString:mainURL completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
+            if (error) {
+                // 判断错误类型并显示友好提示
+                switch (error.code) {
+                    case NSURLErrorCancelled: // -999
+                        NSLog(@"下载已取消（用户主动操作）");
+                        break;
+                        
+                    case NSURLErrorTimedOut: // -1001
+                        [self showAlertFromViewController:[self getTopViewController]
+                                                   title:@"下载超时"
+                                                  message:@"连接超时，请检查网络连接后重试"];
+                        break;
+                        
+                    case NSURLErrorCannotFindHost: // -1003
+                    case NSURLErrorCannotConnectToHost: // -1004
+                        [self showAlertFromViewController:[self getTopViewController]
+                                                   title:@"连接失败"
+                                                  message:@"无法连接到服务器，请检查URL或网络连接"];
+                        break;
+                        
+                    case NSURLErrorNetworkConnectionLost: // -1005
+                        [self showAlertFromViewController:[self getTopViewController]
+                                                   title:@"网络中断"
+                                                  message:@"下载过程中网络连接丢失，请重试"];
+                        break;
+                        
+                    case NSURLErrorFileDoesNotExist: // -1100
+                        [self showAlertFromViewController:[self getTopViewController]
+                                                   title:@"文件不存在"
+                                                  message:@"请求的文件不存在或已被删除"];
+                        break;
+                        
+                    default:
+                        [self showAlertFromViewController:[self getTopViewController]
+                                                   title:@"下载失败"
+                                                  message:[NSString stringWithFormat:@"错误代码: %ld\n%@", (long)error.code, error.localizedDescription]];
+                        break;
+                }
                 return;
             }
-            DownloadManagerViewController *vc = [DownloadManagerViewController new];
-            [[self getTopViewController] presentPanModal:vc];
+            
+            // 下载成功，显示下载管理器
+            UIViewController *topVC = [self getTopViewController];
+            if(![topVC isKindOfClass:[DownloadManagerViewController class]]){
+                DownloadManagerViewController *vc = [DownloadManagerViewController new];
+                [[self getTopViewController] presentPanModal:vc];
+            }else{
+                DownloadManagerViewController *vc = (DownloadManagerViewController*)topVC;
+                [vc handleTaskStatusChanged];
+            }
+            
         }];
         
     }];
     [alert addAction:cancelAction];
     UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        [[FileInstallManager sharedManager] installFileWithURLString:url completion:^(BOOL success, NSError * _Nullable error) {
+        [[FileInstallManager sharedManager] installFileWithURLString:mainURL completion:^(BOOL success, NSError * _Nullable error) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 if(error){
                     NSLog(@"安装失败：%@",error);
@@ -528,6 +641,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
     }];
     [alert addAction:confirmAction];
+    
+    UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        DownloadManagerViewController *vc = [DownloadManagerViewController new];
+        [[self getTopViewController] presentPanModal:vc];
+    }];
+    [alert addAction:edit];
+    
+    UIAlertAction*noAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+        
+    }];
+    [alert addAction:noAction];
     [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
     
     
@@ -567,7 +692,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                                   style:UIAlertActionStyleDefault
                                                                 handler:^(UIAlertAction * _Nonnull action) {
         // 跳转到收藏列表页面
-        MyFavoritesListViewController *vc = [MyFavoritesListViewController new];
+        MyCollectionViewController *vc = [MyCollectionViewController new];
         [[self getviewController] presentPanModal:vc];
         
     }];
@@ -703,11 +828,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     
     // 添加应用名称和描述
-    NSString *shareText = [NSString stringWithFormat:@"%@\n%@\n%@",
+    NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
                            self.appInfoModel.app_name,
-                           self.appInfoModel.app_description ?: @"快来一起看看吧！",
-                           appURL?:@""
-    ];
+                           self.appInfoModel.app_description ?: @"快来一起看看吧！"];
     [shareItems addObject:shareText];
     
     // 处理应用图标（异步下载网络图片）
@@ -892,40 +1015,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark - 更新后的HXPhotoManager配置
 
-- (HXPhotoManager *)manager {
-    if (!_manager) {
-        // 创建弱引用
-        // 创建弱引用
-        _manager = [[HXPhotoManager alloc] initWithType:HXPhotoManagerSelectedTypePhotoAndVideo];
-        _manager.configuration.maxNum = 12;
-        _manager.configuration.photoMaxNum = 0;
-        _manager.configuration.videoMaxNum = 0;
-        _manager.configuration.selectVideoBeyondTheLimitTimeAutoEdit =YES;//视频过大自动跳转编辑
-        _manager.configuration.videoMaximumDuration = 60;//视频最大时长
-        _manager.configuration.saveSystemAblum = YES;//是否保存系统相册
-        _manager.configuration.lookLivePhoto = YES; //是否开启查看LivePhoto功能呢 - 默认 NO
-        _manager.configuration.photoCanEdit = YES;
-        _manager.configuration.photoCanEdit = YES;
-        _manager.configuration.videoCanEdit = YES;
-        _manager.configuration.selectTogether = YES;//同时选择视频图片
-        _manager.configuration.showOriginalBytes =YES;//原图显示大小
-        _manager.configuration.showOriginalBytesLoading =YES;
-        _manager.configuration.requestOriginalImage = NO;//默认非圆图
-        _manager.configuration.clarityScale = 2.0f;
-        _manager.configuration.allowPreviewDirectLoadOriginalImage =NO;//预览大图时允许不先加载小图，直接加载原图
-        _manager.configuration.livePhotoAutoPlay =NO;//查看LivePhoto是否自动播放，为NO时需要长按才可播放
-        _manager.configuration.replacePhotoEditViewController = NO;
-        _manager.configuration.editAssetSaveSystemAblum = YES;
-        _manager.configuration.customAlbumName = @"TrollApps";
-    }
-    return _manager;
-}
-
 - (void)addAssModelToManagerWith:(NSArray<NSString *> *)appFileModels {
-    Demo9Model *models = [self getAssetModels:appFileModels];
-    
+    Demo9Model *models =[ [HXPhotoURLConverter alloc] getAssetModels:appFileModels];
+    self.manager = [[HXPhotoURLConverter alloc] getManager:models];
     //添加到HXPhotoView 的 manager
-    [self addModelToManager:models];
+//    [self addModelToManager:models];
     
     NSLog(@"最后:%@",appFileModels);
     // 计算文件媒体数量
@@ -942,7 +1036,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
     for (NSString *file in appFileModels) {
         //排除头像 缩略图 和主程序文件
-        if ([file containsString:@"thumbnail"] || [file containsString:@"icon.png"]  || [file containsString:@"_mainFile_"]) {
+        if ([file containsString:@"thumbnail"] || [file containsString:ICON_KEY]  || [file containsString:MAIN_File_KEY]) {
             continue;
         }
         NSURL *url= [NSURL URLWithString:file];
@@ -1013,186 +1107,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self layoutIfNeeded];
     
     
-    
-}
-
-
-- (Demo9Model *)getAssetModels:(NSArray<NSString *> *)appFileModels{
-    NSLog(@"传进来的:%@",appFileModels);
-    Demo9Model *Models = [[Demo9Model alloc] init];
-    
-    NSMutableArray *assetModels = [NSMutableArray array];
-    
-    // 检测当前网络状态
-    BOOL isWiFi = NO;
-    AFNetworkReachabilityManager *reachability = [AFNetworkReachabilityManager sharedManager];
-    if (reachability.networkReachabilityStatus == AFNetworkReachabilityStatusReachableViaWiFi) {
-        isWiFi = YES;
-    }
-    
-    // 创建文件名到URL的映射，用于快速查找缩略图
-    NSMutableDictionary<NSString *, NSString *> *fileNameToURLMap = [NSMutableDictionary dictionary];
-    for (NSString *fileName in appFileModels) {
-        NSString *urlString = [NSString stringWithFormat:@"%@/%@%@",localURL,self.appInfoModel.save_path,fileName];
-        [fileNameToURLMap setObject:urlString forKey:fileName];
-    }
-    
-    for (int i = 0; i < appFileModels.count; i++) {
-        NSString *fileName = appFileModels[i];
-        //排除主图图标
-        if([fileName containsString:@"icon.png"]) continue;
-        
-        //封装完整URL
-        NSString *urlString = [NSString stringWithFormat:@"%@/%@%@",localURL,self.appInfoModel.save_path,fileName];
-        NSURL *fileURL = [NSURL URLWithString:urlString];
-     
-        if (!fileURL) continue;
-        
-        // 2. 判断是否为媒体文件（图片/视频）
-        if (![NewAppFileModel isMediaFileWithURL:fileURL]) {
-            NSLog(@"跳过非媒体文件：%@", fileURL);
-            continue;
-        }
-        
-        // 排除缩略图文件
-        if ([fileName containsString:@"thumbnail"]) {
-            NSLog(@"跳过缩略图文件：%@", fileName);
-            continue;
-        }
-        
-        if ([NewAppFileModel isImageFileWithURL:fileURL]) {
-            // 执行封装模型（图片文件）
-            HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkImageURL:fileURL networkThumbURL:fileURL selected:YES];
-            [assetModels addObject:assetModel];
-        }
-        else if ([NewAppFileModel isVideoFileWithURL:fileURL]) {
-            // 根据视频文件名查找对应的缩略图
-            NSString *thumbnailURLString = nil;
-            CGFloat videoDuration = 0;
-            
-            // 获取视频文件名（不含扩展名）
-            NSString *videoNameWithoutExt = [fileName stringByDeletingPathExtension];
-            
-            // 构建可能的缩略图文件名
-            NSString *expectedThumbnailName = [NSString stringWithFormat:@"%@_thumbnail", videoNameWithoutExt];
-            
-            // 在映射中查找匹配的缩略图
-            for (NSString *possibleThumbnailName in fileNameToURLMap.keyEnumerator) {
-                if ([possibleThumbnailName containsString:expectedThumbnailName] &&
-                    [possibleThumbnailName containsString:@"thumbnail"] &&
-                    [NewAppFileModel isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
-                    thumbnailURLString = fileNameToURLMap[possibleThumbnailName];
-                    
-                    // 从缩略图文件名中提取时长信息
-                    NSArray *components = [possibleThumbnailName componentsSeparatedByString:@"_thumbnail_"];
-                    if (components.count == 2) {
-                        NSString *durationPart = [components[1] stringByDeletingPathExtension];
-                        videoDuration = [durationPart floatValue];
-                        NSLog(@"从文件名提取视频时长: %@ -> %.1f秒", possibleThumbnailName, videoDuration);
-                    }
-                    break;
-                }
-            }
-            
-            // 如果找到缩略图，使用它；否则使用默认值
-            NSURL *thumbnailURL = thumbnailURLString ? [NSURL URLWithString:thumbnailURLString] : [NSURL URLWithString:@""];
-            
-            // 视频（使用找到的缩略图URL和提取的时长）
-            HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkVideoURL:fileURL
-                                                                                videoCoverURL:thumbnailURL
-                                                                                videoDuration:videoDuration
-                                                                                    selected:YES];
-            [assetModels addObject:assetModel];
-        }
-    }
-    
-    NSLog(@"最后的媒体数量:%lu", (unsigned long)assetModels.count);
-    Models.customAssetModels = assetModels;
-    return Models;
-}
-
-//填装图片视频文件
-- (void)addModelToManager:(Demo9Model *)model {
-    
-    [self.manager changeAfterCameraArray:model.endCameraList];
-    [self.manager changeAfterCameraPhotoArray:model.endCameraPhotos];
-    [self.manager changeAfterCameraVideoArray:model.endCameraVideos];
-    [self.manager changeAfterSelectedCameraArray:model.endSelectedCameraList];
-    [self.manager changeAfterSelectedCameraPhotoArray:model.endSelectedCameraPhotos];
-    [self.manager changeAfterSelectedCameraVideoArray:model.endSelectedCameraVideos];
-    [self.manager changeAfterSelectedArray:model.endSelectedList];
-    [self.manager changeAfterSelectedPhotoArray:model.endSelectedPhotos];
-    [self.manager changeAfterSelectedVideoArray:model.endSelectedVideos];
-    [self.manager changeICloudUploadArray:model.iCloudUploadArray];
-    
-    // 这些操作需要放在manager赋值的后面，不然会出现重用..
-    self.manager.configuration.albumShowMode = HXPhotoAlbumShowModePopup;
-    self.manager.configuration.photoMaxNum = model.customAssetModels.count;
-    self.manager.configuration.videoMaxNum = 1;
-    if (!model.addCustomAssetComplete && model.customAssetModels.count) {
-        [self.manager addCustomAssetModel:model.customAssetModels];
-        model.addCustomAssetComplete = YES;
-    }
-    
-    HXWeakSelf
-    self.manager.configuration.previewRespondsToLongPress = ^(UILongPressGestureRecognizer *longPress, HXPhotoModel *photoModel, HXPhotoManager *manager, HXPhotoPreviewViewController *previewViewController) {
-        HXPhotoBottomViewModel *saveModel = [[HXPhotoBottomViewModel alloc] init];
-        saveModel.title = @"保存";
-        saveModel.customData = photoModel.tempImage;
-        [HXPhotoBottomSelectView showSelectViewWithModels:@[saveModel] selectCompletion:^(NSInteger index, HXPhotoBottomViewModel * _Nonnull model) {
-            
-            if (photoModel.subType == HXPhotoModelMediaSubTypePhoto) {
-                if (photoModel.cameraPhotoType == HXPhotoModelMediaTypeCameraPhotoTypeNetWork ||
-                    photoModel.cameraPhotoType == HXPhotoModelMediaTypeCameraPhotoTypeNetWorkGif) {
-                    NSSLog(@"需要自行保存网络图片");
-                    
-//                    return;
-                }
-            }else if (photoModel.subType == HXPhotoModelMediaSubTypeVideo) {
-                if (photoModel.cameraVideoType == HXPhotoModelMediaTypeCameraVideoTypeNetWork) {
-                    NSSLog(@"需要自行保存网络视频");
-//                    return;
-                }
-            }
-            [previewViewController.view hx_showLoadingHUDText:@"保存中"];
-            if (photoModel.subType == HXPhotoModelMediaSubTypePhoto) {
-                [HXPhotoTools savePhotoToCustomAlbumWithName:weakSelf.manager.configuration.customAlbumName photo:model.customData location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
-                    [previewViewController.view hx_handleLoading];
-                    if (success) {
-                        [previewViewController.view hx_showImageHUDText:@"保存成功"];
-                    }else {
-                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
-                    }
-                }];
-            }else if (photoModel.subType == HXPhotoModelMediaSubTypeVideo) {
-                if (photoModel.cameraVideoType == HXPhotoModelMediaTypeCameraVideoTypeNetWork) {
-                    [[HXPhotoCommon photoCommon] downloadVideoWithURL:photoModel.videoURL progress:nil downloadSuccess:^(NSURL * _Nullable filePath, NSURL * _Nullable videoURL) {
-                        [HXPhotoTools saveVideoToCustomAlbumWithName:nil videoURL:filePath location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
-                            [previewViewController.view hx_handleLoading];
-                            if (success) {
-                                [previewViewController.view hx_showImageHUDText:@"保存成功"];
-                            }else {
-                                [previewViewController.view hx_showImageHUDText:@"保存失败"];
-                            }
-                        }];
-                    } downloadFailure:^(NSError * _Nullable error, NSURL * _Nullable videoURL) {
-                        [previewViewController.view hx_handleLoading];
-                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
-                    }];
-                    return;
-                }
-                [HXPhotoTools saveVideoToCustomAlbumWithName:nil videoURL:photoModel.videoURL location:nil complete:^(HXPhotoModel * _Nullable model, BOOL success) {
-                    [previewViewController.view hx_handleLoading];
-                    if (success) {
-                        [previewViewController.view hx_showImageHUDText:@"保存成功"];
-                    }else {
-                        [previewViewController.view hx_showImageHUDText:@"保存失败"];
-                    }
-                }];
-            }
-        } cancelClick:nil];
-        
-    };
     
 }
 

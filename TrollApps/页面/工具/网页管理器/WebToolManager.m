@@ -3,7 +3,6 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/19.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import "WebToolManager.h"
@@ -34,6 +33,7 @@
         _webTools = [NSMutableArray array];
         _controllerMap = [NSMutableDictionary dictionary];
         _openTimeMap = [NSMutableDictionary dictionary];
+        _maxVcCount = 10;
     }
     return self;
 }
@@ -54,6 +54,7 @@
         [self updateOpenTimeForToolId:toolModel.tool_id];
         // 更新控制器
         self.controllerMap[toolId] = controller;
+        
         return;
     }
     
@@ -65,7 +66,7 @@
     self.openTimeMap[toolId] = [NSDate date];
     
     // 可以限制数组最大长度，比如只保留最近的10个工具
-    if (self.webTools.count > 10) {
+    if (self.webTools.count > _maxVcCount) {
         WebToolModel *oldestTool = self.webTools.firstObject;
         [self removeWebToolWithId:oldestTool.tool_id];
     }
@@ -158,6 +159,33 @@
     [self.webTools removeAllObjects];
     [self.controllerMap removeAllObjects];
     [self.openTimeMap removeAllObjects];
+}
+
+// 隐藏控制器（仅移除视图，保留实例）
+- (void)hideWebToolWithId:(NSInteger)toolId {
+    UIViewController *controller = [self getControllerForToolId:toolId];
+    if (!controller) return;
+    
+    // 从父控制器中移除（不销毁）
+    [controller willMoveToParentViewController:nil];
+    [controller.view removeFromSuperview];
+    [controller removeFromParentViewController];
+}
+
+// 显示控制器（重新添加到视图层级）
+- (void)showWebToolWithId:(NSInteger)toolId inParentViewController:(UIViewController *)parentVC {
+    UIViewController *controller = [self getControllerForToolId:toolId];
+    if (!controller || !parentVC) return;
+    
+    // 重新添加到父控制器
+    [parentVC addChildViewController:controller];
+    [parentVC.view addSubview:controller.view];
+    [controller didMoveToParentViewController:parentVC];
+    
+    // 恢复布局（全屏显示）
+    [controller.view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(parentVC.view);
+    }];
 }
 
 @end

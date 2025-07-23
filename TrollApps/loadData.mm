@@ -3,7 +3,6 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/19.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import "loadData.h"

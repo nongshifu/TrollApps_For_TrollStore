@@ -32,6 +32,7 @@
     _titleLabel.font = [UIFont systemFontOfSize:16];
     _titleLabel.textColor = [UIColor grayColor];
     _titleLabel.text = @"";
+    _titleLabel.numberOfLines = 0;
     [self addSubview:_titleLabel];
     
     _actionButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -54,7 +55,7 @@
         
         [_imageView mas_updateConstraints:^(MASConstraintMaker *make) {
             make.centerX.equalTo(self);
-            make.centerY.equalTo(self).offset(-50); // 垂直居中并向上偏移50
+            make.centerY.equalTo(self).offset(-100); // 垂直居中并向上偏移50
             make.width.height.mas_equalTo(100);    // 固定宽高
         }];
         

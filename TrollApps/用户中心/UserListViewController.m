@@ -3,7 +3,6 @@
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/16.
-//  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
 #import "UserListViewController.h"
@@ -50,6 +49,11 @@
 - (void)loadUserAppDataWithPage:(NSInteger)page{
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :[[NewProfileViewController sharedInstance] getIDFV];
     
+    if (udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
         @"action":@"getAppList",

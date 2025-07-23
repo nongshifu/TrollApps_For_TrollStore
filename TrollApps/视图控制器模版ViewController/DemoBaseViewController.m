@@ -26,9 +26,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-   
+    self.viewIsGradientBackground = YES;
     // 设置背景颜色和透明度
     self.view.backgroundColor = [UIColor systemBackgroundColor];
+    
     AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
     //获取根控制器的IGSide对象
     self.rootSideMenuController = [self getRootLGSideMenuController];;
@@ -41,7 +42,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.zx_navStatusBarStyle = ZXNavStatusBarStyleDefault;
     self.zx_showNavHistoryStackContentView = YES;
     [self zx_setNavGradientBacFrom:[UIColor randomColorWithAlpha:0.3] to:[UIColor randomColorWithAlpha:0.3]];
-    
     
     [self setBackgroundUI];
     [self topBackageView];
@@ -267,77 +267,93 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
-
-- (void)topBackageView{
-    //创建一个空视图渐变色
-    UIView * navigationControllerBackageView =[[UIView alloc] initWithFrame:CGRectMake(0,-( 100-self.navigationController.navigationBar.bounds.size.height), self.view.frame.size.width, 100)];
-    navigationControllerBackageView.backgroundColor = [UIColor clearColor];
-    NSUInteger gradientSize = 3; // 渐变色数组的大小
-    CGFloat desiredAlpha = 0.2; // 设置透明度，范围为0到1之间
-    
-    [UIColor setColor:gradientSize desiredAlpha:desiredAlpha uiview:navigationControllerBackageView ColorType:WarmColor];
-    //视图转图片
-    UIImage *image = [UIView convertViewToPNG:navigationControllerBackageView];
-    //顶部背景图
-    [self.navigationController.navigationBar setBackgroundImage:image forBarMetrics:UIBarMetricsDefault];
-    //清除分割线
-    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
-    
-    //先判断下系统
-    if (@available(iOS 13.0, *)) {
-        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
-        [appearance configureWithOpaqueBackground];
-        //此处变化----改变裁剪区域--->>>>>
-        CGFloat h = get_TOP_NAVIGATION_BAR_HEIGHT +get_TOP_STATUS_BAR_HEIGHT;//记得适配头发帘屏
-        //CGImageCreateWithImageInRect 是C的函数，使用的坐标都是像素
-        //在iOS中使用的都是点坐标
-        //所以在高分辨率的状态下加载了@2x或@3x的图片，而CGImageCreateWithImageInRect还是以@1x的尺寸去进行裁剪，最终只裁剪了部分尺寸的内容
-        //[UIScreen mainScreen].scale -> 获取当前屏幕坐标与像素坐标的比例
-        CGImageRef part = CGImageCreateWithImageInRect(image.CGImage, CGRectMake(0, 0, image.size.width * [UIScreen mainScreen].scale, h * [UIScreen mainScreen].scale));
-        
-        UIImage *back = [UIImage imageWithCGImage:part];
-        //这句要写，CGImageCreateWithImageInRect是c的方法要注意内存泄漏
-        CGImageRelease(part);
-        
-        appearance.backgroundImage = back;
-        self.navigationController.navigationBar.standardAppearance = appearance;
-        self.navigationController.navigationBar.scrollEdgeAppearance=self.navigationController.navigationBar.standardAppearance;
-    }
-
+- (void)setViewIsGradientBackground:(BOOL)viewIsGradientBackground{
+    _viewIsGradientBackground = viewIsGradientBackground;
 }
 
-- (void)setBackgroundUI {
+- (void)topBackageView{
     
-    // 从 ThemeConfigModel 中读取配置
-//    ThemeConfigModel *config = [self loadConfigForCurrentTheme];
+    //创建一个空视图渐变色
+    self.gradientNavigationView =[[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, 110)];
+    self.gradientNavigationView.backgroundColor = [UIColor systemBackgroundColor];
     
-    // 设置背景颜色和透明度
-    self.view.backgroundColor = [UIColor systemBackgroundColor];
     
     // 添加浮动小球
     if (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
         NSLog(@"切换到暗色模式");
         
-        [self.view addColorBallsWithCount:8 ballradius:300 minDuration:30 maxDuration:50 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.2];
-        NSArray *colos = @[
-            [UIColor randomDarkColor:0.5],
-            [[UIColor tertiarySystemBackgroundColor] colorWithAlphaComponent:0.7],
-            [UIColor systemBackgroundColor]
-        ];
-        [self.view setGradientBackgroundWithColors:colos alpha:0.7 horizontal:NO insertSublayer:1];
+        [self.gradientNavigationView addColorBallsWithCount:5 ballradius:150 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.05];
+        [self.gradientNavigationView setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
     } else {
         NSLog(@"切换到亮色模式");
         
-        
-        [self.view addColorBallsWithCount:8 ballradius:300 minDuration:30 maxDuration:50 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.9 ballalpha:0.5];
-        // 设置渐变色
-        NSArray *colos = @[
-            [UIColor randomBrightColor:0.5],
-            [UIColor randomBrightColor:0.5],
-            [UIColor systemBackgroundColor],
-        ];
-        [self.view setGradientBackgroundWithColors:colos alpha:0.9 horizontal:YES insertSublayer:1];
+        [self.gradientNavigationView addColorBallsWithCount:15 ballradius:150 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.99 ballalpha:0.02];
+        [self.gradientNavigationView setRandomGradientBackgroundWithColorCount:3 alpha:0.15];
     }
+    
+    
+    UIImage *image = [UIView convertViewToPNG:self.gradientNavigationView];
+    
+    //先判断下系统
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
+        appearance.backgroundImage = image;
+        appearance.shadowImage = [UIImage new];
+        appearance.shadowColor = nil;
+        
+        self.navigationController.navigationBar.standardAppearance = appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
+        self.navigationController.navigationBar.compactAppearance = appearance;
+        
+    }else{
+        //顶部背景图
+        [self.navigationController.navigationBar setBackgroundImage:image forBarMetrics:UIBarMetricsDefault];
+        //清除分割线
+        [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    }
+
+
+}
+
+- (void)setBackgroundUI {
+    
+    // 在其他类中
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UIWindow *rootWindow = appDelegate.window;
+    
+
+    // 设置背景颜色和透明度
+    
+    rootWindow.backgroundColor = [UIColor systemBackgroundColor];
+    
+    // 添加浮动小球
+    if (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+        NSLog(@"切换到暗色模式");
+        if(self.viewIsGradientBackground){
+            self.view.backgroundColor = [UIColor systemBackgroundColor];
+            [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
+            [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.5];
+        }
+        
+    
+        [rootWindow setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
+        [rootWindow addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.3];
+        
+        
+    } else {
+        NSLog(@"切换到亮色模式");
+        if(self.viewIsGradientBackground){
+            self.view.backgroundColor = [UIColor systemBackgroundColor];
+            [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+            [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.99 ballalpha:0.3];
+        }
+        
+    
+        [rootWindow setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+        [rootWindow addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.99 ballalpha:0.3];
+    }
+    
+    
     
 }
 

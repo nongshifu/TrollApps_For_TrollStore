@@ -76,6 +76,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 初始化空视图
     _emptyView = [[EmptyView alloc] initWithFrame:CGRectZero];
+    // 自定义空视图内容
+    [_emptyView configureWithImage:[UIImage systemImageNamed:@"list.bullet.rectangle"]
+                           title:@"暂无数据"
+                     buttonTitle:@"刷新"];
+    
+    // 添加按钮点击事件
+    [_emptyView.actionButton addTarget:self
+                                action:@selector(refreshLoadInitialData)
+                      forControlEvents:UIControlEventTouchUpInside];
     
     [self updateEmptyViewVisibility];
     
@@ -131,15 +140,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - 刷新控件配置
 // 更新空视图状态
 - (void)updateEmptyViewVisibility {
-    // 自定义空视图内容
-    [_emptyView configureWithImage:[UIImage systemImageNamed:@"list.bullet.rectangle"]
-                           title:@"暂无数据"
-                     buttonTitle:@"刷新"];
     
-    // 添加按钮点击事件
-    [_emptyView.actionButton addTarget:self
-                                action:@selector(refreshLoadInitialData)
-                      forControlEvents:UIControlEventTouchUpInside];
     [_emptyView updateConstraints];
 }
 

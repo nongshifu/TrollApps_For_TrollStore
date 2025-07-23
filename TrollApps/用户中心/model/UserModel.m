@@ -123,7 +123,7 @@
  统一更新云端用户信息
  @param userModel 用户信息模型
  */
-- (void)updateCloudUserInfoWithUserModel:(UserModel *)userModel {
++ (void)updateCloudUserInfoWithUserModel:(UserModel *)userModel {
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:[userModel yy_modelToJSONObject]];
     [dic setValue:@"updateProfile" forKey:@"action"];
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :@"";
@@ -160,4 +160,74 @@
     }];
     
 }
+
+#pragma mark - 通用获取用户信息（内部统一处理）
++ (void)getUserInfoWithType:(NSString *)type
+                 queryValue:(NSString *)queryValue
+                    success:(UserInfoSuccessBlock)success
+                    failure:(UserInfoFailureBlock)failure {
+    if (!queryValue || queryValue.length == 0) {
+        NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"参数不能为空"}];
+        if (failure) failure(error, @"参数不能为空");
+        return;
+    }
+    
+    // 公共参数
+    NSDictionary *params = @{
+        @"action": @"getUserInfo",
+        @"type": type, // type 为 @"user_id" 或 @"udid"
+        @"queryValue": queryValue
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :@"";
+    if(udid.length<5){
+        [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];
+        [SVProgressHUD dismissWithDelay:4];
+        return;
+    }
+    // 发起请求（复用已有POST方法）
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                      urlString:url
+                     parameters:params
+                           udid:udid
+                       progress:nil
+                        success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!jsonResult && stringResult) {
+                NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-2 userInfo:@{NSLocalizedDescriptionKey: stringResult}];
+                if (failure) failure(error, stringResult);
+                return;
+            }
+            
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString *msg = jsonResult[@"msg"] ?: @"获取用户信息失败";
+            if (code == 200) {
+                UserModel *userModel = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
+                if (success) success(userModel);
+            } else {
+                NSError *error = [NSError errorWithDomain:@"UserInfoError" code:code userInfo:@{NSLocalizedDescriptionKey: msg}];
+                if (failure) failure(error, msg);
+            }
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (failure) failure(error, error.localizedDescription);
+        });
+    }];
+}
+
+#pragma mark - 外部调用接口（通过user_id获取）
++ (void)getUserInfoWithUserId:(NSString *)userId
+                     success:(UserInfoSuccessBlock)success
+                     failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithType:@"user_id" queryValue:userId success:success failure:failure];
+}
+
+#pragma mark - 外部调用接口（通过udid获取）
++ (void)getUserInfoWithUdid:(NSString *)udid
+                    success:(UserInfoSuccessBlock)success
+                    failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithType:@"udid" queryValue:udid success:success failure:failure];
+}
+
 @end

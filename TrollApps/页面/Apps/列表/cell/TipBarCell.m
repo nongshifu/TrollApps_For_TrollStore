@@ -40,7 +40,9 @@
     [self.textLabel addGestureRecognizer:textTapGesture];
     self.textLabel.font = [UIFont systemFontOfSize:13];
     self.textLabel.textColor = [UIColor secondaryLabelColor];
-    self.textLabel.numberOfLines = 0;
+    // 配置文字自动换行或截断（根据需求选择）
+    self.textLabel.numberOfLines = 0; // 0表示自动换行（多行），1表示单行截断
+    self.textLabel.lineBreakMode = NSLineBreakByTruncatingTail; // 单行时尾部截断
     [self.contentView addSubview:self.textLabel];
 
     // 初始化左边按钮
@@ -66,40 +68,41 @@
  配置布局约束
  */
 - (void)setupConstraints{
-    [self.contentView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-    }];
-    
+
     [self.iconImageView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(10);
         make.centerY.equalTo(self.contentView);
         make.width.height.equalTo(@30);
     }];
 
-    [self.textLabel mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.iconImageView.mas_right).offset(10);
-        make.centerY.equalTo(self.contentView);
-        make.right.lessThanOrEqualTo(self.leftButton.mas_left).offset(-10);
-        make.bottom.lessThanOrEqualTo(self.contentView.mas_bottom).offset(-10);
-    }];
-
-    [self.leftButton mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.rightButton.mas_left).offset(-10);
-        make.centerY.equalTo(self.contentView);
-        make.height.equalTo(@25);
-        make.width.greaterThanOrEqualTo(@20);
-        make.width.lessThanOrEqualTo(@100);
-    }];
-
+    // 右侧按钮：优先保证自身宽度，避免被挤压
     [self.rightButton mas_updateConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.contentView).offset(-10);
         make.centerY.equalTo(self.contentView);
         make.height.equalTo(@25);
+        // 按钮宽度范围（根据实际需求调整）
         make.width.greaterThanOrEqualTo(@20);
         make.width.lessThanOrEqualTo(@100);
     }];
+    
+    // 左侧按钮：右侧与右按钮间距固定，避免被文字挤压
+    [self.leftButton mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.rightButton.mas_left).offset(-10); // 与右按钮保持10pt间距
+        make.centerY.equalTo(self.contentView);
+        make.height.equalTo(@25);
+        make.width.greaterThanOrEqualTo(@20);
+        make.width.lessThanOrEqualTo(@100);
+    }];
+    
+    // 文字标签：严格限制在图标和左按钮之间，避免溢出
+    [self.textLabel mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.iconImageView.mas_right).offset(10); // 左侧与图标间距10pt
+        make.right.lessThanOrEqualTo(self.leftButton.mas_left).offset(-10); // 右侧与左按钮间距10pt
+        make.centerY.equalTo(self.contentView);
+        
+    }];
+    
 }
-
 /**
  数据绑定方法
  @param model 数据模型
@@ -123,7 +126,7 @@
         self.iconImageView.image = icon;
     }
     
-    self.textLabel.text = _tipBarModel.tipText;
+   
     
     [self.leftButton setTitle:_tipBarModel.leftButtonText forState:UIControlStateNormal];
     [self.rightButton setTitle:_tipBarModel.rightButtonText forState:UIControlStateNormal];
@@ -131,6 +134,17 @@
     // 强制更新按钮的布局以自适应文字
     [self.leftButton sizeToFit];
     [self.rightButton sizeToFit];
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    self.textLabel.text = _tipBarModel.tipText;
+    CGFloat leftOffset = CGRectGetWidth(self.iconImageView.frame);
+    CGFloat rightOffset = CGRectGetMinX(self.leftButton.frame);
+    CGFloat maxWidth = rightOffset - leftOffset - 20;
+    // 文字标签：严格限制在图标和左按钮之间，避免溢出
+    [self.textLabel mas_updateConstraints:^(MASConstraintMaker *make) {
+        
+        make.width.lessThanOrEqualTo(@(maxWidth));
+    }];
 }
 
 #pragma mark - 点击事件处理

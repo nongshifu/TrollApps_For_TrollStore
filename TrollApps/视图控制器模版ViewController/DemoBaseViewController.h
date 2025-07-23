@@ -35,6 +35,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL keyboardIsShow;
 ///idfv
 @property (nonatomic, strong) NSString * idfv;
+///是否使用渐变背景
+@property (nonatomic, assign) BOOL viewIsGradientBackground;
+///导航的渐变视图
+@property (nonatomic, strong) UIView * gradientNavigationView;
+
+
 ///设置红点文字
 - (void)setTabBarBadgeValueWithMessageText:(NSString *)message atTabIndex:(NSInteger)tabIndex;
 ///重设红点
@@ -62,6 +68,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)keyboardHide:(UITapGestureRecognizer *)tap;
 ///是否黑暗色
 - (BOOL)isDarkMode;
+
 - (void)dismiss;
 /**
  判断当前控制器是否由 HWPanModal 框架呈现

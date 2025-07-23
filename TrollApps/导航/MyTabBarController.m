@@ -275,7 +275,7 @@
         @"t.circle",
         @"plus",
         @"lightbulb",
-        @"lasso.and.sparkles",
+        @"lasso",
     ];
     UIImage *icon = [UIImage systemImageNamed:icons[self.vCselectedIndex]];
     icon = [icon imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:28 weight:UIImageSymbolWeightBold]];
