@@ -200,6 +200,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         } else {
             self.avatarImageView.image = [UIImage systemImageNamed:@"person.circle.fill"]; // 系统默认头像
         }
+        if(userInfo.user_id == [NewProfileViewController sharedInstance].userInfo.user_id){
+            self.nicknameLabel.text = @"(我)";
+        }
     } else {
         self.nicknameLabel.text = @"匿名用户";
         self.avatarImageView.image = [UIImage systemImageNamed:@"person.circle.fill"];
@@ -300,7 +303,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             // 恢复交互
             self.likeImageView.userInteractionEnabled = YES;
             [SVProgressHUD dismiss];
-            
+            [DemoBaseViewController triggerVibration];
             // 解析服务器返回
             NSInteger code = [jsonResult[@"code"] integerValue];
             if (code == 200) {

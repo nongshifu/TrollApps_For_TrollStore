@@ -220,6 +220,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self switchUIWithIndex:targetIndex];
     
 }
+
 //根据标签切换UI
 - (void)switchUIWithIndex:(NSInteger)index{
     // 获取目标视图控制器

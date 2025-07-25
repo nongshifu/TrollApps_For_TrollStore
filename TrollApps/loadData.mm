@@ -8,7 +8,7 @@
 #import "loadData.h"
 #include <sys/sysctl.h>
 #include <dlfcn.h>
-
+#import "AppVersionHistoryViewController.h"
 @implementation loadData
 
 + (instancetype)sharedInstance {
@@ -30,6 +30,9 @@
         [self loadLocalTags];
         [self loadTagsFromRemote];
         [self loadVIPPackagesFromRemote];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self getVersionUpdateInfo];
+        });
     }
     return self;
 }
@@ -168,7 +171,6 @@
     
     NSString *remoteDataURL = [NSString stringWithFormat:@"%@/tags.json?time=%@",localURL,timestamp];
     
-    [SVProgressHUD showWithStatus:@"加载系统分类中..."];
     
     NSDictionary *dictionary = @{
         @"action":@"getTags"
@@ -183,7 +185,7 @@
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         NSLog(@"jsonResult:%@",jsonResult);
         dispatch_async(dispatch_get_main_queue(), ^{
-            [SVProgressHUD dismiss];
+            
             
             if (jsonResult && [jsonResult isKindOfClass:[NSArray class]]) {
                 NSArray *array = (NSArray *)jsonResult;
@@ -215,7 +217,6 @@
     
     NSString *remoteDataURL = [NSString stringWithFormat:@"%@/vip.json?time=%@",localURL,timestamp];
     
-    [SVProgressHUD showWithStatus:@"加载套餐中..."];
     
     NSDictionary *dictionary = @{
         @"action":@"loadVIPPackages"
@@ -249,4 +250,82 @@
        
     }];
 }
+
+
+- (void)getVersionUpdateInfo {
+    
+    // 设备UDID/IDFV
+    NSString *udid = [self getUDID] ?: [self getIDFV];
+    // 应用唯一标识（bundle_id，如"com.example.TrollApps"）
+    NSString *bundleId = [[NSBundle mainBundle] bundleIdentifier];
+    // 当前应用版本号（current_version_code，对应Info.plist的CFBundleVersion）
+    NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    NSInteger currentVersionCode = [localVersionCodeStr integerValue];
+    
+    // 2. 校验必填参数
+    if (!bundleId || bundleId.length == 0) {
+        [SVProgressHUD showErrorWithStatus:@"获取应用标识失败"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    if (currentVersionCode <= 0) {
+        [SVProgressHUD showErrorWithStatus:@"获取本地版本号失败"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    
+    // 3. 构建请求参数（包含后端要求的所有必填字段）
+    NSDictionary *params = @{
+        @"udid": udid ?: @"",
+        @"action": @"getVersionUpdateInfo",
+        @"bundle_id": bundleId, // 后端必填：应用唯一标识
+        @"current_version_code": @(currentVersionCode) // 后端必填：当前版本号
+    };
+    
+    // 4. 接口地址
+    NSString *url = [NSString stringWithFormat:@"%@/admin/app_version_api.php", localURL];
+    
+    // 5. 发送网络请求
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                            urlString:url
+                                            parameters:params
+                                                udid:udid
+                                              progress:^(NSProgress *progress) {
+        // 进度回调（可选，此处无需处理）
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(!jsonResult){
+                NSLog(@"检查版本返回错误:%@",stringResult);
+                return;
+            }
+            NSLog(@"检查版本返回:%@",jsonResult);
+            // 6. 解析接口返回数据
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString *msg = jsonResult[@"msg"];
+            
+            if (code ==200) {
+                // 成功：解析版本信息
+                NSDictionary *data = jsonResult[@"data"];
+                NSLog(@"need_update:%@",data[@"need_update"]);
+                BOOL needUpdate = [data[@"need_update"] boolValue];
+                
+                
+                // 可选：显示更新提示（如果需要）
+                if (needUpdate) {
+                    AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
+                    [[UIView getTopViewController] presentPanModal:vc];
+                }
+            }else{
+                [SVProgressHUD showInfoWithStatus:msg];
+                [SVProgressHUD dismissWithDelay:10];
+            }
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+        });
+    }];
+}
+
 @end

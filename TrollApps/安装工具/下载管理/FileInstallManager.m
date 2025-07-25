@@ -10,6 +10,8 @@
 #import "SVProgressHUD.h"
 #import "DownloadProgressView.h"
 #import "NSTask.h"
+#import "InjectMainController.h"
+#import "DownloadManagerViewController.h"
 #import <UIKit/UIKit.h>
 
 @interface FileInstallManager () <DownloadProgressViewDelegate>
@@ -88,8 +90,8 @@
     if ([self isLocalURL:fileURL]) {
         [self handleLocalFileWithURL:fileURL completion:completion];
     } else {
-        [self downloadFileWithURL:fileURL completion:^(NSURL * _Nullable localURL, NSError * _Nullable error) {
-            if (error || !localURL) {
+        [self downloadFileWithURL:fileURL completion:^(NSURL * _Nullable localUrl, NSError * _Nullable error) {
+            if (error || !localUrl) {
                 if(completion){
                     completion(NO, error ?: [NSError errorWithDomain:@"FileInstallManager"
                                                                  code:1002
@@ -98,7 +100,7 @@
                 
                 return;
             }
-            [self handleLocalFileWithURL:localURL completion:completion];
+            [self handleLocalFileWithURL:localUrl completion:completion];
         }];
     }
 }
@@ -185,7 +187,7 @@
         switch (fileType) {
             case FileTypeIPA:
             case FileTypeTIPA:
-                success = [self installIPAFileWithURL:fileURL error:&error];
+                success = [self installFileWithTrollStore:fileURL error:&error];
                 break;
             case FileTypeDEB:
                 success = [self installDEBFileWithURL:fileURL error:&error];
@@ -195,6 +197,9 @@
                 break;
             case FileTypePLIST:
                 success = [self processPLISTFileWithURL:fileURL error:&error];
+                break;
+            case FileTypeDYLIB:
+                success = [self installDYLIBFileWithURL:fileURL error:&error];
                 break;
             default:
                 error = [NSError errorWithDomain:@"FileInstallManager"
@@ -216,25 +221,69 @@
 #pragma mark - 具体文件类型安装实现
 
 /// 安装IPA/TIPA文件
-- (BOOL)installIPAFileWithURL:(NSURL *)ipaURL error:(NSError **)error {
-    NSString *filePath = ipaURL.path;
-    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+/**
+ 使用TrollStore协议安装文件（需设备已安装TrollStore）
+ @param fileURL 本地文件的完整路径（如 /var/mobile/Documents/test.ipa）
+ @param error 错误信息（传出参数）
+ @return 能否正常发起安装请求
+ */
+- (BOOL)installFileWithTrollStore:(NSURL *)fileURL error:(NSError **)error {
+    if (!fileURL ) {
         if (error) {
             *error = [NSError errorWithDomain:@"FileInstallManager"
-                                        code:1010
-                                    userInfo:@{NSLocalizedDescriptionKey: @"IPA文件不存在"}];
+                                        code:1001
+                                    userInfo:@{NSLocalizedDescriptionKey: @"文件路径为空"}];
         }
         return NO;
     }
     
-    // 使用TrollStore协议安装（需设备已安装TrollStore）
-    NSString *encodedURL = [filePath stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    NSURL *installURL = [NSURL URLWithString:[NSString stringWithFormat:@"apple-magnifier://install?url=%@", encodedURL]];
+    // 1. 将本地文件路径转换为 file:// 协议的URL（关键步骤）
     
+    if (!fileURL) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1002
+                                    userInfo:@{NSLocalizedDescriptionKey: @"无效的文件路径"}];
+        }
+        return NO;
+    }
+    NSString *fileURLString = fileURL.absoluteString; // 确保是 file:// 开头的完整URL
+    
+    // 2. 对文件URL进行编码（与JS的 encodeURIComponent 对应）
+    // URLQueryAllowedCharacterSet 包含 ?&= 等特殊字符，需排除避免破坏协议格式
+    NSCharacterSet *allowedChars = [NSCharacterSet URLQueryAllowedCharacterSet].mutableCopy;
+    
+    NSString *encodedURL = [fileURLString stringByAddingPercentEncodingWithAllowedCharacters:allowedChars];
+    if (!encodedURL) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1003
+                                    userInfo:@{NSLocalizedDescriptionKey: @"URL编码失败"}];
+        }
+        return NO;
+    }
+    
+    // 3. 构建TrollStore安装协议URL
+    NSString *installURLString = [NSString stringWithFormat:@"apple-magnifier://install?url=%@", encodedURL];
+    NSURL *installURL = [NSURL URLWithString:installURLString];
+    if (!installURL) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1004
+                                    userInfo:@{NSLocalizedDescriptionKey: @"安装协议URL无效"}];
+        }
+        return NO;
+    }
+    
+    // 4. 检查并打开协议
     if ([[UIApplication sharedApplication] canOpenURL:installURL]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (@available(iOS 10.0, *)) {
-                [[UIApplication sharedApplication] openURL:installURL options:@{} completionHandler:nil];
+                [[UIApplication sharedApplication] openURL:installURL options:@{} completionHandler:^(BOOL success) {
+                    if (!success) {
+                        NSLog(@"TrollStore协议调用失败");
+                    }
+                }];
             } else {
                 [[UIApplication sharedApplication] openURL:installURL];
             }
@@ -252,14 +301,12 @@
 
 /// 安装DEB文件（需越狱环境）
 - (BOOL)installDEBFileWithURL:(NSURL *)debURL error:(NSError **)error {
-    // 检查设备是否越狱
-    BOOL isJailbroken = [[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
-                       [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"];
-    if (!isJailbroken) {
+    // 检查URL是否有效
+    if (!debURL || !debURL.path) {
         if (error) {
             *error = [NSError errorWithDomain:@"FileInstallManager"
-                                        code:1012
-                                    userInfo:@{NSLocalizedDescriptionKey: @"需越狱环境才能安装DEB插件"}];
+                                        code:1010
+                                    userInfo:@{NSLocalizedDescriptionKey: @"无效的DEB文件URL"}];
         }
         return NO;
     }
@@ -275,33 +322,107 @@
         return NO;
     }
     
-    // 使用dpkg命令安装（需设备已安装dpkg）
+    // 查找dpkg命令的实际路径
+    NSString *dpkgPath = [self findPathForCommand:@"dpkg"];
+    if (!dpkgPath) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1015
+                                    userInfo:@{NSLocalizedDescriptionKey: @"未找到dpkg命令，请确保已安装dpkg"}];
+        }
+        return NO;
+    }
+    
+    // 使用找到的dpkg路径执行安装
     NSTask *task = [[NSTask alloc] init];
-    task.launchPath = @"/usr/bin/dpkg";
+    task.launchPath = dpkgPath;
     task.arguments = @[@"-i", filePath];
     
-    NSPipe *pipe = [NSPipe pipe];
-    task.standardOutput = pipe;
-    task.standardError = pipe;
+    NSPipe *outputPipe = [NSPipe pipe];
+    task.standardOutput = outputPipe;
+    
+    NSPipe *errorPipe = [NSPipe pipe];
+    task.standardError = errorPipe;
     
     [task launch];
     [task waitUntilExit];
     
     int exitCode = task.terminationStatus;
+    
+    // 读取输出信息
+    NSData *outputData = [outputPipe.fileHandleForReading readDataToEndOfFile];
+    NSString *outputMsg = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+    
+    // 读取错误信息
+    NSData *errorData = [errorPipe.fileHandleForReading readDataToEndOfFile];
+    NSString *errorMsg = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
+    
+    NSLog(@"dpkg输出: %@", outputMsg);
+    NSLog(@"dpkg错误: %@", errorMsg);
+    
     if (exitCode != 0) {
-        // 读取错误信息
-        NSData *errorData = [pipe.fileHandleForReading readDataToEndOfFile];
-        NSString *errorMsg = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
         if (error) {
             *error = [NSError errorWithDomain:@"FileInstallManager"
                                         code:1014
-                                    userInfo:@{NSLocalizedDescriptionKey: @"DEB安装失败",
+                                    userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"DEB安装失败 (退出代码: %d)", exitCode],
                                                NSLocalizedFailureReasonErrorKey: errorMsg}];
         }
         return NO;
     }
     
     return YES;
+}
+
+
+/// 安装DYLIB文件（需越狱环境）
+- (BOOL)installDYLIBFileWithURL:(NSURL *)dylibURL error:(NSError **)error {
+    // 检查URL是否有效
+    if (!dylibURL || !dylibURL.path) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1010
+                                    userInfo:@{NSLocalizedDescriptionKey: @"无效的DEB文件URL"}];
+        }
+        return NO;
+    }
+    
+    // 检查文件是否存在
+    NSString *filePath = dylibURL.path;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                        code:1013
+                                    userInfo:@{NSLocalizedDescriptionKey: @"DEB文件不存在"}];
+        }
+        return NO;
+    }
+    
+    // 查找命令的实际路径
+    NSLog(@"弹窗控制器安装dylib");
+    dispatch_async(dispatch_get_main_queue(), ^{
+        InjectMainController *vc = [InjectMainController new];
+        vc.selectedDylibURL = dylibURL;
+        [[vc.view getTopViewController] presentPanModal:vc];
+    });
+    
+    
+    return YES;
+}
+
+/// 查找命令的路径
+- (NSString *)findPathForCommand:(NSString *)command {
+    NSArray *possiblePaths = @[
+        @"/usr/bin", @"/bin", @"/usr/local/bin", @"/sbin", @"/usr/sbin"
+    ];
+    
+    for (NSString *path in possiblePaths) {
+        NSString *fullPath = [path stringByAppendingPathComponent:command];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:fullPath]) {
+            return fullPath;
+        }
+    }
+    
+    return nil;
 }
 
 /// 解压ZIP文件（需引入SSZipArchive等解压缩库，当前为示例）
@@ -460,6 +581,11 @@
     [self restartTask:taskModel];
 }
 
+- (void)iconClick:(NSURLSessionDownloadTask *)task{
+    DownloadManagerViewController *vc =[DownloadManagerViewController new];
+    [[vc.view getTopViewController] presentPanModal:vc];
+}
+
 #pragma mark - 下载任务管理
 
 /// 根据系统任务找到对应的模型
@@ -547,6 +673,113 @@
         case FileTypeZIP: return @"ZIP压缩包";
         case FileTypePLIST: return @"PLIST配置";
         default: return @"未知类型";
+    }
+}
+
+#pragma mark - 判断URL方法
+
+- (BOOL)isLocalURL:(NSURL *)url {
+    if (!url) {
+        return NO;
+    }
+    
+    // 1. 检查是否为 file:// 协议
+    if ([url isFileURL]) {
+        return YES;
+    }
+    
+    // 2. 检查是否为 data: 协议（本地数据 URL）
+    NSString *scheme = [url scheme];
+    if ([scheme.lowercaseString isEqualToString:@"data"]) {
+        return YES;
+    }
+    
+    // 3. 检查是否为应用自定义的本地协议（如 app://、bundle:// 等）
+    // 这里列出常见的自定义协议，可根据应用实际情况扩展
+    NSArray *localSchemes = @[
+        @"app", @"bundle", @"resource", @"local", @"assets", @"documents", @"library", @"cache"
+    ];
+    if ([localSchemes containsObject:scheme.lowercaseString]) {
+        return YES;
+    }
+    
+    // 4. 检查是否为本地网络 URL（可选，根据需求决定是否包含）
+    // 例如：http://localhost 或 http://127.0.0.1
+    /*
+    if ([scheme.lowercaseString isEqualToString:@"http"] || [scheme.lowercaseString isEqualToString:@"https"]) {
+        NSString *host = [url host];
+        if ([host isEqualToString:@"localhost"] || [host isEqualToString:@"127.0.0.1"]) {
+            return YES;
+        }
+    }
+    */
+    
+    return NO;
+}
+
+- (BOOL)isWebURL:(NSURL *)url {
+    if (!url) {
+        return NO;
+    }
+    
+    // 1. 检查是否为 file:// 协议
+    if ([url isFileURL]) {
+        return YES;
+    }
+    
+    // 2. 检查是否为 data: 协议（本地数据 URL）
+    NSString *scheme = [url scheme];
+    if ([scheme.lowercaseString isEqualToString:@"data"]) {
+        return YES;
+    }
+    
+    // 4. 检查是否为本地网络 URL（可选，根据需求决定是否包含）
+    // 例如：http://localhost 或 http://127.0.0.1
+   
+    if ([scheme.lowercaseString isEqualToString:@"http"] || [scheme.lowercaseString isEqualToString:@"https"]) {
+        NSString *host = [url host];
+        if ([host isEqualToString:@"localhost"] || [host isEqualToString:@"127.0.0.1"]) {
+            return YES;
+        }
+    }
+  
+    
+    return NO;
+}
+
+- (FileType)fileTypeForPath:(NSString *)filePath {
+    if (!filePath || filePath.length == 0) {
+        return FileTypeUnknown;
+    }
+    
+    // 获取文件扩展名并转为小写
+    NSString *extension = [[filePath pathExtension] lowercaseString];
+    
+    // 根据扩展名判断文件类型
+    if ([extension isEqualToString:@"ipa"]) {
+        return FileTypeIPA;
+    } else if ([extension isEqualToString:@"tipa"]) {
+        return FileTypeTIPA;
+    } else if ([extension isEqualToString:@"deb"]) {
+        return FileTypeDEB;
+    } else if ([extension isEqualToString:@"js"]) {
+        return FileTypeJS;
+    } else if ([extension isEqualToString:@"html"] || [extension isEqualToString:@"htm"]) {
+        return FileTypeHTML;
+    } else if ([extension isEqualToString:@"json"]) {
+        return FileTypeJSON;
+    } else if ([extension isEqualToString:@"sh"]) {
+        return FileTypeSH;
+    } else if ([extension isEqualToString:@"plist"]) {
+        return FileTypePLIST;
+    } else if ([extension isEqualToString:@"dylib"] || [extension isEqualToString:@"framework"]) {
+        return FileTypeDYLIB;
+    } else if ([extension isEqualToString:@"zip"] || [extension isEqualToString:@"rar"] ||
+               [extension isEqualToString:@"7z"] || [extension isEqualToString:@"tar"] ||
+               [extension isEqualToString:@"gz"]) {
+        return FileTypeZIP;
+    } else {
+        return FileTypeOther;
     }
 }
 

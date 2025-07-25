@@ -46,6 +46,8 @@
     if (self.isShowAll != other.isShowAll) return NO;
     if (self.isComment != other.isComment) return NO;
     if (self.isShare != other.isShare) return NO;
+    if (self.is_cloud != other.is_cloud) return NO;
+    
     
     // 内容信息对比（影响展示的文本/URL）
     if (![self.app_description isEqualToString:other.app_description]) return NO;

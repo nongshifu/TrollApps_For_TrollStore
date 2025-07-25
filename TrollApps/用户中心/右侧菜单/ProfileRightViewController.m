@@ -8,6 +8,7 @@
 //
 
 #import "ProfileRightViewController.h"
+#import "NewProfileViewController.h"
 #import <Masonry/Masonry.h>
 #import <SDWebImage/SDWebImage.h>
 #import <mach/mach.h>
@@ -15,6 +16,9 @@
 #import "EditUserProfileViewController.h"
 #import "FeedbackViewController.h"
 #import "PrivacyPolicyViewController.h"
+#import "AppVersionHistoryViewController.h"
+#import "SystemViewController.h"
+
 @interface ProfileRightViewController ()<UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) UILabel *topTitle;
@@ -36,14 +40,12 @@
     // Do any additional setup after loading the view.
     NSLog(@"Do any additional setup after loading the view.");
     [self setTopTitle];
-    NSLog(@"setTopTitle");
-    [self setTableView];
-    NSLog(@"setTableView");
-    [self setupSettingsData];
-    NSLog(@"setupSettingsData");
-    [self updateViewConstraints];
-    NSLog(@"updateViewConstraints");
     
+    [self setTableView];
+   
+    [self setupSettingsData];
+    
+    [self updateViewConstraints];
     
 }
 
@@ -85,18 +87,21 @@
     NSMutableArray<NSString *> *privacySubTitles = [@[@"权限检查"] mutableCopy];
     NSLog(@"隐私设置分组:%@",privacySubTitles);
     // 关于应用分组
-    NSArray<NSString *> *aboutAppGroup = @[@"版本信息", @"检查更新", @"意见反馈", @"隐私政策"];
-    NSMutableArray<NSString *> *aboutAppSubTitles = [@[@"查看应用当前版本", @"检查是否有新版本", @"提交使用意见和反馈", @"查看应用隐私政策"] mutableCopy];
+    NSArray<NSString *> *aboutAppGroup = @[ @"检查版本更新", @"意见反馈", @"隐私政策"];
+    NSMutableArray<NSString *> *aboutAppSubTitles = [@[@"检查是否有新版本", @"提交使用意见和反馈", @"查看应用隐私政策"] mutableCopy];
     // 清理缓存分组
-//    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"应用内存占用", @"清理整个APP缓存"];
-    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"应用内存占用"];
+    NSArray<NSString *> *cacheGroup = @[@"清理图片缓存", @"清理下载缓存", @"应用总占用"];
+
     NSUInteger sdImageCacheSize = [[SDImageCache sharedImageCache] totalDiskSize];
     NSLog(@"sdImageCacheSize:%ld",sdImageCacheSize);
     int64_t usedMemory = [self getUsedMemory];
     NSLog(@"usedMemory:%lld",usedMemory);
 //    int64_t sandboxSize = [self getSandboxSize];
 //    NSLog(@"sandboxSize:%lld",sandboxSize);
+    int64_t downloadSize = [self getDownloadSize];
+    
     NSMutableArray<NSString *> *cacheSubTitles = [@[[NSString stringWithFormat:@"当前占用 %.2f MB", (float)sdImageCacheSize / (1024 * 1024)],
+                                                    [NSString stringWithFormat:@"下载占用 %.2f MB", (float)downloadSize / (1024 * 1024)],
                                                     [NSString stringWithFormat:@"已使用 %.2f MB", (float)usedMemory / (1024 * 1024)]] mutableCopy];
     NSArray<NSString *> *testGroup = @[@""];
     NSMutableArray<NSString *> *testSubTitles = [@[@""] mutableCopy];
@@ -165,22 +170,18 @@
     else if (indexPath.section == 2) {
         switch (indexPath.row) {
             case 0: {
-                DemoBaseViewController *vc = [DemoBaseViewController new];
+                
+                AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
+                // 弹出弹窗
                 [self presentPanModal:vc];
                 break;
             }
-                
-                
             case 1: {
-                
-                break;
-            }
-            case 2: {
                 FeedbackViewController *vc = [FeedbackViewController new];
                 [self presentPanModal:vc];
                 break;
             }
-            case 3: {
+            case 2: {
                 PrivacyPolicyViewController *vc = [PrivacyPolicyViewController new];
                 [self presentPanModal:vc];
                 break;
@@ -210,26 +211,19 @@
                 [self presentViewController:alert animated:YES completion:nil];
                 break;
             }
-            case 1: { // 统计显示内存大小
-                // 获取内存大小
-                int64_t usedMemory = [self getUsedMemory];
-                NSString *memoryString = [NSString stringWithFormat:@"已使用内存: %.2f MB", (float)usedMemory / (1024 * 1024)];
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"内存信息" message:memoryString preferredStyle:UIAlertControllerStyleAlert];
-                [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil]];
-                [self presentViewController:alert animated:YES completion:nil];
-                break;
-            }
-            case 2: { // 清理整个沙盒缓存 大小显示
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认清理" message:@"确定要清理整个沙盒缓存吗？" preferredStyle:UIAlertControllerStyleAlert];
+            case 1: { // 清理下载
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认清理" message:@"确定要清理全部下载文件吗？" preferredStyle:UIAlertControllerStyleAlert];
                 [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
                 [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                     [SVProgressHUD showWithStatus:@"正在清理沙盒缓存..."];
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                         // 清理沙盒缓存
-                        NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-                        NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:cachePath];
+                        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject]
+                                                      stringByAppendingPathComponent:@"Downloads"];
+                        
+                        NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:downloadPath];
                         for (NSString *file in files) {
-                            NSString *filePath = [cachePath stringByAppendingPathComponent:file];
+                            NSString *filePath = [downloadPath stringByAppendingPathComponent:file];
                             NSError *error;
                             [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
                             if (error) {
@@ -237,11 +231,11 @@
                             }
                         }
                         // 计算清理后的沙盒大小
-                        int64_t sandboxSize = [self getSandboxSize];
-                        NSString *sandboxString = [NSString stringWithFormat:@"清理后沙盒大小: %.2f MB", (float)sandboxSize / (1024 * 1024)];
+                        int64_t sandboxSize = [self getDownloadSize];
+                        NSString *sandboxString = [NSString stringWithFormat:@"清理后下载缓存大小: %.2f MB", (float)sandboxSize / (1024 * 1024)];
                         dispatch_async(dispatch_get_main_queue(), ^{
                             [SVProgressHUD dismiss];
-                            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"沙盒缓存信息" message:sandboxString preferredStyle:UIAlertControllerStyleAlert];
+                            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载信息" message:sandboxString preferredStyle:UIAlertControllerStyleAlert];
                             [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil]];
                             [self presentViewController:alert animated:YES completion:nil];
                             // 更新副标题显示
@@ -250,6 +244,17 @@
                         });
                     });
                 }]];
+                [self presentViewController:alert animated:YES completion:nil];
+                
+                break;
+            }
+            case 2: { // 显示内存占用
+               
+                // 获取内存大小
+                int64_t usedMemory = [self getUsedMemory];
+                NSString *memoryString = [NSString stringWithFormat:@"已使用内存: %.2f MB", (float)usedMemory / (1024 * 1024)];
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"内存信息" message:memoryString preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil]];
                 [self presentViewController:alert animated:YES completion:nil];
                 break;
             }
@@ -270,6 +275,46 @@
     } else {
         return 0;
     }
+}
+
+// 获取下载目录大小
+- (int64_t)getDownloadSize {
+    // 构建下载目录路径（Documents/Downloads）
+    NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject]
+                              stringByAppendingPathComponent:@"Downloads"];
+    
+    // 检查目录是否存在
+    BOOL isDir;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if (![fileManager fileExistsAtPath:downloadPath isDirectory:&isDir] || !isDir) {
+        NSLog(@"下载目录不存在: %@", downloadPath);
+        return 0;
+    }
+    
+    // 遍历目录计算大小
+    int64_t totalSize = 0;
+    NSError *error;
+    NSArray *files = [fileManager subpathsAtPath:downloadPath];
+    
+    NSLog(@"下载目录文件数量: %ld", files.count);
+    for (NSString *fileName in files) {
+        NSString *filePath = [downloadPath stringByAppendingPathComponent:fileName];
+        
+        // 跳过目录（只计算文件大小）
+        BOOL isDirectory;
+        if ([fileManager fileExistsAtPath:filePath isDirectory:&isDirectory] && isDirectory) {
+            continue;
+        }
+        
+        NSDictionary *attrs = [fileManager attributesOfItemAtPath:filePath error:&error];
+        if (attrs) {
+            totalSize += [attrs fileSize];
+        } else {
+            NSLog(@"获取文件属性失败: %@, 错误: %@", filePath, error.localizedDescription);
+        }
+    }
+    
+    return totalSize;
 }
 
 // 获取沙盒大小
@@ -392,8 +437,40 @@
 }
 
 - (void)OpenEditUserProfileViewController{
-    EditUserProfileViewController *vc = [EditUserProfileViewController new];
-    [[self.view getTopViewController] presentPanModal:vc];
+    if([NewProfileViewController sharedInstance].userInfo.role ==1){
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"选择" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        // 添加取消按钮
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            // 取消操作的处理
+        }];
+        
+        // 添加确定按钮
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"超级系统设置" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+           
+            // 确定操作的处理，这里可以获取输入框的内容
+            BaseBottomSheetVC *vc = [BaseBottomSheetVC new];
+            [[self.view getTopViewController] presentPanModal:vc];
+            
+        }];
+        // 添加确定按钮
+        UIAlertAction *myAction = [UIAlertAction actionWithTitle:@"资料设置" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            EditUserProfileViewController *vc = [EditUserProfileViewController new];
+            [[self.view getTopViewController] presentPanModal:vc];
+        }];
+        
+        [alertController addAction:cancelAction];
+        [alertController addAction:okAction];
+        [alertController addAction:myAction];
+        
+        [[self.view getTopViewController] presentViewController:alertController animated:YES completion:nil];
+        
+    }else {
+        EditUserProfileViewController *vc = [EditUserProfileViewController new];
+        [[self.view getTopViewController] presentPanModal:vc];
+    }
+    
+    
    
 }
 

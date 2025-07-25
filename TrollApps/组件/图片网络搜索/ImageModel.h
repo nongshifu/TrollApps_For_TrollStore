@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIImage *image;       // 图片对象
 @property (nonatomic, copy) NSString *url;          // 图片URL
 @property (nonatomic, assign) BOOL isSelected;      // 是否选中（可选，用于多选状态管理）
-
+@property (nonatomic, strong) NSURL *localUrl;      // 本地URL
 // 初始化方法
 - (instancetype)initWithImage:(UIImage *)image url:(NSString *)url;
 + (instancetype)modelWithImage:(UIImage *)image url:(NSString *)url;

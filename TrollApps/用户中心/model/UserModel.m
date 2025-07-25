@@ -51,6 +51,8 @@
     if (self.like_count != other.like_count) return NO;
     if (self.reply_count != other.reply_count) return NO;
     if (self.app_count != other.app_count) return NO;
+    if (self.role != other.role) return NO;
+    
     
     
     // 日期对比

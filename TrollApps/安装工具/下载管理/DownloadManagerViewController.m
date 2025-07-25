@@ -7,12 +7,7 @@
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"
 
-// 新增筛选类型枚举
-typedef NS_ENUM(NSInteger, FilterType) {
-    FilterTypeDownloading = 0,  // 下载中
-    FilterTypeAll,              // 全部
-    FilterTypeFileTypes         // 文件类型起始值
-};
+
 
 
 @interface DownloadManagerViewController ()<UITableViewDataSource, UITableViewDelegate, UIDocumentInteractionControllerDelegate>
@@ -23,9 +18,9 @@ typedef NS_ENUM(NSInteger, FilterType) {
 @property (nonatomic, strong) UILabel *titleLabel;               // 主标题
 @property (nonatomic, strong) UILabel *subtitleLabel;            // 副标题
 @property (nonatomic, strong) UIScrollView *filterScrollView;    // 筛选器滚动视图
-@property (nonatomic, strong) NSMutableArray *filterButtons;     // 筛选按钮数组
+@property (nonatomic, strong) NSMutableArray <UIButton *>*filterButtons;     // 筛选按钮数组
 @property (nonatomic, strong) UIView *headerView;                // 顶部视图
-@property (nonatomic, assign) FilterType currentFilterType;      // 当前筛选类型
+
 
 @property (nonatomic, strong) UIView *bottomToolBar;           // 底部操作栏
 @property (nonatomic, strong) UIButton *selectAllBtn;          // 全选按钮
@@ -76,6 +71,7 @@ typedef NS_ENUM(NSInteger, FilterType) {
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self loadFileList]; // 每次显示时刷新列表
+    [self buttonTappedIndex:self.currentFilterType];
 }
 
 #pragma mark - 初始化顶部视图
@@ -225,29 +221,35 @@ typedef NS_ENUM(NSInteger, FilterType) {
         
         [self.filterButtons addObject:button];
         totalWidth += buttonWidth + buttonSpacing;
+        
     }
-    
     // 修正滚动视图内容大小（确保右侧预留间隔）
     self.filterScrollView.contentSize = CGSizeMake(totalWidth - buttonSpacing, buttonHeight);
 }
 
+
 #pragma mark - 筛选按钮点击事件
+
 - (void)filterButtonTapped:(UIButton *)sender {
+    [self buttonTappedIndex:sender.tag];
+}
+
+- (void)buttonTappedIndex:(NSInteger )index {
     // 更新按钮状态
     for (UIButton *button in self.filterButtons) {
-        button.backgroundColor = (button == sender) ?
+        button.backgroundColor = (button.tag == index) ?
             [UIColor colorWithRed:0.2 green:0.6 blue:0.9 alpha:1.0] :
             [UIColor lightGrayColor];
     }
     
     // 更新当前筛选类型
-    self.currentFilterType = (FilterType)sender.tag;
+    self.currentFilterType = (FilterType)index;
     
     // 应用筛选
     [self filterFiles];
     
     // 滚动到选中的按钮位置
-    [self.filterScrollView scrollRectToVisible:sender.frame animated:YES];
+    [self.filterScrollView scrollRectToVisible:self.filterButtons[index].frame animated:YES];
 }
 
 #pragma mark - 初始化表格
@@ -306,6 +308,7 @@ typedef NS_ENUM(NSInteger, FilterType) {
         [self.tableView reloadData];
     }
 }
+
 // 清除已完成任务并刷新列表（新增方法）
 - (void)cleanCompletedTasksAndRefresh {
     // 1. 移除已完成的任务（从FileInstallManager的任务列表中）
@@ -652,7 +655,7 @@ typedef NS_ENUM(NSInteger, FilterType) {
     
     // 更新进度覆盖层宽度（从左到右覆盖）
     
-    CGFloat progressWidth = cell.bounds.size.width * task.progress;
+    CGFloat progressWidth = [UIScreen mainScreen].bounds.size.width * task.progress;
     progressView.frame = CGRectMake(0, 0, progressWidth, cell.contentView.bounds.size.height);
     
     return cell;
@@ -855,16 +858,23 @@ typedef NS_ENUM(NSInteger, FilterType) {
 
 #pragma mark - 文件操作实现
 - (void)installFileAtPath:(NSString *)filePath {
-    [self showAlertWithConfirmationFromViewController:self title:@"是否安装" message:@"" confirmTitle:@"安装" cancelTitle:@"取消" onConfirmed:^{
-        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-        [[FileInstallManager sharedManager] installFileWithURL:fileURL completion:^(BOOL success, NSError * _Nullable error) {
-            if (!success) {
-                [self showAlertWithTitle:@"安装失败" message:error.localizedDescription];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self showAlertWithConfirmationFromViewController:self title:@"是否安装" message:@"" confirmTitle:@"安装" cancelTitle:@"取消" onConfirmed:^{
+            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+            NSLog(@"下载完成执行安装fileURL:%@",fileURL);
+            if(fileURL){
+                [[FileInstallManager sharedManager] installFileWithURL:fileURL completion:^(BOOL success, NSError * _Nullable error) {
+                    if (!success) {
+                        [self showAlertWithTitle:@"安装失败" message:error.localizedDescription];
+                    }
+                }];
             }
+            
+        } onCancelled:^{
+            // 取消操作
         }];
-    } onCancelled:^{
-        // 取消操作
-    }];
+    });
+    
 }
 
 - (void)openFileInAppAtPath:(NSString *)filePath {

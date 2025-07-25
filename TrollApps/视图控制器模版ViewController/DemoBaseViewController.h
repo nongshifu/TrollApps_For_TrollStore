@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 ///设置视图背景色
 - (void)setBackgroundUI;
 ///震动
-- (void)triggerVibration;
++ (void)triggerVibration;
 ///约束视图高度
 - (void)updateViewConstraints;
 ///显示悬浮菜单

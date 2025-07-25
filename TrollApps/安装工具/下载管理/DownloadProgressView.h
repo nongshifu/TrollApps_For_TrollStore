@@ -23,6 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)downloadCancel:(NSURLSessionDownloadTask *)task;
 /// 重新下载
 - (void)downloadRestart:(NSURLSessionDownloadTask *)task;
+/// 头像点击代理
+- (void)iconClick:(NSURLSessionDownloadTask *)task;
 @end
 
 @interface DownloadProgressView : UIView
@@ -35,6 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 是否自动贴边（默认YES）
 @property (nonatomic, assign) BOOL autoSnapToEdge;
+/// 是否启用展开右侧视图 （默认NO）
+@property (nonatomic, assign) BOOL enableExpanded;
 
 /// 当前下载任务
 @property (nonatomic, strong) NSURLSessionDownloadTask *currentTask;

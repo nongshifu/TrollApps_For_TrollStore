@@ -57,6 +57,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 将触摸事件添加到当前view
     [self.view addGestureRecognizer:self.tapGesture];
     
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    
     
 }
 
@@ -199,7 +202,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 //震动
-- (void)triggerVibration{
++ (void)triggerVibration{
     // 创建UIImpactFeedbackGenerator对象
     UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
     // 准备触发震动

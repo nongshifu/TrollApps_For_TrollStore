@@ -24,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,  assign) BOOL  selected;
 
 + (NSArray *)modelArray:(NSString *)input;
+
 + (NSArray *)refreshModelArray;
 
 /// 通过 PID 和布尔值控制进程（暂停/恢复）

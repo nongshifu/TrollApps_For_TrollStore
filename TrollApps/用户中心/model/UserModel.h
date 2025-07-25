@@ -44,6 +44,7 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 @property (nonatomic, assign) NSInteger like_count;
 @property (nonatomic, assign) NSInteger reply_count;
 @property (nonatomic, assign) NSInteger app_count;
+@property (nonatomic, assign) NSInteger role;
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
 
 /**

@@ -226,20 +226,26 @@
     [UIView animateWithDuration:0.5 animations:^{
         if(self.isScrollingUp && self.scrollY >0 && self.scrollY <=100){
             [self.topContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
-                make.top.equalTo(self.view).offset(- CGRectGetHeight(self.topContainerView.frame));
+                make.top.equalTo(self.view.mas_top).offset(- 190);
                 make.left.equalTo(self.view.mas_left).offset(15);
                 make.right.equalTo(self.view.mas_right).offset(-15);
                 
             }];
-//
-//            [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
-//                make.top.equalTo(self.view).offset(50);
-//                make.left.equalTo(self.view.mas_left).offset(15);
-//                make.right.equalTo(self.view.mas_right).offset(-15);
-//                make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
-//            }];
+
+            [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(self.topContainerView.mas_bottom).offset(10);
+                make.left.equalTo(self.view.mas_left).offset(15);
+                make.right.equalTo(self.view.mas_right).offset(-15);
+                make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
+            }];
             
         }else if(!self.isScrollingUp && self.scrollY <=20){
+            [self.topContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(self.view.mas_top).offset(0);
+                make.left.equalTo(self.view.mas_left).offset(15);
+                make.right.equalTo(self.view.mas_right).offset(-15);
+                
+            }];
             [self.topContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
                 make.top.equalTo(self.view).offset(20);
                 make.left.equalTo(self.view.mas_left).offset(15);
@@ -251,6 +257,7 @@
         // 关键点：添加这行代码强制立即布局
         [self.view layoutIfNeeded];
     }];
+    
 
     
 }
@@ -320,7 +327,11 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page{
-    
+    self.udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    if (!self.udid || self.udid.length < 10) {
+        [self showAlertFromViewController:self title:@"提示" message:@"请先登录获取设备信息"];
+        return;
+    }
     //如果是重置第一页 删除全部数据
     if(self.page <=1){
         [self.dataSource removeAllObjects];
@@ -334,7 +345,7 @@
         @"isAdmin":@(self.isAdmin),
         @"pageSize":@(20),
         @"keyword":self.keyword?:@"",
-        @"udid":self.udid?:@"",
+        @"udid":self.udid,
     };
     //封装URL
     NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];

@@ -24,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, nullable) NSString * icon_url;//软件图标URL
 @property (nonatomic, strong, nullable) ITunesAppModel *iTunesAppModel;//商店数据字典
 @property (nonatomic, strong, nullable) NSString *mainFileUrl;//主程序URL
+@property (nonatomic, assign) BOOL is_cloud;//是否是云端URL
 @property (nonatomic, strong, nullable) NSData *mainFileData;//主程序数据
 
 

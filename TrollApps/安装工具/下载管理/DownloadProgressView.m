@@ -141,11 +141,17 @@ static const CGFloat kMinMargin = 5;
 
 // 点击事件：展开/收起
 - (void)tapAction {
-    if (self.isExpanded) {
-        [self shrink]; // 已展开则收起（或显示操作菜单）
-    } else {
-        [self expand]; // 未展开则展开
+    if(_enableExpanded){
+        if (self.isExpanded) {
+            [self shrink]; // 已展开则收起（或显示操作菜单）
+        } else {
+            [self expand]; // 未展开则展开
+        }
     }
+    if([self.delegate respondsToSelector:@selector(iconClick:)]){
+        [self.delegate iconClick:self.currentTask];
+    }
+    
 }
 
 // 拖动事件：随手指移动，限制范围+松手贴边

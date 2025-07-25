@@ -76,6 +76,14 @@ typedef void(^TaskStatusChangedBlock)(void);
  */
 - (BOOL)isLocalURL:(NSURL *)url;
 
+
+/**
+ 判断URL是否为网络文件URL
+ @param url 待判断的URL
+ @return 是网络URL返回YES，否则返回NO
+ */
+- (BOOL)isWebURL:(NSURL *)url;
+
 /**
  根据文件路径判断文件类型
  @param filePath 文件名或完整路径

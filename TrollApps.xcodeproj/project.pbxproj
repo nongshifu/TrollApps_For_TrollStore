@@ -84,7 +84,6 @@
 		C28721232E281E9600ABC6AE /* Root.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721132E281E9600ABC6AE /* Root.m */; };
 		C287212B2E28254C00ABC6AE /* RunInBackground.mm in Sources */ = {isa = PBXBuildFile; fileRef = C28721282E28254C00ABC6AE /* RunInBackground.mm */; };
 		C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C287212C2E28262400ABC6AE /* RootSign.entitlements */; };
-		C28721302E2A50CB00ABC6AE /* manifest.plist in Resources */ = {isa = PBXBuildFile; fileRef = C287212F2E2A50CB00ABC6AE /* manifest.plist */; };
 		C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */; };
 		C28721382E2A942E00ABC6AE /* PrivacyPolicyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721372E2A942E00ABC6AE /* PrivacyPolicyViewController.m */; };
 		C287213B2E2B520800ABC6AE /* loadData.mm in Sources */ = {isa = PBXBuildFile; fileRef = C287213A2E2B520800ABC6AE /* loadData.mm */; };
@@ -106,6 +105,40 @@
 		C287219E2E30051000ABC6AE /* ImageGridSearchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287219D2E30051000ABC6AE /* ImageGridSearchViewController.m */; };
 		C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721A12E30AE6F00ABC6AE /* ContactHelper.m */; };
 		C28721A62E3149B800ABC6AE /* ImageModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721A52E3149B800ABC6AE /* ImageModel.m */; };
+		C28721AD2E321CED00ABC6AE /* SystemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721AC2E321CED00ABC6AE /* SystemViewController.m */; };
+		C28721B02E321FC800ABC6AE /* ConfigItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721AF2E321FC800ABC6AE /* ConfigItem.m */; };
+		C28721B32E32200400ABC6AE /* ConfigField.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721B22E32200400ABC6AE /* ConfigField.m */; };
+		C28721B72E32649900ABC6AE /* CommandExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721B62E32649900ABC6AE /* CommandExecutor.m */; };
+		C28722652E3267B100ABC6AE /* libxar.1.dylib in Resources */ = {isa = PBXBuildFile; fileRef = C28722542E3267AE00ABC6AE /* libxar.1.dylib */; };
+		C28722662E3267B100ABC6AE /* cp-15 in Resources */ = {isa = PBXBuildFile; fileRef = C28722552E3267AE00ABC6AE /* cp-15 */; };
+		C28722672E3267B100ABC6AE /* ldid in Resources */ = {isa = PBXBuildFile; fileRef = C28722562E3267AF00ABC6AE /* ldid */; };
+		C28722682E3267B100ABC6AE /* libiosexec.1.dylib in Resources */ = {isa = PBXBuildFile; fileRef = C28722572E3267AF00ABC6AE /* libiosexec.1.dylib */; };
+		C28722692E3267B100ABC6AE /* rm in Resources */ = {isa = PBXBuildFile; fileRef = C28722582E3267AF00ABC6AE /* rm */; };
+		C287226A2E3267B100ABC6AE /* mv-15 in Resources */ = {isa = PBXBuildFile; fileRef = C28722592E3267AF00ABC6AE /* mv-15 */; };
+		C287226B2E3267B100ABC6AE /* optool in Resources */ = {isa = PBXBuildFile; fileRef = C287225A2E3267AF00ABC6AE /* optool */; };
+		C287226C2E3267B100ABC6AE /* cp in Resources */ = {isa = PBXBuildFile; fileRef = C287225B2E3267AF00ABC6AE /* cp */; };
+		C287226D2E3267B100ABC6AE /* insert_dylib in Resources */ = {isa = PBXBuildFile; fileRef = C287225C2E3267B000ABC6AE /* insert_dylib */; };
+		C287226E2E3267B100ABC6AE /* mkdir in Resources */ = {isa = PBXBuildFile; fileRef = C287225D2E3267B000ABC6AE /* mkdir */; };
+		C287226F2E3267B100ABC6AE /* libcrypto.3.dylib in Resources */ = {isa = PBXBuildFile; fileRef = C287225E2E3267B000ABC6AE /* libcrypto.3.dylib */; };
+		C28722702E3267B100ABC6AE /* CydiaSubstrate.framework.zip in Resources */ = {isa = PBXBuildFile; fileRef = C287225F2E3267B000ABC6AE /* CydiaSubstrate.framework.zip */; };
+		C28722712E3267B100ABC6AE /* chown in Resources */ = {isa = PBXBuildFile; fileRef = C28722602E3267B000ABC6AE /* chown */; };
+		C28722722E3267B100ABC6AE /* mv in Resources */ = {isa = PBXBuildFile; fileRef = C28722612E3267B100ABC6AE /* mv */; };
+		C28722732E3267B100ABC6AE /* libintl.8.dylib in Resources */ = {isa = PBXBuildFile; fileRef = C28722622E3267B100ABC6AE /* libintl.8.dylib */; };
+		C28722742E3267B100ABC6AE /* ct_bypass in Resources */ = {isa = PBXBuildFile; fileRef = C28722632E3267B100ABC6AE /* ct_bypass */; };
+		C28722752E3267B100ABC6AE /* install_name_tool in Resources */ = {isa = PBXBuildFile; fileRef = C28722642E3267B100ABC6AE /* install_name_tool */; };
+		C28722782E326BDD00ABC6AE /* InjectMainController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722772E326BDD00ABC6AE /* InjectMainController.m */; };
+		C287227B2E326C4200ABC6AE /* AppListController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287227A2E326C4200ABC6AE /* AppListController.m */; };
+		C287227E2E326CA700ABC6AE /* InjectionHistoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287227D2E326CA700ABC6AE /* InjectionHistoryController.m */; };
+		C28722812E326D5C00ABC6AE /* InjectionRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722802E326D5C00ABC6AE /* InjectionRecord.m */; };
+		C28722842E326E6500ABC6AE /* DylibInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722832E326E6500ABC6AE /* DylibInfo.m */; };
+		C28722872E326ECF00ABC6AE /* DylibHistoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722862E326ECF00ABC6AE /* DylibHistoryController.m */; };
+		C287228B2E32782300ABC6AE /* AFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C287228A2E32782300ABC6AE /* AFNetworking.framework */; };
+		C287228F2E33612700ABC6AE /* AppVersionHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C287228E2E33612700ABC6AE /* AppVersionHistoryModel.m */; };
+		C28722922E336ABF00ABC6AE /* AppVersionHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722912E336ABF00ABC6AE /* AppVersionHistoryViewController.m */; };
+		C28722952E33709400ABC6AE /* AppVersionHistoryCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722942E33709400ABC6AE /* AppVersionHistoryCell.m */; };
+		C28722982E3374EC00ABC6AE /* BaseBottomSheetVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722972E3374EC00ABC6AE /* BaseBottomSheetVC.m */; };
+		C287229B2E33755C00ABC6AE /* BottomSheetTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */; };
+		C287229E2E3375D700ABC6AE /* BottomSheetPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -253,7 +286,7 @@
 		C28720932E268BF100ABC6AE /* LikeModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LikeModel.m; sourceTree = "<group>"; };
 		C28720952E26C66F00ABC6AE /* UserListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserListViewController.h; sourceTree = "<group>"; };
 		C28720962E26C66F00ABC6AE /* UserListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserListViewController.m; sourceTree = "<group>"; };
-		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C28721042E281D5400ABC6AE /* FileInstallManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileInstallManager.h; sourceTree = "<group>"; };
 		C28721052E281D5400ABC6AE /* FileInstallManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileInstallManager.m; sourceTree = "<group>"; };
 		C28721082E281E9600ABC6AE /* NSTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSTask.h; sourceTree = "<group>"; };
@@ -267,7 +300,6 @@
 		C28721292E28254C00ABC6AE /* RunInBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RunInBackground.h; sourceTree = "<group>"; };
 		C287212A2E28254C00ABC6AE /* blank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blank.h; sourceTree = "<group>"; };
 		C287212C2E28262400ABC6AE /* RootSign.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = RootSign.entitlements; sourceTree = "<group>"; };
-		C287212F2E2A50CB00ABC6AE /* manifest.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = manifest.plist; sourceTree = "<group>"; };
 		C28721312E2A557A00ABC6AE /* DownloadManagerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadManagerViewController.h; sourceTree = "<group>"; };
 		C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadManagerViewController.m; sourceTree = "<group>"; };
 		C28721342E2A899000ABC6AE /* Root.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Root.entitlements; sourceTree = "<group>"; };
@@ -311,6 +343,56 @@
 		C28721A12E30AE6F00ABC6AE /* ContactHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactHelper.m; sourceTree = "<group>"; };
 		C28721A42E3149B800ABC6AE /* ImageModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageModel.h; sourceTree = "<group>"; };
 		C28721A52E3149B800ABC6AE /* ImageModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageModel.m; sourceTree = "<group>"; };
+		C28721AB2E321CED00ABC6AE /* SystemViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemViewController.h; sourceTree = "<group>"; };
+		C28721AC2E321CED00ABC6AE /* SystemViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemViewController.m; sourceTree = "<group>"; };
+		C28721AE2E321FC800ABC6AE /* ConfigItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigItem.h; sourceTree = "<group>"; };
+		C28721AF2E321FC800ABC6AE /* ConfigItem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConfigItem.m; sourceTree = "<group>"; };
+		C28721B12E32200400ABC6AE /* ConfigField.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigField.h; sourceTree = "<group>"; };
+		C28721B22E32200400ABC6AE /* ConfigField.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConfigField.m; sourceTree = "<group>"; };
+		C28721B52E32649900ABC6AE /* CommandExecutor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CommandExecutor.h; sourceTree = "<group>"; };
+		C28721B62E32649900ABC6AE /* CommandExecutor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CommandExecutor.m; sourceTree = "<group>"; };
+		C28722542E3267AE00ABC6AE /* libxar.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libxar.1.dylib; sourceTree = "<group>"; };
+		C28722552E3267AE00ABC6AE /* cp-15 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "cp-15"; sourceTree = "<group>"; };
+		C28722562E3267AF00ABC6AE /* ldid */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ldid; sourceTree = "<group>"; };
+		C28722572E3267AF00ABC6AE /* libiosexec.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libiosexec.1.dylib; sourceTree = "<group>"; };
+		C28722582E3267AF00ABC6AE /* rm */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = rm; sourceTree = "<group>"; };
+		C28722592E3267AF00ABC6AE /* mv-15 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "mv-15"; sourceTree = "<group>"; };
+		C287225A2E3267AF00ABC6AE /* optool */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = optool; sourceTree = "<group>"; };
+		C287225B2E3267AF00ABC6AE /* cp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = cp; sourceTree = "<group>"; };
+		C287225C2E3267B000ABC6AE /* insert_dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = insert_dylib; sourceTree = "<group>"; };
+		C287225D2E3267B000ABC6AE /* mkdir */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = mkdir; sourceTree = "<group>"; };
+		C287225E2E3267B000ABC6AE /* libcrypto.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libcrypto.3.dylib; sourceTree = "<group>"; };
+		C287225F2E3267B000ABC6AE /* CydiaSubstrate.framework.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = CydiaSubstrate.framework.zip; sourceTree = "<group>"; };
+		C28722602E3267B000ABC6AE /* chown */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = chown; sourceTree = "<group>"; };
+		C28722612E3267B100ABC6AE /* mv */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = mv; sourceTree = "<group>"; };
+		C28722622E3267B100ABC6AE /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libintl.8.dylib; sourceTree = "<group>"; };
+		C28722632E3267B100ABC6AE /* ct_bypass */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ct_bypass; sourceTree = "<group>"; };
+		C28722642E3267B100ABC6AE /* install_name_tool */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = install_name_tool; sourceTree = "<group>"; };
+		C28722762E326BDD00ABC6AE /* InjectMainController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InjectMainController.h; sourceTree = "<group>"; };
+		C28722772E326BDD00ABC6AE /* InjectMainController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InjectMainController.m; sourceTree = "<group>"; };
+		C28722792E326C4200ABC6AE /* AppListController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppListController.h; sourceTree = "<group>"; };
+		C287227A2E326C4200ABC6AE /* AppListController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppListController.m; sourceTree = "<group>"; };
+		C287227C2E326CA700ABC6AE /* InjectionHistoryController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InjectionHistoryController.h; sourceTree = "<group>"; };
+		C287227D2E326CA700ABC6AE /* InjectionHistoryController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InjectionHistoryController.m; sourceTree = "<group>"; };
+		C287227F2E326D5C00ABC6AE /* InjectionRecord.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InjectionRecord.h; sourceTree = "<group>"; };
+		C28722802E326D5C00ABC6AE /* InjectionRecord.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InjectionRecord.m; sourceTree = "<group>"; };
+		C28722822E326E6500ABC6AE /* DylibInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DylibInfo.h; sourceTree = "<group>"; };
+		C28722832E326E6500ABC6AE /* DylibInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DylibInfo.m; sourceTree = "<group>"; };
+		C28722852E326ECF00ABC6AE /* DylibHistoryController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DylibHistoryController.h; sourceTree = "<group>"; };
+		C28722862E326ECF00ABC6AE /* DylibHistoryController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DylibHistoryController.m; sourceTree = "<group>"; };
+		C287228A2E32782300ABC6AE /* AFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C287228D2E33612700ABC6AE /* AppVersionHistoryModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppVersionHistoryModel.h; sourceTree = "<group>"; };
+		C287228E2E33612700ABC6AE /* AppVersionHistoryModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryModel.m; sourceTree = "<group>"; };
+		C28722902E336ABF00ABC6AE /* AppVersionHistoryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppVersionHistoryViewController.h; sourceTree = "<group>"; };
+		C28722912E336ABF00ABC6AE /* AppVersionHistoryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryViewController.m; sourceTree = "<group>"; };
+		C28722932E33709400ABC6AE /* AppVersionHistoryCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppVersionHistoryCell.h; sourceTree = "<group>"; };
+		C28722942E33709400ABC6AE /* AppVersionHistoryCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryCell.m; sourceTree = "<group>"; };
+		C28722962E3374EC00ABC6AE /* BaseBottomSheetVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BaseBottomSheetVC.h; sourceTree = "<group>"; };
+		C28722972E3374EC00ABC6AE /* BaseBottomSheetVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BaseBottomSheetVC.m; sourceTree = "<group>"; };
+		C28722992E33755C00ABC6AE /* BottomSheetTransition.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BottomSheetTransition.h; sourceTree = "<group>"; };
+		C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BottomSheetTransition.m; sourceTree = "<group>"; };
+		C287229C2E3375D700ABC6AE /* BottomSheetPresentationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BottomSheetPresentationController.h; sourceTree = "<group>"; };
+		C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BottomSheetPresentationController.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -319,6 +401,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C287228B2E32782300ABC6AE /* AFNetworking.framework in Frameworks */,
 				4B2BD5B69203FEDBBC41AEC3 /* Pods_TrollApps.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -347,6 +430,11 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C287228C2E3360FE00ABC6AE /* 版本管理 */,
+				C28721AA2E321CCB00ABC6AE /* 系统设置 */,
+				C2871FC02E2542C300ABC6AE /* 社区 */,
+				C2871FC52E2542C300ABC6AE /* 工具 */,
+				C2871FD02E2542C300ABC6AE /* Apps */,
 				C287219F2E30AE5F00ABC6AE /* 联系作者 */,
 				C28721522E2CD5FE00ABC6AE /* 评论 */,
 				C28721272E28254C00ABC6AE /* runInBg */,
@@ -358,7 +446,6 @@
 				C2871FA72E2542C200ABC6AE /* 视图控制器模版ViewController */,
 				C28720042E2542C300ABC6AE /* 图标商店搜索 */,
 				C287200D2E2542C300ABC6AE /* 网络 */,
-				C2871FAF2E2542C300ABC6AE /* 页面 */,
 				C28720122E2542C300ABC6AE /* 用户反馈 */,
 				C287201B2E2542C300ABC6AE /* 组件 */,
 				4F639DEF2272E94500776206 /* AppDelegate.h */,
@@ -369,7 +456,6 @@
 				C28720712E25432100ABC6AE /* config.h */,
 				4F639DF82272E94C00776206 /* Assets.xcassets */,
 				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
-				C287212F2E2A50CB00ABC6AE /* manifest.plist */,
 				C287212C2E28262400ABC6AE /* RootSign.entitlements */,
 				C28721342E2A899000ABC6AE /* Root.entitlements */,
 				C28720CE2E27D87900ABC6AE /* Podfile */,
@@ -384,6 +470,7 @@
 		67ABF29B7E82C79B43DF5CF3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C287228A2E32782300ABC6AE /* AFNetworking.framework */,
 				068050F3072675203E6A8899 /* Pods_TrollApps.framework */,
 			);
 			name = Frameworks;
@@ -413,6 +500,12 @@
 				C2871FAB2E2542C200ABC6AE /* DemoBaseNavigationController.m */,
 				C2871FAA2E2542C200ABC6AE /* DemoBaseViewController.h */,
 				C2871FA82E2542C200ABC6AE /* DemoBaseViewController.m */,
+				C28722962E3374EC00ABC6AE /* BaseBottomSheetVC.h */,
+				C28722972E3374EC00ABC6AE /* BaseBottomSheetVC.m */,
+				C28722992E33755C00ABC6AE /* BottomSheetTransition.h */,
+				C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */,
+				C287229C2E3375D700ABC6AE /* BottomSheetPresentationController.h */,
+				C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */,
 			);
 			path = "视图控制器模版ViewController";
 			sourceTree = "<group>";
@@ -424,26 +517,6 @@
 				C2871FAE2E2542C200ABC6AE /* MyTabBarController.h */,
 			);
 			path = "导航";
-			sourceTree = "<group>";
-		};
-		C2871FAF2E2542C300ABC6AE /* 页面 */ = {
-			isa = PBXGroup;
-			children = (
-				C2871FB02E2542C300ABC6AE /* 关于我 */,
-				C2871FC02E2542C300ABC6AE /* 社区 */,
-				C2871FC52E2542C300ABC6AE /* 工具 */,
-				C2871FD02E2542C300ABC6AE /* Apps */,
-			);
-			path = "页面";
-			sourceTree = "<group>";
-		};
-		C2871FB02E2542C300ABC6AE /* 关于我 */ = {
-			isa = PBXGroup;
-			children = (
-				C2871FB92E2542C300ABC6AE /* NewProfileViewController.h */,
-				C2871FBB2E2542C300ABC6AE /* NewProfileViewController.mm */,
-			);
-			path = "关于我";
 			sourceTree = "<group>";
 		};
 		C2871FB12E2542C300ABC6AE /* vip */ = {
@@ -813,6 +886,9 @@
 		C28720852E255E9300ABC6AE /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
+				C2871FB92E2542C300ABC6AE /* NewProfileViewController.h */,
+				C2871FBB2E2542C300ABC6AE /* NewProfileViewController.mm */,
+				C28721A92E3218BA00ABC6AE /* 列表 */,
 				C287207D2E25495D00ABC6AE /* 我的收藏 */,
 				C287207B2E25493100ABC6AE /* 编辑资料 */,
 				C287207C2E25494500ABC6AE /* 右侧菜单 */,
@@ -820,10 +896,6 @@
 				C28721352E2A939400ABC6AE /* 隐私政策 */,
 				C287208A2E25606E00ABC6AE /* cell */,
 				C28720892E25606500ABC6AE /* model */,
-				C28720862E255EAA00ABC6AE /* UserProfileViewController.h */,
-				C28720872E255EAA00ABC6AE /* UserProfileViewController.m */,
-				C28720952E26C66F00ABC6AE /* UserListViewController.h */,
-				C28720962E26C66F00ABC6AE /* UserListViewController.m */,
 			);
 			path = "用户中心";
 			sourceTree = "<group>";
@@ -858,6 +930,7 @@
 		C28721032E281D4600ABC6AE /* 安装工具 */ = {
 			isa = PBXGroup;
 			children = (
+				C28721B42E32648100ABC6AE /* install_dylib */,
 				C28721A72E31592F00ABC6AE /* 下载管理 */,
 				C28721072E281E9600ABC6AE /* Jailbreak */,
 			);
@@ -867,7 +940,6 @@
 		C28721072E281E9600ABC6AE /* Jailbreak */ = {
 			isa = PBXGroup;
 			children = (
-				C28721082E281E9600ABC6AE /* NSTask.h */,
 				C28721092E281E9600ABC6AE /* Sh */,
 				C287210F2E281E9600ABC6AE /* Pid */,
 				C28721122E281E9600ABC6AE /* Root */,
@@ -1006,6 +1078,106 @@
 			path = "下载管理";
 			sourceTree = "<group>";
 		};
+		C28721A92E3218BA00ABC6AE /* 列表 */ = {
+			isa = PBXGroup;
+			children = (
+				C28720862E255EAA00ABC6AE /* UserProfileViewController.h */,
+				C28720872E255EAA00ABC6AE /* UserProfileViewController.m */,
+				C28720952E26C66F00ABC6AE /* UserListViewController.h */,
+				C28720962E26C66F00ABC6AE /* UserListViewController.m */,
+			);
+			path = "列表";
+			sourceTree = "<group>";
+		};
+		C28721AA2E321CCB00ABC6AE /* 系统设置 */ = {
+			isa = PBXGroup;
+			children = (
+				C28721AB2E321CED00ABC6AE /* SystemViewController.h */,
+				C28721AC2E321CED00ABC6AE /* SystemViewController.m */,
+				C28721AE2E321FC800ABC6AE /* ConfigItem.h */,
+				C28721AF2E321FC800ABC6AE /* ConfigItem.m */,
+				C28721B12E32200400ABC6AE /* ConfigField.h */,
+				C28721B22E32200400ABC6AE /* ConfigField.m */,
+			);
+			path = "系统设置";
+			sourceTree = "<group>";
+		};
+		C28721B42E32648100ABC6AE /* install_dylib */ = {
+			isa = PBXGroup;
+			children = (
+				C28722892E32714D00ABC6AE /* viewController */,
+				C28722882E32712B00ABC6AE /* model */,
+				C28721B52E32649900ABC6AE /* CommandExecutor.h */,
+				C28721B62E32649900ABC6AE /* CommandExecutor.m */,
+				C28721082E281E9600ABC6AE /* NSTask.h */,
+				C28722532E32679100ABC6AE /* Tools */,
+			);
+			path = install_dylib;
+			sourceTree = "<group>";
+		};
+		C28722532E32679100ABC6AE /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				C28722602E3267B000ABC6AE /* chown */,
+				C287225B2E3267AF00ABC6AE /* cp */,
+				C28722552E3267AE00ABC6AE /* cp-15 */,
+				C28722632E3267B100ABC6AE /* ct_bypass */,
+				C287225F2E3267B000ABC6AE /* CydiaSubstrate.framework.zip */,
+				C287225C2E3267B000ABC6AE /* insert_dylib */,
+				C28722642E3267B100ABC6AE /* install_name_tool */,
+				C28722562E3267AF00ABC6AE /* ldid */,
+				C287225E2E3267B000ABC6AE /* libcrypto.3.dylib */,
+				C28722622E3267B100ABC6AE /* libintl.8.dylib */,
+				C28722572E3267AF00ABC6AE /* libiosexec.1.dylib */,
+				C28722542E3267AE00ABC6AE /* libxar.1.dylib */,
+				C287225D2E3267B000ABC6AE /* mkdir */,
+				C28722612E3267B100ABC6AE /* mv */,
+				C28722592E3267AF00ABC6AE /* mv-15 */,
+				C287225A2E3267AF00ABC6AE /* optool */,
+				C28722582E3267AF00ABC6AE /* rm */,
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
+		C28722882E32712B00ABC6AE /* model */ = {
+			isa = PBXGroup;
+			children = (
+				C28722822E326E6500ABC6AE /* DylibInfo.h */,
+				C28722832E326E6500ABC6AE /* DylibInfo.m */,
+				C287227F2E326D5C00ABC6AE /* InjectionRecord.h */,
+				C28722802E326D5C00ABC6AE /* InjectionRecord.m */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		C28722892E32714D00ABC6AE /* viewController */ = {
+			isa = PBXGroup;
+			children = (
+				C28722792E326C4200ABC6AE /* AppListController.h */,
+				C287227A2E326C4200ABC6AE /* AppListController.m */,
+				C28722852E326ECF00ABC6AE /* DylibHistoryController.h */,
+				C28722862E326ECF00ABC6AE /* DylibHistoryController.m */,
+				C287227C2E326CA700ABC6AE /* InjectionHistoryController.h */,
+				C287227D2E326CA700ABC6AE /* InjectionHistoryController.m */,
+				C28722762E326BDD00ABC6AE /* InjectMainController.h */,
+				C28722772E326BDD00ABC6AE /* InjectMainController.m */,
+			);
+			path = viewController;
+			sourceTree = "<group>";
+		};
+		C287228C2E3360FE00ABC6AE /* 版本管理 */ = {
+			isa = PBXGroup;
+			children = (
+				C287228D2E33612700ABC6AE /* AppVersionHistoryModel.h */,
+				C287228E2E33612700ABC6AE /* AppVersionHistoryModel.m */,
+				C28722902E336ABF00ABC6AE /* AppVersionHistoryViewController.h */,
+				C28722912E336ABF00ABC6AE /* AppVersionHistoryViewController.m */,
+				C28722932E33709400ABC6AE /* AppVersionHistoryCell.h */,
+				C28722942E33709400ABC6AE /* AppVersionHistoryCell.m */,
+			);
+			path = "版本管理";
+			sourceTree = "<group>";
+		};
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -1059,6 +1231,9 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				it,
+				vi,
 			);
 			mainGroup = 4F639DE32272E94500776206;
 			productRefGroup = 4F639DED2272E94500776206 /* Products */;
@@ -1075,9 +1250,25 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C287226E2E3267B100ABC6AE /* mkdir in Resources */,
+				C287226F2E3267B100ABC6AE /* libcrypto.3.dylib in Resources */,
+				C28722652E3267B100ABC6AE /* libxar.1.dylib in Resources */,
+				C28722732E3267B100ABC6AE /* libintl.8.dylib in Resources */,
+				C28722682E3267B100ABC6AE /* libiosexec.1.dylib in Resources */,
+				C28722742E3267B100ABC6AE /* ct_bypass in Resources */,
 				C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */,
+				C287226B2E3267B100ABC6AE /* optool in Resources */,
+				C28722672E3267B100ABC6AE /* ldid in Resources */,
+				C28722702E3267B100ABC6AE /* CydiaSubstrate.framework.zip in Resources */,
 				4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */,
-				C28721302E2A50CB00ABC6AE /* manifest.plist in Resources */,
+				C287226A2E3267B100ABC6AE /* mv-15 in Resources */,
+				C287226C2E3267B100ABC6AE /* cp in Resources */,
+				C28722712E3267B100ABC6AE /* chown in Resources */,
+				C287226D2E3267B100ABC6AE /* insert_dylib in Resources */,
+				C28722722E3267B100ABC6AE /* mv in Resources */,
+				C28722752E3267B100ABC6AE /* install_name_tool in Resources */,
+				C28722662E3267B100ABC6AE /* cp-15 in Resources */,
+				C28722692E3267B100ABC6AE /* rm in Resources */,
 				4F639DF92272E94C00776206 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1160,6 +1351,7 @@
 				C287204B2E2542C300ABC6AE /* TaskManager.m in Sources */,
 				C287212B2E28254C00ABC6AE /* RunInBackground.mm in Sources */,
 				C28721592E2D366E00ABC6AE /* LeftViewController.m in Sources */,
+				C28721B02E321FC800ABC6AE /* ConfigItem.m in Sources */,
 				C287215C2E2D3B5E00ABC6AE /* MinWebToolViewCell.m in Sources */,
 				C28720512E2542C300ABC6AE /* AppsViewController.mm in Sources */,
 				C287204A2E2542C300ABC6AE /* UploadTask.m in Sources */,
@@ -1178,7 +1370,9 @@
 				C287206E2E2542C300ABC6AE /* UIColor.m in Sources */,
 				C28720442E2542C300ABC6AE /* CommunityViewController.m in Sources */,
 				C287205C2E2542C300ABC6AE /* AppVersionModel.m in Sources */,
+				C28722782E326BDD00ABC6AE /* InjectMainController.m in Sources */,
 				C28720522E2542C300ABC6AE /* AppListViewController.m in Sources */,
+				C28721B72E32649900ABC6AE /* CommandExecutor.m in Sources */,
 				C287213B2E2B520800ABC6AE /* loadData.mm in Sources */,
 				C287204F2E2542C300ABC6AE /* UploadFileItem.m in Sources */,
 				C287203F2E2542C300ABC6AE /* VIPPackage.m in Sources */,
@@ -1188,6 +1382,7 @@
 				C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */,
 				C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */,
 				C28720632E2542C300ABC6AE /* TokenGenerator.m in Sources */,
+				C287228F2E33612700ABC6AE /* AppVersionHistoryModel.m in Sources */,
 				C28720552E2542C300ABC6AE /* AppCommentCell.m in Sources */,
 				C28720432E2542C300ABC6AE /* MyFavoritesListViewController.m in Sources */,
 				C28720592E2542C300ABC6AE /* AppInfoModel.m in Sources */,
@@ -1197,20 +1392,25 @@
 				C28721062E281D5400ABC6AE /* FileInstallManager.m in Sources */,
 				C28720792E25484500ABC6AE /* MediaProcessor.m in Sources */,
 				C287203E2E2542C300ABC6AE /* VIPPackageCell.m in Sources */,
+				C28722842E326E6500ABC6AE /* DylibInfo.m in Sources */,
 				C28720582E2542C300ABC6AE /* Demo9Model.m in Sources */,
 				C28720462E2542C300ABC6AE /* NewToolViewController.m in Sources */,
 				C28720972E26C66F00ABC6AE /* UserListViewController.m in Sources */,
 				C287203A2E2542C300ABC6AE /* EmptyView.m in Sources */,
 				C287213E2E2BA1D900ABC6AE /* HTMLCodeEditorView.m in Sources */,
+				C28721AD2E321CED00ABC6AE /* SystemViewController.m in Sources */,
 				C28720412E2542C300ABC6AE /* ProfileRightViewController.m in Sources */,
+				C28721B32E32200400ABC6AE /* ConfigField.m in Sources */,
 				C287219A2E2FC64300ABC6AE /* UIView+DrawGraphics.m in Sources */,
 				C28720402E2542C300ABC6AE /* EditUserProfileViewController.m in Sources */,
 				C28720642E2542C300ABC6AE /* FeedbackCell.m in Sources */,
 				C287205D2E2542C300ABC6AE /* ShowOneAppViewController.m in Sources */,
 				4F639DFF2272E94C00776206 /* main.m in Sources */,
 				C287203C2E2542C300ABC6AE /* DemoBaseNavigationController.m in Sources */,
+				C28722982E3374EC00ABC6AE /* BaseBottomSheetVC.m in Sources */,
 				C287205A2E2542C300ABC6AE /* CommentModel.m in Sources */,
 				C28721652E2F9FD500ABC6AE /* DownloadTaskModel.m in Sources */,
+				C28722812E326D5C00ABC6AE /* InjectionRecord.m in Sources */,
 				C287203D2E2542C300ABC6AE /* MyTabBarController.m in Sources */,
 				C287207A2E25484500ABC6AE /* HXPhotoURLConverter.m in Sources */,
 				C28720622E2542C300ABC6AE /* NetworkClient.m in Sources */,
@@ -1218,6 +1418,7 @@
 				C287206C2E2542C300ABC6AE /* KeychainTool.m in Sources */,
 				C28720662E2542C300ABC6AE /* FeedbackViewController.m in Sources */,
 				C28721A62E3149B800ABC6AE /* ImageModel.m in Sources */,
+				C28722952E33709400ABC6AE /* AppVersionHistoryCell.m in Sources */,
 				C287219B2E2FC64300ABC6AE /* BaseMenuViewController.m in Sources */,
 				C28720382E2542C300ABC6AE /* CellHeightCache.m in Sources */,
 				C287206D2E2542C300ABC6AE /* TimeTool.m in Sources */,
@@ -1225,21 +1426,27 @@
 				C28720912E26342900ABC6AE /* CommentInputView.m in Sources */,
 				C28720532E2542C300ABC6AE /* AppFileCell.m in Sources */,
 				C28720502E2542C300ABC6AE /* UploadManager.m in Sources */,
+				C287227E2E326CA700ABC6AE /* InjectionHistoryController.m in Sources */,
 				C287206A2E2542C300ABC6AE /* ExpandableIconButton.m in Sources */,
 				C28720682E2542C300ABC6AE /* CustomScrollView.m in Sources */,
 				C28720452E2542C300ABC6AE /* HelpViewController.m in Sources */,
 				C28720482E2542C300ABC6AE /* WebToolModel.m in Sources */,
+				C287229B2E33755C00ABC6AE /* BottomSheetTransition.m in Sources */,
 				C28720542E2542C300ABC6AE /* TipBarCell.m in Sources */,
 				C287205B2E2542C300ABC6AE /* TipBarModel.m in Sources */,
 				C287214B2E2C2B3C00ABC6AE /* ShowOneToolViewController.m in Sources */,
 				C28720392E2542C300ABC6AE /* TemplateCell.m in Sources */,
 				C287205E2E2542C300ABC6AE /* CategoryManagerViewController.m in Sources */,
+				C287229E2E3375D700ABC6AE /* BottomSheetPresentationController.m in Sources */,
 				C28720472E2542C300ABC6AE /* ToolViewCell.m in Sources */,
 				C28720702E2542C300ABC6AE /* UIImage+Extensions.m in Sources */,
 				C28720352E2542C300ABC6AE /* UserModel.m in Sources */,
+				C28722922E336ABF00ABC6AE /* AppVersionHistoryViewController.m in Sources */,
 				C287203B2E2542C300ABC6AE /* DemoBaseViewController.m in Sources */,
+				C287227B2E326C4200ABC6AE /* AppListController.m in Sources */,
 				C287204E2E2542C300ABC6AE /* DocumentPickerViewController.m in Sources */,
 				C28721232E281E9600ABC6AE /* Root.m in Sources */,
+				C28722872E326ECF00ABC6AE /* DylibHistoryController.m in Sources */,
 				4F639DF12272E94500776206 /* AppDelegate.m in Sources */,
 				C28721452E2BE2B200ABC6AE /* WebToolManager.m in Sources */,
 			);
@@ -1388,6 +1595,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/TrollApps/安装工具/TrollFools",
+					"$(PROJECT_DIR)/TrollApps/安装工具/install_dylib/Tools",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.trollapps.shisange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1414,6 +1626,11 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/TrollApps/安装工具/TrollFools",
+					"$(PROJECT_DIR)/TrollApps/安装工具/install_dylib/Tools",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.trollapps.shisange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
