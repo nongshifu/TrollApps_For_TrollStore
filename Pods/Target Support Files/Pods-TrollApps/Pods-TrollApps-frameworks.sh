@@ -192,6 +192,13 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/YYModel/YYModel.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/ZXNavigationBar/ZXNavigationBar.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/ZXingObjC/ZXingObjC.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/ChatRoom/RongChatRoom.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/CustomerService/RongCustomerService.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/Discussion/RongDiscussion.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMKit/RongIMKit.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMLib/RongIMLib.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMLibCore/RongIMLibCore.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/PublicService/RongPublicService.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework"
@@ -210,6 +217,13 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/YYModel/YYModel.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/ZXNavigationBar/ZXNavigationBar.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/ZXingObjC/ZXingObjC.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/ChatRoom/RongChatRoom.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/CustomerService/RongCustomerService.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/Discussion/RongDiscussion.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMKit/RongIMKit.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMLib/RongIMLib.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/IMLibCore/RongIMLibCore.framework"
+  install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/RongCloudIM/PublicService/RongPublicService.framework"
 fi
 if [ "${COCOAPODS_PARALLEL_CODE_SIGN}" == "true" ]; then
   wait

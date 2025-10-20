@@ -4,7 +4,7 @@
 #import "UserProfileViewController.h"
 #import "LikeModel.h"
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -137,6 +137,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     // 使用 Masonry 布局（也可使用系统 NSLayoutConstraint）
+    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.width.equalTo(@(kWidth-24));
+    }];
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(15); // 左间距15
         make.top.equalTo(self.contentView).offset(12); // 上间距12
@@ -174,7 +177,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.left.equalTo(self.nicknameLabel); // 与昵称左对齐
         make.top.equalTo(self.nicknameLabel.mas_bottom).offset(8); // 与昵称间距8
 
-        make.right.lessThanOrEqualTo(self.likeCountLabel.mas_left).offset(-12); // 与分隔线间距12
+        make.right.equalTo(self.likeCountLabel.mas_left).offset(-12); // 与分隔线间距12
         make.bottom.lessThanOrEqualTo(self.contentView.mas_bottom).offset(-12); // 与分隔线间距12
     }];
    
@@ -210,6 +213,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 2. 绑定评论内容
     self.contentLabel.text = self.appComment.content ?: @"";
+    
     
     // 3. 格式化评论时间（将NSDate转换为友好显示，如"2小时前"、"今天 14:30"）
     

@@ -174,13 +174,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
         @"action":@"getAppList",
-        @"type":self.self.sort ? @"newest":@"hottest",
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
-        @"pageSize":@(20),
+        @"pageSize":@(10),
         @"udid":udid,
         @"showMyApp":@(YES),
-        @"page":@(self.page)
+        @"sortType":@(self.sort),
+        @"page":@(page)
         
     };
     NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
@@ -250,11 +250,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if ([object isKindOfClass:[AppInfoModel class]]) {
         
-        return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) cellHeight:100];
+        return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
     }else{
         if ([object isKindOfClass:[WebToolModel class]]) {
             
-            return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) cellHeight:100];
+            return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
         }
     }
     return nil;

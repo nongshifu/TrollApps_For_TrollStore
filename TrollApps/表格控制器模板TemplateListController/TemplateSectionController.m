@@ -119,9 +119,25 @@
 /// 返回单元格尺寸
 - (CGSize)sizeForItemAtIndex:(NSInteger)index {
     if (!_UsingCacheHeight) {
+        // 创建临时cell并绑定数据
+        UICollectionViewCell *tempCell = [[_cellClass alloc] initWithFrame:CGRectMake(0, 0,
+                                                                      self.collectionContext.containerSize.width - self.inset.left - self.inset.right,
+                                                                      100)];
+        if ([tempCell respondsToSelector:@selector(bindViewModel:)]) {
+            [tempCell performSelector:@selector(bindViewModel:) withObject:_model];
+        }
+        
+        // 强制布局并计算高度
+        [tempCell setNeedsLayout];
+        [tempCell layoutIfNeeded];
+        
+        // 使用 systemLayoutSizeFittingSize: 计算高度
+        CGSize fittingSize = [tempCell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+        CGFloat autoHeight = self.cellHeight >0 ?self.cellHeight : fittingSize.height;
+        
         return CGSizeMake(
             self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-            self.cellHeight // 默认高度
+            autoHeight
         );
     }
     
@@ -130,13 +146,28 @@
     if (cachedHeight > 0) {
         return CGSizeMake(
             self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-            cachedHeight
+                          self.cellHeight >0 ? self.cellHeight : cachedHeight
         );
     }
     
+    // 缓存未命中时，计算一次高度并缓存
+    UICollectionViewCell *tempCell = [[_cellClass alloc] initWithFrame:CGRectMake(0, 0,
+                                                                  self.collectionContext.containerSize.width - self.inset.left - self.inset.right,
+                                                                  100)];
+    if ([tempCell respondsToSelector:@selector(bindViewModel:)]) {
+        [tempCell performSelector:@selector(bindViewModel:) withObject:_model];
+    }
+    
+    [tempCell setNeedsLayout];
+    [tempCell layoutIfNeeded];
+    
+    CGSize fittingSize = [tempCell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+    CGFloat autoHeight = fittingSize.height;
+    [CellHeightCache cacheHeightForModel:_model height:autoHeight]; // 缓存计算结果
+    
     return CGSizeMake(
         self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-                      self.cellHeight // 默认高度
+        autoHeight
     );
 }
 

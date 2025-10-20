@@ -412,7 +412,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     }
                 }
                 NSString *tipmMessage =  self.appInfo.app_status != 0 ? @"点击左侧图标可联系作者催更\n应用怎么样 点评下吧！" :@"这个应用怎么样？点评下吧！";
-                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"phone.circle" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
+                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"message" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
                 
                 if(self.dataSource.count >= 2){
                     id model = [self.dataSource objectAtIndex:1];
@@ -422,7 +422,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 }else{
                     [self.dataSource insertObject:tipBarModel atIndex:1];
                 }
-                
+                NSLog(@"最后数组：%@",self.dataSource);
                 [self refreshTable];
                 
                 if(!hasMore){
@@ -464,7 +464,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                          modelClass:[AppInfoModel class]
                                                           delegate:self
                                                         edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10)
-                                                   usingCacheHeight:YES
+                                                   usingCacheHeight:NO
                                                          cellHeight:150];
     } else if ([object isKindOfClass:[CommentModel class]]) {
         // 同理，移除 cellHeight
@@ -472,7 +472,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                          modelClass:[CommentModel class]
                                                           delegate:self
                                                         edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10)
-                                                  usingCacheHeight:YES];
+                                                  usingCacheHeight:NO];
     } else if ([object isKindOfClass:[TipBarModel class]]) {
         // 同理，移除 cellHeight
         return [[TemplateSectionController alloc] initWithCellClass:[TipBarCell class]
@@ -560,9 +560,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         NSLog(@"发布评论返回:%@",jsonResult);
         NSLog(@"发布评论stringResult返回:%@",stringResult);
-        
         dispatch_async(dispatch_get_main_queue(), ^{
-            [DemoBaseViewController triggerVibration];
             if(!jsonResult || !jsonResult[@"code"]){
                 return;
             }

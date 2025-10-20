@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 //分类
 @property (nonatomic, strong) NSString *tag;
 //切换列表
-@property (nonatomic, assign) BOOL sort;
+@property (nonatomic, assign) NSInteger sort;
 //列表类型
 @property (nonatomic, assign) NSInteger selectedIndex;
 @end

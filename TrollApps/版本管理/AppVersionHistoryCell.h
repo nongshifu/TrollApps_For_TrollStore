@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UILabel *sizeLabel;             // 安装包大小
 @property (nonatomic, strong) UILabel *releaseNotesLabel;     // 更新说明
 @property (nonatomic, strong) UIView *separatorView;          // 分隔线
-@property (nonatomic, strong) UILabel *mandatoryLabel;        // 强制更新标签
+@property (nonatomic, strong) UIButton *mandatoryButton;        // 强制更新标签
 
 @end
 

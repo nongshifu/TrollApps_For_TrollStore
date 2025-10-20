@@ -193,7 +193,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark - 刷新数据加载
 - (void)refreshLoadInitialData {
-    if(self.dataSource){
+    if(self.dataSource.count>0){
         [self.dataSource removeAllObjects];
     }
     
@@ -217,8 +217,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)refreshTable{
     [self endRefreshing];
-    // 清除缓存
-    [self.adapter.collectionView.collectionViewLayout invalidateLayout];
     //刷新
     [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
         [self updateEmptyViewVisibility];

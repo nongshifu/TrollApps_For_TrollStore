@@ -15,7 +15,9 @@
 #import "AppCommentCell.h"
 #import "UserListViewController.h"
 #import "EditUserProfileViewController.h"
-
+#import "ContactHelper.h"
+#import "WebToolModel.h"
+#import "MoodStatusModel.h"
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -120,7 +122,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     // 选项卡标题
-    NSArray *titles = @[@"Apps", @"评论"];
+    NSArray *titles = @[@"App",@"工具", @"评论", @"动态"];
     self.segmentedControl = [[UISegmentedControl alloc] initWithItems:titles];
     self.segmentedControl.selectedSegmentIndex = 0;
     // 绑定事件（值改变时触发）
@@ -157,7 +159,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 // 初始化子页面控制器
 - (void)setupViewControllers {
     self.viewControllers = [NSMutableArray array];
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 4; i++) {
         UserListViewController *controller = [[UserListViewController alloc] init];
         controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
@@ -231,7 +233,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.segmentedControl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.jianjie.mas_bottom).offset(15);
         make.left.equalTo(self.view.mas_left).offset(20);
-        make.width.equalTo(@100);
+        make.width.equalTo(@200);
         make.height.equalTo(@30);
     }];
     //排序按钮
@@ -385,7 +387,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)contactButtonTap:(UIButton*)button{
     if(!self.userInfo)return;
-    [self showContactActionSheetWithUserInfo:self.userInfo];
+    [[ContactHelper shared] showContactActionSheetWithUserInfo:self.userInfo];
+    
 }
 
 // 头像昵称点击 修改资料
@@ -399,152 +402,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
-// 显示联系作者的操作菜单
-- (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"联系作者"
-                                                                             message:nil
-                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    // 1. 手机号（拨打电话）
-    if (userInfo.phone.length == 11) {
-        UIAlertAction *phoneAction = [UIAlertAction actionWithTitle:@"联系作者手机"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction *action) {
-            [self makePhoneCall:userInfo.phone];
-        }];
-        [alertController addAction:phoneAction];
-    }
-    
-    // 2. Email（发送邮件）
-    if (userInfo.email.length > 0 && [self isValidEmail:userInfo.email]) {
-        UIAlertAction *emailAction = [UIAlertAction actionWithTitle:@"联系作者Email"
-                                                            style:UIAlertActionStyleDefault
-                                                          handler:^(UIAlertAction *action) {
-            [self sendEmailTo:userInfo.email];
-        }];
-        [alertController addAction:emailAction];
-    }
-    
-    // 3. QQ（打开QQ聊天）
-    if (userInfo.qq.length > 4) {
-        UIAlertAction *qqAction = [UIAlertAction actionWithTitle:@"联系作者QQ"
-                                                          style:UIAlertActionStyleDefault
-                                                        handler:^(UIAlertAction *action) {
-            [self openQQChat:userInfo.qq];
-        }];
-        [alertController addAction:qqAction];
-    }
-    
-    // 4. 微信（提示复制微信号）
-    if (userInfo.wechat.length > 4) {
-        UIAlertAction *wechatAction = [UIAlertAction actionWithTitle:@"联系作者微信"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction *action) {
-            [self copyWechatID:userInfo.wechat];
-        }];
-        [alertController addAction:wechatAction];
-    }
-    
-    // 5. TG（打开Telegram聊天）
-    if (userInfo.tg.length > 4) {
-        UIAlertAction *tgAction = [UIAlertAction actionWithTitle:@"联系作者TG"
-                                                          style:UIAlertActionStyleDefault
-                                                        handler:^(UIAlertAction *action) {
-            [self openTelegramChat:userInfo.tg];
-        }];
-        [alertController addAction:tgAction];
-    }
-    
-    // 取消按钮
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
-                                                           style:UIAlertActionStyleCancel
-                                                         handler:nil];
-    [alertController addAction:cancelAction];
-    
-    // 显示菜单
-    
-    [[self.view getTopViewController] presentViewController:alertController animated:YES completion:nil];
-    
-}
-
-#pragma mark - 联系方式具体实现
-
-// 拨打电话
-- (void)makePhoneCall:(NSString *)phoneNumber {
-    // 移除可能的空格或特殊字符
-    NSString *cleanedPhone = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSURL *phoneURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", cleanedPhone]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:phoneURL]) {
-        [[UIApplication sharedApplication] openURL:phoneURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开拨号界面"];
-            }
-        }];
-    } else {
-        [SVProgressHUD showErrorWithStatus:@"设备不支持拨打电话功能"];
-    }
-}
-
-// 发送邮件
-- (void)sendEmailTo:(NSString *)emailAddress {
-    if (![self isValidEmail:emailAddress]) {
-        [SVProgressHUD showErrorWithStatus:@"邮箱地址无效"];
-        return;
-    }
-    
-    NSURL *emailURL = [NSURL URLWithString:[NSString stringWithFormat:@"mailto:%@", emailAddress]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:emailURL]) {
-        [[UIApplication sharedApplication] openURL:emailURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开邮件应用"];
-            }
-        }];
-    } else {
-        [SVProgressHUD showErrorWithStatus:@"未安装邮件应用"];
-    }
-}
-
-// 打开QQ聊天（需要QQ客户端）
-- (void)openQQChat:(NSString *)qqNumber {
-    // QQ URL Scheme格式：mqq://im/chat?chat_type=wpa&uin=QQ号&version=1&src_type=web
-    NSURL *qqURL = [NSURL URLWithString:[NSString stringWithFormat:@"mqq://im/chat?chat_type=wpa&uin=%@&version=1&src_type=web", qqNumber]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:qqURL]) {
-        [[UIApplication sharedApplication] openURL:qqURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开QQ"];
-            }
-        }];
-    } else {
-        // 未安装QQ时提示复制QQ号
-        [self copyTextToPasteboard:qqNumber tip:@"QQ号已复制，请手动添加好友"];
-    }
-}
-
-// 复制微信号（微信没有直接聊天的URL Scheme，只能复制）
-- (void)copyWechatID:(NSString *)wechatID {
-    [self copyTextToPasteboard:wechatID tip:@"微信号已复制，请在微信中添加好友"];
-}
-
-// 打开Telegram聊天
-- (void)openTelegramChat:(NSString *)tgUsername {
-    // Telegram URL Scheme格式：tg://resolve?domain=用户名（不带@）
-    NSString *cleanedUsername = [tgUsername stringByReplacingOccurrencesOfString:@"@" withString:@""];
-    NSURL *tgURL = [NSURL URLWithString:[NSString stringWithFormat:@"tg://resolve?domain=%@", cleanedUsername]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:tgURL]) {
-        [[UIApplication sharedApplication] openURL:tgURL options:@{} completionHandler:^(BOOL success) {
-            if (!success) {
-                [SVProgressHUD showErrorWithStatus:@"无法打开Telegram"];
-            }
-        }];
-    } else {
-        // 未安装Telegram时提示复制用户名
-        [self copyTextToPasteboard:tgUsername tip:@"TG用户名已复制，请在Telegram中搜索"];
-    }
-}
 
 #pragma mark - 工具方法
 
@@ -698,6 +555,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         ShowOneAppViewController *vc = [ShowOneAppViewController new];
         vc.app_id = appInfoModel.app_id;
         [self presentPanModal:vc];
+        
+        
+    }
+    else if([model isKindOfClass:[MoodStatusModel class]]){
+        
+        MoodStatusModel *moodStatusModel = (MoodStatusModel *)model;
+        
         
         
     }
@@ -906,7 +770,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         [UIView animateWithDuration:0.4 animations:^{
             //仅在评论列表显示发布评论视图
-            self.commentInputView.alpha = self.selectedIndex;
+        
+            self.commentInputView.alpha = self.selectedIndex ==2;
             
             CGFloat offsHeight = self.keyboardIsShow ? self.keyboardHeight : 0;
             self.commentInputView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);

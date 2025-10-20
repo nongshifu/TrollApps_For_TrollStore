@@ -561,8 +561,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     CGFloat tagHeight = 25;
     CGFloat currentX = margin;
     CGFloat currentY = margin;
-    
-    for (NSString *tag in self.allTags) {
+    for (int i = 3; i<self.allTags.count; i++) {
+        NSString * tag = self.allTags[i];
+
         UIButton *tagBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         tagBtn.titleLabel.font = [UIFont systemFontOfSize:13];
         [tagBtn setTitle:tag forState:UIControlStateNormal];
@@ -717,7 +718,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 //标记为网络文件
                 self.app_info.is_cloud = YES;
                 
-                [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
+                [self.fileUploadButton setTitle:self.app_info.mainFileUrl forState:UIControlStateNormal];
             } else {
                 NSLog(@"URL不合法，请以http://或https://开头");
                 // 提示用户输入正确格式
@@ -1265,7 +1266,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)didSelectAppModel:(ITunesAppModel *)model controller:(nonnull AppSearchViewController *)controller tableView:(nonnull UITableView *)tableView cell:(nonnull UITableViewCell *)cell{
     if(!model)return;
     self.iTunesAppModel = model;
-    self.app_info.track_id = self.iTunesAppModel.trackId?:[[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    self.app_info.track_id = self.iTunesAppModel.trackId?:[TimeTool getTimeStampWith:[NSDate date]];
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用此App数据填充"
                                                                    message:nil
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
@@ -1275,19 +1276,23 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"仅使用图标" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        
+
         if(model.artworkUrl512.length > 0 ){
             [self.appIconView sd_setImageWithURL:[NSURL URLWithString:model.artworkUrl512] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                 if(image){
                     //赋值给头像上传
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
-                    [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-                    [SVProgressHUD dismissWithDelay:1];
+                    [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
+                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                        [controller dismiss];
+                    }];
+                   
                 }
             }];
         }
         [controller dismiss];
+        
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"覆盖 图标,应用名" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -1306,8 +1311,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }];
         }
         [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
-        [SVProgressHUD dismissWithDelay:1];
-        [controller dismiss];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            [controller dismiss];
+        }];
+        
+        
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"使用全部数据覆盖" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -1342,16 +1350,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-                    [SVProgressHUD dismissWithDelay:1];
+                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                        [controller dismiss];
+                    }];
+                    
                 }
             }];
         }
         [SVProgressHUD showSuccessWithStatus:@"数据已填充"];
         [SVProgressHUD dismissWithDelay:1];
         [controller dismiss];
+        
     }]];
     
     [[self.view getTopViewController] presentViewController:alert animated:YES completion:nil];
+    
     
     
 }
@@ -1401,6 +1414,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
 }
+
 /// 手动将图片保存到本地（时间戳+后缀格式）
 - (NSURL *)saveImageToLocal:(UIImage *)image url:(NSString *)url {
     if (!image || !url) return nil;
@@ -1433,6 +1447,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 5. 返回本地文件 URL
     return [NSURL fileURLWithPath:filePath];
 }
+
 #pragma mark - 相册图标选择相关
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
     UIImage *selectedImage = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
@@ -1904,6 +1919,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }
     });
 }
+
 #pragma mark - 任务检查和恢复
 // 检查是否有未完成的任务
 - (void)checkPendingTasks {
@@ -1970,7 +1986,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.app_info.idfv = [NewProfileViewController sharedInstance].userInfo.idfv;
     //生成一个上传任务ID
     self.app_info.task_id = self.uploadTask.task_id?:[[NSUUID UUID] UUIDString];
-    self.app_info.track_id = self.iTunesAppModel.trackId?:[[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    
     // 3. 完善软件信息 读取UI内容
     
     self.app_info.tags = self.selectedTags;//标签
@@ -1980,7 +1996,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.app_info.app_description = self.descriptionTextView.text;//简介
     self.app_info.bundle_id = self.app_info.bundle_id?:@"com.apple.shisange";//bundle 如果从商店搜索赋值会有 否则重新赋值个默认的
     self.app_info.release_notes = self.releaseNotesTextView.text; // 假设添加了版本说明输入框
-    self.app_info.track_id = self.iTunesAppModel.trackId?:@"0";//商店ID 如果从商店搜索赋值会有 否则重新赋值个默认的
+    // 获取当前时间戳（秒）
+    NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
+    NSInteger seconds = (NSInteger)timestamp;
+    NSLog(@"当前时间戳（秒）: %ld", (long)seconds);
+    
+    self.app_info.track_id = self.iTunesAppModel.trackId?:[TimeTool getTimeStampWith:[NSDate date]];//商店ID 如果从商店搜索赋值会有 否则重新赋值个默认的
     //根据主程序文件名自动确认APP类型
     for (NSString *fileName in self.app_info.fileNames) {
         if([fileName containsString:MAIN_File_KEY]){
@@ -2109,6 +2130,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
         });
     } failure:^(NSError *error) {
+        NSLog(@"文件上传失败:%@",error);
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD showErrorWithStatus:[error localizedDescription]];
             [SVProgressHUD dismissWithDelay:3 completion:^{
@@ -2203,7 +2225,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     [SVProgressHUD showWithStatus:mesage];
-    [SVProgressHUD dismissWithDelay:5];
+    [SVProgressHUD dismissWithDelay:2];
 }
 
 #pragma mark - 辅助函数

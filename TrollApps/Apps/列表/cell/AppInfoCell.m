@@ -20,7 +20,7 @@
 #import "DownloadManagerViewController.h"
 #import "ContactHelper.h"
 #import "HXPhotoURLConverter.h"
-
+#import "QRCodeGeneratorViewController.h"
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -39,6 +39,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIButton *appUpdateTimeButton;
 @property (nonatomic, strong) UILabel *downloadLabel;
 @property (nonatomic, strong) UILabel *appDescriptionLabel;
+@property (nonatomic, strong) UILabel *release_notes_Label;
 @property (nonatomic, strong) MiniButtonView *statsMiniButtonView; // 统计按钮容器
 @property (nonatomic, strong) MiniButtonView *tagMiniButtonView; // 标签容器
 @property (nonatomic, strong) UIButton *downloadButton;
@@ -65,7 +66,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 设置背景色
     self.backgroundColor = [UIColor clearColor];
     
-    self.contentView.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.6]
+    self.contentView.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.75]
                                                           darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.4]
     ];
     self.contentView.layer.cornerRadius = 15;
@@ -83,7 +84,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.downloadButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.downloadButton.titleLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightMedium];
     self.downloadButton.backgroundColor = [UIColor systemBlueColor];
-    self.downloadButton.layer.cornerRadius = 12.0;
+    self.downloadButton.layer.cornerRadius = 10.0;
     self.downloadButton.layer.masksToBounds = YES;
     [self.downloadButton addTarget:self action:@selector(downloadButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -96,7 +97,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appNameLabel = [[UILabel alloc] init];
     self.appNameLabel.font = [UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium];
     self.appNameLabel.textColor = [UIColor labelColor];
-    self.appNameLabel.numberOfLines = 1;
+    self.appNameLabel.numberOfLines = 2;
     
     UIEdgeInsets edge = UIEdgeInsetsMake(2, 4, 2, 4);
     // 应用类型
@@ -142,6 +143,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appDescriptionLabel.textColor = [UIColor secondaryLabelColor];
     self.appDescriptionLabel.numberOfLines = 3;
     
+    //更新说明
+    self.release_notes_Label = [[UILabel alloc] init];
+    self.release_notes_Label.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
+    self.release_notes_Label.textColor = [UIColor blueColor];
+    self.release_notes_Label.numberOfLines = 0;
+    
+    
     // 统计信息按钮堆栈视图
     self.statsMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, 150, 20)];
     self.statsMiniButtonView.buttonDelegate = self;
@@ -179,6 +187,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.contentView addSubview:self.tagMiniButtonView];
     //描述
     [self.contentView addSubview:self.appDescriptionLabel];
+    //更新说明
+    [self.contentView addSubview:self.release_notes_Label];
     //统计按钮
     [self.contentView addSubview:self.statsMiniButtonView];
     //底部图片视图
@@ -206,7 +216,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.top.equalTo(self.contentView).offset(16);
         make.right.equalTo(self.contentView).offset(-16);
         make.width.equalTo(@72);
-        make.height.equalTo(@24);
+        make.height.equalTo(@22);
     }];
     // 下载量
     [self.downloadLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -223,7 +233,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
     // 应用类型约束
     [self.appTypeButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appNameLabel.mas_bottom).offset(8);
+        make.top.equalTo(self.appNameLabel.mas_bottom).offset(10);
         make.left.equalTo(self.appIconImageView.mas_right).offset(12);
         make.height.equalTo(@15);
     }];
@@ -256,10 +266,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
          make.right.equalTo(self.contentView.mas_right).offset(-16);
          make.width.equalTo(@(CGRectGetWidth(self.contentView.frame) -32));
      }];
+    // 更新说明
+    [self.release_notes_Label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.appDescriptionLabel.mas_bottom).offset(10);
+        make.left.equalTo(self.contentView).offset(16);
+        make.right.equalTo(self.contentView.mas_right).offset(-16);
+        make.width.equalTo(@(CGRectGetWidth(self.contentView.frame) -32));
+    }];
     
     // 统计信息按钮约束
     [self.statsMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.appDescriptionLabel.mas_bottom).offset(8);
+        make.top.equalTo(self.release_notes_Label.mas_bottom).offset(8);
         make.left.equalTo(self.contentView).offset(16);
         make.right.equalTo(self.contentView);
         make.height.equalTo(@25);
@@ -305,9 +322,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 设置应用类型
         NSString *appTypeTitle = [NewAppFileModel chineseDescriptionForFileType:appInfo.app_type];
         
-        [self.appTypeButton setTitle:appTypeTitle forState:UIControlStateNormal];
+        [self.appTypeButton setTitle:[NSString stringWithFormat:@"类型:%@",appTypeTitle] forState:UIControlStateNormal];
         //版本
-        NSString *appVersionTitle = [NSString stringWithFormat:@"v%ld",appInfo.current_version_code];
+        NSString *appVersionTitle = [NSString stringWithFormat:@"v%@",appInfo.version_name];
         [self.appVersionButton setTitle:appVersionTitle forState:UIControlStateNormal];
         //时间
         NSString *appUpdateTimeTitle = [NSString stringWithFormat:@"更新: %@",[TimeTool getTimeDiyWithString:appInfo.update_date]];
@@ -318,6 +335,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         //设置描述
         [self configureDescriptionLabelTextWith:appInfo.app_description];
+        
+        //更新说明
+        [self configureReleaseNotesLabelTextWith:appInfo.release_notes];
 
         // 配置统计按钮
         [self configureStatsButtonsWithAppInfo:appInfo];
@@ -406,6 +426,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
    
 }
 
+// 设置应用更新说明
+- (void)configureReleaseNotesLabelTextWith:(NSString *)releaseNotes{
+    // 设置应用描述
+    if(self.appInfoModel.isShowAll){
+        self.release_notes_Label.numberOfLines = 0;
+        self.release_notes_Label.text = releaseNotes ? releaseNotes :@"";
+    }else{
+        [self.release_notes_Label mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.height.equalTo(@0);
+        }];
+    }
+    
+   
+}
+
 // 配置统计按钮
 - (void)configureStatsButtonsWithAppInfo:(AppInfoModel *)appInfo {
     
@@ -430,9 +465,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.statsMiniButtonView updateButtonsWithStrings:statsTitles icons:imageNames];
     
     [self.statsMiniButtonView refreshLayout];
+    if(!self.appInfoModel.isShowAll){
+        
+    }
     [self.statsMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
       
         make.height.equalTo(@(25));
+        if(!self.appInfoModel.isShowAll){
+            make.top.equalTo(self.appDescriptionLabel.mas_bottom).offset(5);
+        }
         
     }];
     
@@ -456,6 +497,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(0);
             make.left.equalTo(self.contentView).offset(16);
             make.right.equalTo(self.contentView);
+            make.height.equalTo(@0);
             make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
         }];
         [self.photoView removeFromSuperview];
@@ -539,6 +581,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.phone);
     NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.qq);
     NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.wechat);
+    if([NewProfileViewController sharedInstance].userInfo.user_id == 0){
+        [self showAlertWithConfirmationFromViewController:[self getTopViewController] title:@"请先登录哦" message:@"点击底部导航-我-登录绑定UDID" confirmTitle:@"登录" cancelTitle:@"取消" onConfirmed:^{
+            
+        } onCancelled:^{
+            
+        }];
+        return;
+    }
     // 查看详情可以催更
     if(self.appInfoModel.app_status != 0 && self.appInfoModel.isShowAll) {
         [[ContactHelper shared] showContactActionSheetWithUserInfo:self.appInfoModel.userModel title:@"联系作者催更"];
@@ -558,13 +608,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     NSLog(@"点击了右侧下载按钮mainFileUrl:%@",self.appInfoModel.mainFileUrl);
     NSString *mainURL = nil;
+    
     for (NSString *url in self.appInfoModel.fileNames) {
         if([url containsString:MAIN_File_KEY]){
             mainURL = url;
             break;
         }
     }
-    
+    if(self.appInfoModel.is_cloud) mainURL = self.appInfoModel.mainFileUrl;
     NSLog(@"主文件安装下载地址:%@",mainURL);
     NSString * message =  self.appInfoModel.is_cloud ? @"当前为云端网盘\n自行拷贝连接下载" :@"可在下载管理中管理历史下载文件";
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载提示" message:message preferredStyle:UIAlertControllerStyleActionSheet];
@@ -588,7 +639,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 2. 在Safari中打开按钮
         UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Safari中打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             // 检查URL是否有效
-            if (url && ([url.scheme.lowercaseString isEqualToString:@"http"] || [url.scheme.lowercaseString isEqualToString:@"https"])) {
+            if ([mainURL containsString:@"http://"] || [mainURL containsString:@"https://"]) {
                 // 用Safari打开链接
                 [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
                     if (!success) {
@@ -652,15 +703,35 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     }
                     return;
                 }
-                
-                // 下载成功，显示下载管理器
+                // 获取当前顶层视图控制器
                 UIViewController *topVC = [self getTopViewController];
-                if(![topVC isKindOfClass:[DownloadManagerViewController class]]){
-                    DownloadManagerViewController *vc = [DownloadManagerViewController new];
-                    [[self getTopViewController] presentPanModal:vc];
-                }else{
-                    DownloadManagerViewController *vc = (DownloadManagerViewController*)topVC;
-                    [vc handleTaskStatusChanged];
+
+                // 如果顶层是UIAlertController，先dismiss它
+                if ([topVC isKindOfClass:[UIAlertController class]]) {
+                    [topVC dismissViewControllerAnimated:YES completion:^{
+                        // 在dismiss完成后，重新获取顶层控制器
+                        UIViewController *newTopVC = [self getTopViewController];
+                        
+                        // 检查新的顶层控制器是否是DownloadManagerViewController
+                        if (![newTopVC isKindOfClass:[DownloadManagerViewController class]]) {
+                            // 如果不是，创建并present DownloadManagerViewController
+                            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                            [newTopVC presentPanModal:vc];
+                        } else {
+                            // 如果是，调用更新方法
+                            DownloadManagerViewController *vc = (DownloadManagerViewController *)newTopVC;
+                            [vc handleTaskStatusChanged];
+                        }
+                    }];
+                } else {
+                    // 如果顶层不是UIAlertController，直接处理
+                    if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
+                        DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                        [topVC presentPanModal:vc];
+                    } else {
+                        DownloadManagerViewController *vc = (DownloadManagerViewController *)topVC;
+                        [vc handleTaskStatusChanged];
+                    }
                 }
                 
             }];
@@ -685,7 +756,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [alert addAction:confirmAction];
         
         UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            DownloadManagerViewController *vc = [DownloadManagerViewController new];
+            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
             [[self getTopViewController] presentPanModal:vc];
         }];
         [alert addAction:edit];
@@ -851,6 +922,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)handleShareAction {
     // 处理评论操作
     NSLog(@"处理分享操作");
+    // 添加应用URL
+    NSString *urlString = [NSString stringWithFormat:@"%@/app_detail.php?id=%ld", localURL, self.appInfoModel.app_id];
     //系统导航遮挡问题
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     
@@ -860,43 +933,67 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         return;
     }
     
-    // 显示加载提示
-    [SVProgressHUD showWithStatus:@"准备分享..."];
-    
-    // 1. 准备分享内容
-    NSMutableArray *shareItems = [NSMutableArray array];
     
     
-    
-    // 添加应用URL
-    NSString *urlString = [NSString stringWithFormat:@"%@/app_detail.html?app_id=%ld", localURL, self.appInfoModel.app_id];
-    NSURL *appURL = [NSURL URLWithString:[urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-    if (appURL) {
-        [shareItems addObject:appURL];
-    }
-    
-    // 添加应用名称和描述
-    NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
-                           self.appInfoModel.app_name,
-                           self.appInfoModel.app_description ?: @"快来一起看看吧！"];
-    [shareItems addObject:shareText];
-    
-    // 处理应用图标（异步下载网络图片）
-    __block UIImage *appIcon = nil;
-    NSString *iconURL = self.appInfoModel.icon_url;
-    if (iconURL && [iconURL length] > 0 && [iconURL hasPrefix:@"http"]) {
-        [[UIImageView new] sd_setHighlightedImageWithURL:[NSURL URLWithString:iconURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if(image){
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self presentShareControllerWithItems:shareItems appIcon:image];
-                });
-            }
-        }];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"分享" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         
-    } else {
-        // 本地图片或无图标，直接显示分享界面
-        [self presentShareControllerWithItems:shareItems appIcon:appIcon];
-    }
+        
+    }];
+    [alert addAction:cancelAction];
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"生成二维码" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self generateQRCodeWithUrlString:urlString];
+    }];
+    [alert addAction:confirmAction];
+    
+    UIAlertAction*confirmAction2 = [UIAlertAction actionWithTitle:@"拷贝连接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string =urlString;
+        [SVProgressHUD showSuccessWithStatus:@"连接已经拷贝到剪贴板"];
+        [SVProgressHUD dismissWithDelay:1];
+    }];
+    [alert addAction:confirmAction2];
+    
+    UIAlertAction*confirmAction3 = [UIAlertAction actionWithTitle:@"分享到" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        // 1. 准备分享内容
+        NSMutableArray *shareItems = [NSMutableArray array];
+        
+        
+        NSURL *appURL = [NSURL URLWithString:[urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+        if (appURL) {
+            [shareItems addObject:appURL];
+        }
+        
+        // 添加应用名称和描述
+        NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
+                               self.appInfoModel.app_name,
+                               self.appInfoModel.app_description ?: @"快来一起看看吧！"];
+        [shareItems addObject:shareText];
+        
+        // 处理应用图标（异步下载网络图片）
+        __block UIImage *appIcon = nil;
+        NSString *iconURL = self.appInfoModel.icon_url;
+        if (iconURL && [iconURL length] > 0 && [iconURL hasPrefix:@"http"]) {
+            [[UIImageView new] sd_setHighlightedImageWithURL:[NSURL URLWithString:iconURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                if(image){
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self presentShareControllerWithItems:shareItems appIcon:image];
+                    });
+                }
+            }];
+            
+        } else {
+            // 本地图片或无图标，直接显示分享界面
+            [self presentShareControllerWithItems:shareItems appIcon:appIcon];
+        }
+    }];
+    [alert addAction:confirmAction3];
+    
+    
+    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+    
 }
 
 - (void)presentShareControllerWithItems:(NSMutableArray *)shareItems appIcon:(UIImage *)appIcon {
@@ -928,6 +1025,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }
         if (completed) {
             [SVProgressHUD showSuccessWithStatus:@"分享成功"];
+            [SVProgressHUD dismissWithDelay:1];
             NSLog(@"分享完成，活动类型: %@", activityType);
         } else {
             NSLog(@"分享取消");
@@ -1060,6 +1158,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 更新model并刷新UI
     self.model = self.appInfoModel;
     [self bindViewModel:self.model];
+}
+
+- (void)generateQRCodeWithUrlString:(NSString*)urlString {
+    // 将用户 ID 转换为字符串mySoulChat://user?id=123456
+    QRCodeGeneratorViewController *vc = [[QRCodeGeneratorViewController alloc] initWithURLString:urlString title:self.appInfoModel.app_name];
+    [[self getTopViewController] presentPanModal:vc];
 }
 
 #pragma mark - 更新后的HXPhotoManager配置

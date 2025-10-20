@@ -9,7 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "UserModel.h"
 #import "config.h"
-
+#define SAVE_LOCAL_TAGS_KEY @"SAVE_LOCAL_TAGS_KEY"
+#define SAVE_SERVER_TAGS_KEY @"SAVE_SERVER_TAGS_KEY"
 NS_ASSUME_NONNULL_BEGIN
 
 @interface loadData : NSObject

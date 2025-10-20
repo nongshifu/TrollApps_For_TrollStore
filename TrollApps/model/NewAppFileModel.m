@@ -80,15 +80,15 @@ static NSDictionary<NSString *, NSNumber *> *fileExtensionMap;
         case FileTypeIPA:
             return @"iPA安装包";
         case FileTypeTIPA:
-            return @"iPAS巨魔安装包";
+            return @"iPAS巨魔包";
         case FileTypeZIP:
             return @"ZIP压缩文件";
         case FileTypeJS:
-            return @"JavaScript脚本";
+            return @"JS文件";
         case FileTypeHTML:
             return @"HTML文件";
         case FileTypeJSON:
-            return @"JSON数据文件";
+            return @"JSON文件";
         case FileTypeDEB:
             return @"Deb越狱插件";
         case FileTypeSH:

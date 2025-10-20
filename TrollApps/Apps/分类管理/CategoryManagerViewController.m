@@ -26,15 +26,12 @@
     
     // 初始化系统预标签
     self.systemTags = [NSMutableArray arrayWithArray:[loadData sharedInstance].tags];
-    
+    _titles = [NSMutableArray arrayWithArray:self.systemTags];
     // 初始化数据（从主控制器传递过来的分类列表）
-    if(!_titles){
-        NSArray *lacalTags = [[NSUserDefaults standardUserDefaults] arrayForKey:SAVE_LOCAL_TAGS_KEY];
-        if(!lacalTags){
-            _titles = [NSMutableArray arrayWithArray:@[@"最新"]];
-        }else{
-            _titles = [NSMutableArray arrayWithArray:lacalTags];
-        }
+    NSArray *lacalTags = [[NSUserDefaults standardUserDefaults] arrayForKey:SAVE_LOCAL_TAGS_KEY];
+    if(lacalTags){
+        
+        _titles = [NSMutableArray arrayWithArray:lacalTags];
     }
    
     [self setupUI];
@@ -226,7 +223,7 @@
         case UIGestureRecognizerStateBegan: {
             if (indexPath) {
                 sourceIndexPath = indexPath;
-                NSString *category = self.titles[indexPath.row + 3];
+                NSString *category = self.titles[indexPath.row];
                 isSystemTag = [self.systemTags containsObject:category];
                 
                 UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
@@ -244,7 +241,7 @@
             
             NSIndexPath *currentIndexPath = [self.tableView indexPathForRowAtPoint:location];
             if (currentIndexPath && ![currentIndexPath isEqual:sourceIndexPath]) {
-                NSString *targetCategory = self.titles[currentIndexPath.row + 3];
+                NSString *targetCategory = self.titles[currentIndexPath.row];
                 BOOL targetIsSystemTag = [self.systemTags containsObject:targetCategory];
                 
                 // 仅允许系统标签与系统标签交换，普通标签与普通标签交换
@@ -253,7 +250,7 @@
                 }
                 
                 // 交换数据
-                [self.titles exchangeObjectAtIndex:sourceIndexPath.row + 3 withObjectAtIndex:currentIndexPath.row + 3];
+                [self.titles exchangeObjectAtIndex:sourceIndexPath.row withObjectAtIndex:currentIndexPath.row];
                 // 移动单元格
                 [self.tableView moveRowAtIndexPath:sourceIndexPath toIndexPath:currentIndexPath];
                 sourceIndexPath = currentIndexPath;
@@ -305,14 +302,14 @@
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.titles.count - 3;
+    return self.titles.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CategoryCell" forIndexPath:indexPath];
     cell.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
     
-    NSString *category = self.titles[indexPath.row + 3];
+    NSString *category = self.titles[indexPath.row ];
     cell.textLabel.text = category;
     cell.textLabel.font = [UIFont systemFontOfSize:16];
     
@@ -341,20 +338,20 @@
 // 支持删除（仅非系统标签）
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        NSString *category = self.titles[indexPath.row + 3];
+        NSString *category = self.titles[indexPath.row];
         // 系统标签不允许删除
         if ([self.systemTags containsObject:category]) {
             return;
         }
         
-        [self.titles removeObjectAtIndex:indexPath.row + 3];
+        [self.titles removeObjectAtIndex:indexPath.row];
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
     }
 }
 
 // 编辑时显示删除按钮（仅非系统标签）
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString *category = self.titles[indexPath.row + 3];
+    NSString *category = self.titles[indexPath.row];
     return [self.systemTags containsObject:category] ? UITableViewCellEditingStyleNone : UITableViewCellEditingStyleDelete;
 }
 
@@ -364,7 +361,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    NSString *oldName = self.titles[indexPath.row + 3];
+    NSString *oldName = self.titles[indexPath.row];
     // 系统标签不允许编辑
     if ([self.systemTags containsObject:oldName]) {
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示"
@@ -409,7 +406,7 @@
                 return;
             }
             
-            self.titles[indexPath.row + 3] = newName;
+            self.titles[indexPath.row] = newName;
             [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
         }
     }];
@@ -456,12 +453,31 @@
 
 #pragma mark - 保存修改并返回
 - (void)saveChanges {
-    // 通过代理将修改后的分类列表传递给主控制器
-    [[NSUserDefaults standardUserDefaults] setObject:self.titles forKey:SAVE_LOCAL_TAGS_KEY];
+    // 定义必须在前三位的固定元素
+    NSArray *fixedTitles = @[@"最新", @"最火", @"推荐"];
+    
+    // 创建可变数组用于存储重新排序后的结果
+    NSMutableArray *sortedTitles = [NSMutableArray arrayWithArray:fixedTitles];
+    
+    // 从原始数组中移除固定元素，收集剩余元素
+    NSMutableArray *remainingTitles = [NSMutableArray arrayWithArray:self.titles];
+    [remainingTitles removeObjectsInArray:fixedTitles];
+    
+    // 将剩余元素添加到排序后的数组
+    [sortedTitles addObjectsFromArray:remainingTitles];
+    //读取系统远程全部标签
+    NSMutableArray *systemTages = [NSMutableArray arrayWithArray:self.systemTags];
+    //从系统图标中移除用户排序图标
+    [systemTages removeObjectsInArray:sortedTitles];
+    //添加到末尾
+    [sortedTitles addObjectsFromArray:systemTages];
+    
+    // 保存重新排序后的数组
+    [[NSUserDefaults standardUserDefaults] setObject:sortedTitles forKey:SAVE_LOCAL_TAGS_KEY];
     [[NSUserDefaults standardUserDefaults] synchronize];
     
-    //发送通知
-    [[NSNotificationCenter defaultCenter] postNotificationName:SAVE_LOCAL_TAGS_KEY object:self.titles];
+    // 发送通知，传递重新排序后的数组
+    [[NSNotificationCenter defaultCenter] postNotificationName:SAVE_LOCAL_TAGS_KEY object:sortedTitles];
     
     [self.navigationController popViewControllerAnimated:YES];
 }

@@ -13,6 +13,13 @@
 		4F639DF92272E94C00776206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DF82272E94C00776206 /* Assets.xcassets */; };
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
 		4F639DFF2272E94C00776206 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DFE2272E94C00776206 /* main.m */; };
+		C2592EF72EA67C8F0089E268 /* ChatListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592EF62EA67C8F0089E268 /* ChatListViewController.m */; };
+		C2592EFA2EA69A940089E268 /* TTCHATViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592EF92EA69A940089E268 /* TTCHATViewController.m */; };
+		C2592EFE2EA6CF270089E268 /* moodStatusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592EFD2EA6CF270089E268 /* moodStatusViewController.m */; };
+		C2592F012EA6D0490089E268 /* MoodStatusModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F002EA6D0490089E268 /* MoodStatusModel.m */; };
+		C2592F042EA6D0790089E268 /* moodStatusCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F032EA6D0790089E268 /* moodStatusCell.m */; };
+		C2592F072EA6DBC30089E268 /* CustomMoodStatusNavView.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F062EA6DBC30089E268 /* CustomMoodStatusNavView.m */; };
+		C2592F0A2EA6DE200089E268 /* PublishMoodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F092EA6DE200089E268 /* PublishMoodViewController.m */; };
 		C28720352E2542C300ABC6AE /* UserModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9A2E2542C200ABC6AE /* UserModel.m */; };
 		C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9D2E2542C200ABC6AE /* TemplateListController.m */; };
 		C28720372E2542C300ABC6AE /* TemplateSectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9E2E2542C200ABC6AE /* TemplateSectionController.m */; };
@@ -132,13 +139,13 @@
 		C28722812E326D5C00ABC6AE /* InjectionRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722802E326D5C00ABC6AE /* InjectionRecord.m */; };
 		C28722842E326E6500ABC6AE /* DylibInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722832E326E6500ABC6AE /* DylibInfo.m */; };
 		C28722872E326ECF00ABC6AE /* DylibHistoryController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722862E326ECF00ABC6AE /* DylibHistoryController.m */; };
-		C287228B2E32782300ABC6AE /* AFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C287228A2E32782300ABC6AE /* AFNetworking.framework */; };
 		C287228F2E33612700ABC6AE /* AppVersionHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C287228E2E33612700ABC6AE /* AppVersionHistoryModel.m */; };
 		C28722922E336ABF00ABC6AE /* AppVersionHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722912E336ABF00ABC6AE /* AppVersionHistoryViewController.m */; };
 		C28722952E33709400ABC6AE /* AppVersionHistoryCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722942E33709400ABC6AE /* AppVersionHistoryCell.m */; };
 		C28722982E3374EC00ABC6AE /* BaseBottomSheetVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722972E3374EC00ABC6AE /* BaseBottomSheetVC.m */; };
 		C287229B2E33755C00ABC6AE /* BottomSheetTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */; };
 		C287229E2E3375D700ABC6AE /* BottomSheetPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */; };
+		C28722A22E34B61C00ABC6AE /* QRCodeGeneratorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722A12E34B61C00ABC6AE /* QRCodeGeneratorViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -153,6 +160,20 @@
 		4F639DFB2272E94C00776206 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F639DFD2272E94C00776206 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F639DFE2272E94C00776206 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		C2592EF52EA67C8F0089E268 /* ChatListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatListViewController.h; sourceTree = "<group>"; };
+		C2592EF62EA67C8F0089E268 /* ChatListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatListViewController.m; sourceTree = "<group>"; };
+		C2592EF82EA69A940089E268 /* TTCHATViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TTCHATViewController.h; sourceTree = "<group>"; };
+		C2592EF92EA69A940089E268 /* TTCHATViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TTCHATViewController.m; sourceTree = "<group>"; };
+		C2592EFC2EA6CF270089E268 /* moodStatusViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = moodStatusViewController.h; sourceTree = "<group>"; };
+		C2592EFD2EA6CF270089E268 /* moodStatusViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = moodStatusViewController.m; sourceTree = "<group>"; };
+		C2592EFF2EA6D0490089E268 /* MoodStatusModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MoodStatusModel.h; sourceTree = "<group>"; };
+		C2592F002EA6D0490089E268 /* MoodStatusModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MoodStatusModel.m; sourceTree = "<group>"; };
+		C2592F022EA6D0790089E268 /* moodStatusCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = moodStatusCell.h; sourceTree = "<group>"; };
+		C2592F032EA6D0790089E268 /* moodStatusCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = moodStatusCell.m; sourceTree = "<group>"; };
+		C2592F052EA6DBC30089E268 /* CustomMoodStatusNavView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomMoodStatusNavView.h; sourceTree = "<group>"; };
+		C2592F062EA6DBC30089E268 /* CustomMoodStatusNavView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CustomMoodStatusNavView.m; sourceTree = "<group>"; };
+		C2592F082EA6DE200089E268 /* PublishMoodViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublishMoodViewController.h; sourceTree = "<group>"; };
+		C2592F092EA6DE200089E268 /* PublishMoodViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PublishMoodViewController.m; sourceTree = "<group>"; };
 		C2871F9A2E2542C200ABC6AE /* UserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserModel.m; sourceTree = "<group>"; };
 		C2871F9B2E2542C200ABC6AE /* UserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserModel.h; sourceTree = "<group>"; };
 		C2871F9D2E2542C200ABC6AE /* TemplateListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TemplateListController.m; sourceTree = "<group>"; };
@@ -380,7 +401,6 @@
 		C28722832E326E6500ABC6AE /* DylibInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DylibInfo.m; sourceTree = "<group>"; };
 		C28722852E326ECF00ABC6AE /* DylibHistoryController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DylibHistoryController.h; sourceTree = "<group>"; };
 		C28722862E326ECF00ABC6AE /* DylibHistoryController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DylibHistoryController.m; sourceTree = "<group>"; };
-		C287228A2E32782300ABC6AE /* AFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C287228D2E33612700ABC6AE /* AppVersionHistoryModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppVersionHistoryModel.h; sourceTree = "<group>"; };
 		C287228E2E33612700ABC6AE /* AppVersionHistoryModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryModel.m; sourceTree = "<group>"; };
 		C28722902E336ABF00ABC6AE /* AppVersionHistoryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppVersionHistoryViewController.h; sourceTree = "<group>"; };
@@ -393,6 +413,8 @@
 		C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BottomSheetTransition.m; sourceTree = "<group>"; };
 		C287229C2E3375D700ABC6AE /* BottomSheetPresentationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BottomSheetPresentationController.h; sourceTree = "<group>"; };
 		C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BottomSheetPresentationController.m; sourceTree = "<group>"; };
+		C28722A02E34B61C00ABC6AE /* QRCodeGeneratorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QRCodeGeneratorViewController.h; sourceTree = "<group>"; };
+		C28722A12E34B61C00ABC6AE /* QRCodeGeneratorViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QRCodeGeneratorViewController.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -401,7 +423,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C287228B2E32782300ABC6AE /* AFNetworking.framework in Frameworks */,
 				4B2BD5B69203FEDBBC41AEC3 /* Pods_TrollApps.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -430,6 +451,7 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C2592EF42EA67C5C0089E268 /* 融云 */,
 				C287228C2E3360FE00ABC6AE /* 版本管理 */,
 				C28721AA2E321CCB00ABC6AE /* 系统设置 */,
 				C2871FC02E2542C300ABC6AE /* 社区 */,
@@ -470,10 +492,37 @@
 		67ABF29B7E82C79B43DF5CF3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				C287228A2E32782300ABC6AE /* AFNetworking.framework */,
 				068050F3072675203E6A8899 /* Pods_TrollApps.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C2592EF42EA67C5C0089E268 /* 融云 */ = {
+			isa = PBXGroup;
+			children = (
+				C2592EF52EA67C8F0089E268 /* ChatListViewController.h */,
+				C2592EF62EA67C8F0089E268 /* ChatListViewController.m */,
+				C2592EF82EA69A940089E268 /* TTCHATViewController.h */,
+				C2592EF92EA69A940089E268 /* TTCHATViewController.m */,
+			);
+			path = "融云";
+			sourceTree = "<group>";
+		};
+		C2592EFB2EA6CEF90089E268 /* 状态说说 */ = {
+			isa = PBXGroup;
+			children = (
+				C2592EFC2EA6CF270089E268 /* moodStatusViewController.h */,
+				C2592EFD2EA6CF270089E268 /* moodStatusViewController.m */,
+				C2592EFF2EA6D0490089E268 /* MoodStatusModel.h */,
+				C2592F002EA6D0490089E268 /* MoodStatusModel.m */,
+				C2592F022EA6D0790089E268 /* moodStatusCell.h */,
+				C2592F032EA6D0790089E268 /* moodStatusCell.m */,
+				C2592F052EA6DBC30089E268 /* CustomMoodStatusNavView.h */,
+				C2592F062EA6DBC30089E268 /* CustomMoodStatusNavView.m */,
+				C2592F082EA6DE200089E268 /* PublishMoodViewController.h */,
+				C2592F092EA6DE200089E268 /* PublishMoodViewController.m */,
+			);
+			path = "状态说说";
 			sourceTree = "<group>";
 		};
 		C2871F9C2E2542C200ABC6AE /* 表格控制器模板TemplateListController */ = {
@@ -788,6 +837,7 @@
 		C287201B2E2542C300ABC6AE /* 组件 */ = {
 			isa = PBXGroup;
 			children = (
+				C287229F2E34B60600ABC6AE /* 二维码生成器 */,
 				C28721A32E31408600ABC6AE /* 图片网络搜索 */,
 				C287218C2E2FC64300ABC6AE /* 弹窗小列表 */,
 				C28720232E2542C300ABC6AE /* 动画效果按钮 */,
@@ -886,6 +936,7 @@
 		C28720852E255E9300ABC6AE /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
+				C2592EFB2EA6CEF90089E268 /* 状态说说 */,
 				C2871FB92E2542C300ABC6AE /* NewProfileViewController.h */,
 				C2871FBB2E2542C300ABC6AE /* NewProfileViewController.mm */,
 				C28721A92E3218BA00ABC6AE /* 列表 */,
@@ -1178,6 +1229,15 @@
 			path = "版本管理";
 			sourceTree = "<group>";
 		};
+		C287229F2E34B60600ABC6AE /* 二维码生成器 */ = {
+			isa = PBXGroup;
+			children = (
+				C28722A02E34B61C00ABC6AE /* QRCodeGeneratorViewController.h */,
+				C28722A12E34B61C00ABC6AE /* QRCodeGeneratorViewController.m */,
+			);
+			path = "二维码生成器";
+			sourceTree = "<group>";
+		};
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -1200,6 +1260,7 @@
 				4F639DEA2272E94500776206 /* Resources */,
 				B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */,
 				C287212D2E28266500ABC6AE /* ShellScript */,
+				3C40C51D675A8D5792CFBF9B /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1298,9 +1359,26 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */ = {
+		3C40C51D675A8D5792CFBF9B /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1355,6 +1433,7 @@
 				C287215C2E2D3B5E00ABC6AE /* MinWebToolViewCell.m in Sources */,
 				C28720512E2542C300ABC6AE /* AppsViewController.mm in Sources */,
 				C287204A2E2542C300ABC6AE /* UploadTask.m in Sources */,
+				C2592EFA2EA69A940089E268 /* TTCHATViewController.m in Sources */,
 				C28721482E2BE3A600ABC6AE /* WebViewController.m in Sources */,
 				C28720652E2542C300ABC6AE /* UserFeedbackModel.m in Sources */,
 				C28721992E2FC64300ABC6AE /* ArrowheadMenuSelectedState.m in Sources */,
@@ -1364,6 +1443,7 @@
 				C28721412E2BA31000ABC6AE /* ToolTagsView.m in Sources */,
 				C28721622E2F931200ABC6AE /* DownloadProgressView.m in Sources */,
 				4F639DF42272E94500776206 /* ViewController.m in Sources */,
+				C2592F042EA6D0790089E268 /* moodStatusCell.m in Sources */,
 				C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */,
 				C28720422E2542C300ABC6AE /* NewProfileViewController.mm in Sources */,
 				C28720612E2542C300ABC6AE /* AppSearchViewController.m in Sources */,
@@ -1379,11 +1459,14 @@
 				C287208D2E25609300ABC6AE /* UserModelCell.m in Sources */,
 				C28721222E281E9600ABC6AE /* PidModel.mm in Sources */,
 				C28720602E2542C300ABC6AE /* ITunesAppModel.m in Sources */,
+				C2592F072EA6DBC30089E268 /* CustomMoodStatusNavView.m in Sources */,
 				C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */,
+				C28722A22E34B61C00ABC6AE /* QRCodeGeneratorViewController.m in Sources */,
 				C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */,
 				C28720632E2542C300ABC6AE /* TokenGenerator.m in Sources */,
 				C287228F2E33612700ABC6AE /* AppVersionHistoryModel.m in Sources */,
 				C28720552E2542C300ABC6AE /* AppCommentCell.m in Sources */,
+				C2592EF72EA67C8F0089E268 /* ChatListViewController.m in Sources */,
 				C28720432E2542C300ABC6AE /* MyFavoritesListViewController.m in Sources */,
 				C28720592E2542C300ABC6AE /* AppInfoModel.m in Sources */,
 				C28720492E2542C300ABC6AE /* ToolStoreListViewController.m in Sources */,
@@ -1393,6 +1476,7 @@
 				C28720792E25484500ABC6AE /* MediaProcessor.m in Sources */,
 				C287203E2E2542C300ABC6AE /* VIPPackageCell.m in Sources */,
 				C28722842E326E6500ABC6AE /* DylibInfo.m in Sources */,
+				C2592F012EA6D0490089E268 /* MoodStatusModel.m in Sources */,
 				C28720582E2542C300ABC6AE /* Demo9Model.m in Sources */,
 				C28720462E2542C300ABC6AE /* NewToolViewController.m in Sources */,
 				C28720972E26C66F00ABC6AE /* UserListViewController.m in Sources */,
@@ -1415,6 +1499,7 @@
 				C287207A2E25484500ABC6AE /* HXPhotoURLConverter.m in Sources */,
 				C28720622E2542C300ABC6AE /* NetworkClient.m in Sources */,
 				C28721552E2D134100ABC6AE /* MyCollectionViewController.m in Sources */,
+				C2592EFE2EA6CF270089E268 /* moodStatusViewController.m in Sources */,
 				C287206C2E2542C300ABC6AE /* KeychainTool.m in Sources */,
 				C28720662E2542C300ABC6AE /* FeedbackViewController.m in Sources */,
 				C28721A62E3149B800ABC6AE /* ImageModel.m in Sources */,
@@ -1449,6 +1534,7 @@
 				C28722872E326ECF00ABC6AE /* DylibHistoryController.m in Sources */,
 				4F639DF12272E94500776206 /* AppDelegate.m in Sources */,
 				C28721452E2BE2B200ABC6AE /* WebToolManager.m in Sources */,
+				C2592F0A2EA6DE200089E268 /* PublishMoodViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

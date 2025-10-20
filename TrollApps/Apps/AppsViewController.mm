@@ -53,6 +53,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 @property (nonatomic, strong) JXCategoryTitleView *categoryView; // 顶部的分类按钮
 
+@property (nonatomic, strong) NSArray<NSString *>*sortArray;
+
 @end
 
 @implementation AppsViewController
@@ -64,7 +66,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.currentPageIndex = 0;
     self.isTapViewToHideKeyboard = YES;
-    
+    self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
     [self setupUI];
 
     
@@ -384,10 +386,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSArray *lacalTags = [[NSUserDefaults standardUserDefaults] arrayForKey:SAVE_LOCAL_TAGS_KEY];
     if(!lacalTags){
         self.titles = [NSMutableArray arrayWithArray:[loadData sharedInstance].tags];
-        NSArray *array = @[@"最新",@"最火",@"推荐"];
-        // 插入到self.titles的最前面（索引0的位置开始）
-        [self.titles insertObjects:array atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, array.count)]];
-        
+
         [[NSUserDefaults standardUserDefaults] setObject:self.titles forKey:SAVE_LOCAL_TAGS_KEY];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }else{
@@ -423,7 +422,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bottomButton.fontSize = 15;
     [self.view addSubview:self.bottomButton];
     NSArray *titles = @[@"分类", @"收藏", @"下载"];
-    NSArray *icons = @[@"tag", @"star.lefthalf.fill"];
+    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"icloud.and.arrow.down"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
     [self.bottomButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
@@ -513,8 +512,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
    
     self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.9];
     // 处理左边图标点击逻辑
-   
-    NSArray *title = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
     NSArray *icon = @[@"clock", @"arrow.clockwise.icloud", @"message", @"hand.thumbsup.fill", @"star", @"arrowshape.turn.up.right"];
     CGSize menuUnitSize = CGSizeMake(130, 40);
     CGFloat distanceFromTriggerSwitch = 10;
@@ -523,7 +520,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     UIColor * menuBackColor = [[UIColor tertiarySystemBackgroundColor] colorWithAlphaComponent:0.99];
     UIColor * menuSegmentingLineColor = [UIColor labelColor];
     
-    ArrowheadMenu *VC = [[ArrowheadMenu alloc] initCustomArrowheadMenuWithTitle:title
+    ArrowheadMenu *VC = [[ArrowheadMenu alloc] initCustomArrowheadMenuWithTitle:self.sortArray
                                                                            icon:icon
                                                                    menuUnitSize:menuUnitSize
                                                                        menuFont:font
@@ -787,6 +784,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
 }
+
 #pragma mark 切换页面后操作
 - (void)switchTabsWithIndex:(NSInteger)index{
     [DemoBaseViewController triggerVibration];
@@ -794,7 +792,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.viewControllers[index].tag = self.titles[index];
     
     self.currentPageIndex = index;
-    self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.3];
+    self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.5];
     self.sortButton.userInteractionEnabled = YES;
     if(self.currentPageIndex ==0){
         [self.sortButton setTitle:@"最近更新" forState:UIControlStateNormal];
@@ -805,7 +803,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }else if(self.currentPageIndex ==2){
         [self.sortButton setTitle:@"最多推荐" forState:UIControlStateNormal];
         self.sortButton.userInteractionEnabled = NO;
+    }else{
+        NSString *title = self.sortArray[self.currentVC.sortType];
+        [self.sortButton setTitle:title forState:UIControlStateNormal];
     }
+    NSArray *titles = @[@"分类", @"收藏", @"下载"];
+    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"icloud.and.arrow.down"];
+    [self.bottomButton updateButtonsWithStrings:titles icons:icons];
+    
 }
 
 #pragma mark -顶部导航标签按钮点击代理
@@ -828,7 +833,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self presentPanModal:vc];
 
     }else{
-        DownloadManagerViewController *vc = [DownloadManagerViewController new];
+        DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
         [self presentPanModal:vc];
 
     }

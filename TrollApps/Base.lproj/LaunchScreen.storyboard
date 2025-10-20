@@ -17,32 +17,53 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="cGe-xi-HYH">
-                                <rect key="frame" x="186" y="483" width="20" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hx_sticker_yuanqimanman.png" highlighted="YES" adjustsImageSizeForAccessibilityContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rSJ-xz-1Th">
+                                <rect key="frame" x="96" y="159" width="200" height="200"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="200" id="S6r-WI-rih"/>
+                                    <constraint firstAttribute="width" constant="200" id="ssm-gA-AnC"/>
+                                </constraints>
+                            </imageView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="POU-QB-fXh">
+                                <rect key="frame" x="181.66666666666666" y="459" width="30" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="eVT-x2-hdl"/>
+                                    <constraint firstAttribute="width" constant="30" id="o2C-54-HBh"/>
+                                </constraints>
                             </activityIndicatorView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Troll Apps" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lWo-N8-Wh8">
-                                <rect key="frame" x="135" y="735" width="123" height="36"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="29"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="巨魔应用市场 by 十三哥 2025" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ItC-cL-fdh">
+                                <rect key="frame" x="46" y="802" width="300" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="8Xn-ox-u88"/>
+                                    <constraint firstAttribute="width" constant="300" id="C55-Q0-huP"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <color key="textColor" systemColor="linkColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TrollApps" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VwU-sn-pgM">
+                                <rect key="frame" x="46.666666666666657" y="742" width="300" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="MhU-17-5LW"/>
+                                    <constraint firstAttribute="width" constant="300" id="OKr-gA-ViI"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
                                 <color key="textColor" systemColor="systemOrangeColor"/>
                                 <nil key="highlightedColor"/>
-                                <color key="shadowColor" systemColor="placeholderTextColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="巨魔应用市场 BY ShiSanGe2026" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gjB-MW-Qtq">
-                                <rect key="frame" x="113" y="804" width="167" height="14"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                <color key="textColor" systemColor="secondaryLabelColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="gamecontroller.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Ack-tJ-J8Q">
-                                <rect key="frame" x="76" y="176.66666666666666" width="240" height="128"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="POU-QB-fXh" firstAttribute="top" secondItem="rSJ-xz-1Th" secondAttribute="bottom" constant="100" id="D6h-uI-LN5"/>
+                            <constraint firstItem="VwU-sn-pgM" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Y5I-xd-p8z"/>
+                            <constraint firstItem="rSJ-xz-1Th" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="100" id="enD-hP-j0o"/>
+                            <constraint firstItem="ItC-cL-fdh" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="f0X-fY-oxL"/>
+                            <constraint firstItem="ItC-cL-fdh" firstAttribute="top" secondItem="VwU-sn-pgM" secondAttribute="bottom" constant="10" id="gGz-Hr-qfj"/>
+                            <constraint firstItem="ItC-cL-fdh" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="kqz-yF-Irj"/>
+                            <constraint firstItem="POU-QB-fXh" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="ktp-62-Xrc"/>
+                            <constraint firstItem="rSJ-xz-1Th" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="rFe-6o-CgM"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -51,12 +72,12 @@
         </scene>
     </scenes>
     <resources>
-        <image name="gamecontroller.fill" catalog="system" width="128" height="79"/>
-        <systemColor name="placeholderTextColor">
-            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.29803921568627451" colorSpace="custom" customColorSpace="sRGB"/>
+        <image name="hx_sticker_yuanqimanman.png" width="1488" height="1231"/>
+        <systemColor name="linkColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
-        <systemColor name="secondaryLabelColor">
-            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+        <systemColor name="secondarySystemBackgroundColor">
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemOrangeColor">
             <color red="1" green="0.58431372549019611" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

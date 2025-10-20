@@ -9,7 +9,7 @@
  * 这里使用 app_id 作为唯一标识（数据库自增主键）
  */
 - (nonnull id<NSObject>)diffIdentifier {
-    return @(self.app_id); // app_id 是数据库唯一主键，确保唯一性
+    return [NSString stringWithFormat:@"%ld_%@",self.app_id,self.app_name]; // app_id 是数据库唯一主键，确保唯一性
 }
 
 /**

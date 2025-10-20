@@ -122,7 +122,14 @@
 + (NSTimeInterval)getTimeStamp {
     return [[self currentBeijingDate] timeIntervalSince1970];
 }
-
+/// 返回当前时间戳（以秒为单位）
++ (NSString*)getTimeStampWith:(NSDate*)date{
+    // 获取当前时间戳（秒）
+    NSTimeInterval timestamp = [date timeIntervalSince1970];
+    NSInteger seconds = (NSInteger)timestamp;
+    NSLog(@"当前时间戳（秒）: %ld", (long)seconds);
+    return [NSString stringWithFormat:@"%ld",seconds];
+}
 #pragma mark - 获取唯一ID（时间戳 + 随机数）
 + (NSString *)getUniqueStringID {
     NSTimeInterval timeStampInMilliseconds = [[self currentBeijingDate] timeIntervalSince1970] * 1000;

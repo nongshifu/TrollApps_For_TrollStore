@@ -56,6 +56,23 @@ PODS:
   - LGSideMenuController (2.3.0)
   - Masonry (1.1.0)
   - MJRefresh (3.7.9)
+  - RongCloudIM/ChatRoom (5.20.1):
+    - RongCloudIM/IMLibCore
+  - RongCloudIM/CustomerService (5.20.1):
+    - RongCloudIM/IMLibCore
+  - RongCloudIM/Discussion (5.20.1):
+    - RongCloudIM/IMLibCore
+  - RongCloudIM/IMKit (5.20.1):
+    - RongCloudIM/IMLib
+  - RongCloudIM/IMLib (5.20.1):
+    - RongCloudIM/ChatRoom
+    - RongCloudIM/CustomerService
+    - RongCloudIM/Discussion
+    - RongCloudIM/IMLibCore
+    - RongCloudIM/PublicService
+  - RongCloudIM/IMLibCore (5.20.1)
+  - RongCloudIM/PublicService (5.20.1):
+    - RongCloudIM/IMLibCore
   - SDWebImage (5.21.1):
     - SDWebImage/Core (= 5.21.1)
   - SDWebImage/Core (5.21.1)
@@ -81,6 +98,7 @@ DEPENDENCIES:
   - LGSideMenuController (= 2.3.0)
   - Masonry
   - MJRefresh
+  - RongCloudIM/IMKit
   - SDWebImage (~> 5.0)
   - SVProgressHUD
   - YYCache
@@ -100,6 +118,7 @@ SPEC REPOS:
     - LGSideMenuController
     - Masonry
     - MJRefresh
+    - RongCloudIM
     - SDWebImage
     - SVProgressHUD
     - YYCache
@@ -118,6 +137,7 @@ SPEC CHECKSUMS:
   LGSideMenuController: 330643f700bce9783a153660123de7cb64b5aa78
   Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
   MJRefresh: ff9e531227924c84ce459338414550a05d2aea78
+  RongCloudIM: d160c74810166663e8fa05a352a68cb2a9787c3f
   SDWebImage: f29024626962457f3470184232766516dee8dfea
   SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
   YYCache: 8105b6638f5e849296c71f331ff83891a4942952
@@ -125,6 +145,6 @@ SPEC CHECKSUMS:
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: 99d3b77436eb21dfd21ef83d7927d12b8b7fb423
+PODFILE CHECKSUM: b67e1cb8a85a4fb29b1459dab77b67369447a7d9
 
 COCOAPODS: 1.16.2

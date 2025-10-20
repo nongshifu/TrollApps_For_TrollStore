@@ -27,6 +27,8 @@
 @property (nonatomic, strong) UIButton *deselectAllBtn;        // 全取消按钮
 @property (nonatomic, strong) UIButton *deleteBtn;             // 删除按钮
 @property (nonatomic, strong) UIButton *cancelBtn;             // 取消按钮
+@property (nonatomic, strong) UIButton *clearButton;           // 清除按钮
+
 @property (nonatomic, strong) NSMutableArray *selectedFilePaths; // 选中文件路径
 /**
  空视图
@@ -37,6 +39,18 @@
 
 
 @implementation DownloadManagerViewController
+
++ (instancetype)sharedInstance {
+    
+    static DownloadManagerViewController *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[self alloc] init];
+        // 在这里进行初始化设置（如果需要的话）
+        
+    });
+    return sharedInstance;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -94,6 +108,12 @@
     self.subtitleLabel.textColor = [UIColor grayColor];
     [self.headerView addSubview:self.subtitleLabel];
     
+    //清除按钮
+    self.clearButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.clearButton setImage:[UIImage systemImageNamed:@"trash"] forState:UIControlStateNormal];
+    [self.clearButton addTarget:self action:@selector(clear:) forControlEvents:UIControlEventTouchUpInside];
+    [self.headerView addSubview:self.clearButton];
+    
     // 初始化筛选按钮数组
     self.filterButtons = [NSMutableArray array];
     
@@ -107,6 +127,7 @@
 }
 
 #pragma mark - 初始化底部操作栏
+
 - (void)setupBottomToolBar {
     // 底部工具栏
     self.bottomToolBar = [[UIView alloc] init];
@@ -151,6 +172,7 @@
 }
 
 #pragma mark - 初始化筛选按钮
+
 - (void)setupFilterButtons {
     // 计算筛选按钮的总宽度
     CGFloat totalWidth = 0;
@@ -280,7 +302,9 @@
     
     // 注册下载任务状态变化回调
     [[FileInstallManager sharedManager] registerTaskStatusChangedCallback:^{
-        [self handleTaskStatusChanged];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self handleTaskStatusChanged];
+        });
     }];
 
 }
@@ -305,7 +329,9 @@
         [self cleanCompletedTasksAndRefresh];
     } else {
         // 无已完成任务，仅刷新UI（如进度更新）
-        [self.tableView reloadData];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+        });
     }
 }
 
@@ -367,6 +393,13 @@
     [self.subtitleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.titleLabel.mas_bottom).offset(8);
         make.left.equalTo(self.headerView).offset(16);
+    }];
+    
+    // 设置顶部右侧删除按钮
+    [self.clearButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.headerView).offset(16);
+        make.right.equalTo(self.headerView).offset(-16);
+        make.width.height.equalTo(@20);
     }];
     
     // 设置筛选滚动视图约束
@@ -773,6 +806,12 @@
     if (task.status != DownloadStatusCompleted) {
         [sheet addAction:[UIAlertAction actionWithTitle:@"取消下载" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
             [[FileInstallManager sharedManager] cancelTask:task];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [[FileInstallManager sharedManager] removeTask:task];
+                [self loadFileList];
+            });
+            
+            
         }]];
     }
     
@@ -859,20 +898,15 @@
 #pragma mark - 文件操作实现
 - (void)installFileAtPath:(NSString *)filePath {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self showAlertWithConfirmationFromViewController:self title:@"是否安装" message:@"" confirmTitle:@"安装" cancelTitle:@"取消" onConfirmed:^{
-            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-            NSLog(@"下载完成执行安装fileURL:%@",fileURL);
-            if(fileURL){
-                [[FileInstallManager sharedManager] installFileWithURL:fileURL completion:^(BOOL success, NSError * _Nullable error) {
-                    if (!success) {
-                        [self showAlertWithTitle:@"安装失败" message:error.localizedDescription];
-                    }
-                }];
-            }
-            
-        } onCancelled:^{
-            // 取消操作
-        }];
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        NSLog(@"下载完成执行安装fileURL:%@",fileURL);
+        if(fileURL){
+            [[FileInstallManager sharedManager] installFileWithURL:fileURL completion:^(BOOL success, NSError * _Nullable error) {
+                if (!success) {
+                    [self showAlertWithTitle:@"安装失败" message:error.localizedDescription];
+                }
+            }];
+        }
     });
     
 }
@@ -990,6 +1024,41 @@
     
     // 刷新所有单元格（隐藏勾选图标）
     [self.tableView reloadData];
+}
+
+- (void)clear:(UIButton*)button {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除下载" message:@"清空所有下载的文件" preferredStyle:UIAlertControllerStyleActionSheet];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+        
+    }];
+    [alert addAction:cancelAction];
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"删除全部" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        // 清理沙盒缓存
+        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject]
+                                      stringByAppendingPathComponent:@"Downloads"];
+        
+        NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:downloadPath];
+        for (int i = 0; i<files.count; i++) {
+            NSString *file = files[i];
+        
+            NSString *filePath = [downloadPath stringByAppendingPathComponent:file];
+            NSError *error;
+            [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
+            if (error) {
+                NSLog(@"清理文件 %@ 失败: %@", filePath, error);
+            }
+            [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"共(%ld)正在删除第%d个文件\n%@",files.count,i,file]];
+            if(i==files.count-1){
+                [SVProgressHUD showSuccessWithStatus:@"删除完毕"];
+                [SVProgressHUD dismissWithDelay:2];
+            }
+            
+        }
+    }];
+    [alert addAction:confirmAction];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 #pragma mark - 显示提示弹窗

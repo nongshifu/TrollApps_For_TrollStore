@@ -44,6 +44,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSInteger)getDaysBetweenDate:(NSDate *)date1 andDate:(NSDate *)date2;
 /// 返回当前时间戳（以秒为单位）
 + (NSTimeInterval)getTimeStamp;
+/// 返回当前时间戳（以秒为单位）
++ (NSString*)getTimeStampWith:(NSDate*)date;
 /// 返回用于做唯一ID的字符串，结合时间戳和4位随机数
 + (NSString *)getUniqueStringID;
 /// 返回用于做唯一ID的数值，结合时间戳和4位随机数

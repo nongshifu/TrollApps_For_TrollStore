@@ -10,6 +10,7 @@
 #import "MyFavoritesListViewController.h"
 #import "config.h"
 #import "ShowOneAppViewController.h"
+#import "ArrowheadMenu.h"
 
 #import "AppInfoModel.h"
 #import "WebToolModel.h"
@@ -23,7 +24,7 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface MyCollectionViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, UIPageViewControllerDelegate,UIPageViewControllerDataSource, UISearchBarDelegate>
+@interface MyCollectionViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate,MenuViewControllerDelegate, UIPageViewControllerDelegate,UIPageViewControllerDataSource, UISearchBarDelegate>
 @property (nonatomic, strong) UISearchBar *searchView;//搜索框
 @property (nonatomic, strong) dispatch_source_t searchDebounceTimer; // 搜索防抖定时器
 @property (nonatomic, strong) UIButton *sortButton;
@@ -38,6 +39,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) MyFavoritesListViewController *currentVC;//所选择的控制器
 @property (nonatomic, assign) NSInteger selectedIndex;
 @property (nonatomic, strong) UIPageControl *pageControl;
+
+@property (nonatomic, strong) NSArray<NSString *>*sortArray;
 
 @end
 
@@ -54,10 +57,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     button.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
     button.layer.cornerRadius = 15;
     [self.view addSubview:button];
+    self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
     
     self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.sortButton setTitle:@"New" forState:UIControlStateNormal];
-    self.sortButton.frame = CGRectMake(kWidth - 125, 10, 60, 30);
+    self.sortButton.frame = CGRectMake(kWidth - 140, 10, 80, 30);
     self.sortButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
     [self.sortButton addTarget:self action:@selector(sortButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     self.sortButton.layer.cornerRadius = 15;
@@ -82,7 +86,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.searchView = [[UISearchBar alloc] initWithFrame:CGRectMake(8, 10, 240, 40)];
     self.searchView.delegate = self;
     self.searchView.searchTextField.layer.borderWidth = 1;
-    self.searchView.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.2].CGColor;
+    self.searchView.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.5].CGColor;
     self.searchView.alpha = 1;
     
     // 设置带属性的占位符
@@ -98,7 +102,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 设置搜索框的背景颜色
     UITextField *searchField = [self.searchView valueForKey:@"searchField"];
     if (searchField) {
-        searchField.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3]
+        searchField.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.6]
                                                          darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.1]
         ];
         searchField.layer.cornerRadius = 10.0;
@@ -116,7 +120,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
         controller.keyword = @"";
-        controller.sort = YES;
+        controller.sort = 0;
         controller.selectedIndex = i;
         controller.collectionView.backgroundColor = [UIColor clearColor];
         controller.view.backgroundColor = [UIColor clearColor];
@@ -193,20 +197,47 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)sortButtonTap:(UIButton*)button {
     
-    //重置页码
-    self.currentVC.page = 1;
-    //取反操作
-    self.currentVC.sort = !self.currentVC.sort;
+    // 处理左边图标点击逻辑
+    
+    NSArray *icon = @[@"clock", @"arrow.clockwise.icloud", @"message", @"hand.thumbsup.fill", @"star", @"arrowshape.turn.up.right"];
+    CGSize menuUnitSize = CGSizeMake(130, 40);
+    CGFloat distanceFromTriggerSwitch = 10;
+    UIFont * font = [UIFont boldSystemFontOfSize:13];
+    UIColor * menuFontColor = [UIColor labelColor];
+    UIColor * menuBackColor = [[UIColor tertiarySystemBackgroundColor] colorWithAlphaComponent:0.99];
+    UIColor * menuSegmentingLineColor = [UIColor labelColor];
+    
+    ArrowheadMenu *VC = [[ArrowheadMenu alloc] initCustomArrowheadMenuWithTitle:self.sortArray
+                                                                           icon:icon
+                                                                   menuUnitSize:menuUnitSize
+                                                                       menuFont:font
+                                                                  menuFontColor:menuFontColor
+                                                                  menuBackColor:menuBackColor
+                                                        menuSegmentingLineColor:menuSegmentingLineColor
+                                                      distanceFromTriggerSwitch:distanceFromTriggerSwitch
+                                                                 menuArrowStyle:MenuArrowStyleRound
+                                                                 menuPlacements:ShowAtBottom
+                                                           showAnimationEffects:ShowAnimationZoom
+    ];
+    VC.iconSize = CGSizeMake(20, 20);
+    VC.delegate = self;
+    [VC presentMenuView:button];
+    
+    
+}
+
+#pragma mark -使用不带选中状态的菜单需要实现的协议方法
+
+- (void)menu:(BaseMenuViewController *)menu didClickedItemUnitWithTag:(NSInteger)tag andItemUnitTitle:(NSString *)title {
+   [self.sortButton setTitle:title forState:UIControlStateNormal];
+    self.currentVC.sort = tag;
     //重新加载数据
     [self.currentVC refreshLoadInitialData];
-    //更新按钮
-    NSString *buttonTitle = self.currentVC.sort ? @"HOT":@"NEW";
-    
-    [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
     
     
     
 }
+
 
 - (void)close:(UIButton*)button{
     [self dismissViewControllerAnimated:YES completion:nil];
@@ -251,12 +282,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.pageControl.currentPage = index;
     //设置页面的数据类型
     targetVC.selectedIndex = index;
-    self.selectedIndex = index;
-    
-    self.currentVC = targetVC;
+ 
+
     
     NSString *buttonTitle = index == 0 ? @"软件" :@"工具";
     [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
+    
     if(index == 0){
         self.searchView.placeholder = @"搜索我收藏的APP";
     }else{
@@ -264,10 +295,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSString *buttonTitle = targetVC.sort ? @"HOT":@"NEW";
+        
+        NSString *buttonTitle = self.sortArray[targetVC.sort];
         [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
     });
 }
+
 #pragma mark - 控制器辅助函数
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {

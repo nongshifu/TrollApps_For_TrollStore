@@ -49,7 +49,7 @@
     self.nameLabel = [[UILabel alloc] init];
     self.nameLabel.font = [UIFont boldSystemFontOfSize:16];
     self.nameLabel.textColor = [UIColor labelColor];
-    self.nameLabel.numberOfLines = 1;
+    self.nameLabel.numberOfLines = 2;
     [self.contentView addSubview:self.nameLabel];
     
     // 开发者
@@ -118,7 +118,7 @@
     [self.nameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.iconView);
         make.left.equalTo(self.iconView.mas_right).offset(12);
-        make.right.equalTo(self.installButton).inset(15);
+        make.right.equalTo(self.installButton.mas_left).offset(-10);
     }];
     //开发者
     [self.developerLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -187,9 +187,7 @@
 
 #pragma mark - 操作
 - (void)installAction:(UIButton*)button {
-    NSInteger index = button.tag;
-
-
+   
     // 优先使用trackViewUrl，为空则用trackId构建
     NSString *appUrlString = self.model.trackViewUrl;
     if (appUrlString.length == 0 && self.model.trackId.length > 0) {

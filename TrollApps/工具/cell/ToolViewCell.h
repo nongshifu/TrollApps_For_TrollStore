@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ToolViewCell : TemplateCell
 @property (nonatomic, strong) WebToolModel *toolModel;
+- (void)openHtml:(WebToolModel*)model;
 @end
 
 NS_ASSUME_NONNULL_END

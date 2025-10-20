@@ -11,7 +11,7 @@
 #import "ShowOneAppViewController.h"
 #import "NetworkClient.h"
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -59,7 +59,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"pageSize":@(10),
         @"udid":udid,
         @"showMyApp":@(self.showMyApp),
-        @"page":@(self.page)
+        @"page":@(page)
         
     };
     NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
@@ -84,11 +84,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 
                 if(code == 200){
                     NSArray * appInfo_data = jsonResult[@"data"];
+                    
                     for (NSDictionary *dic in appInfo_data) {
                         AppInfoModel *model = [AppInfoModel yy_modelWithDictionary:dic];
                         [self.dataSource addObject:model];
                     }
-                    
+                   
                 }else{
                     NSLog(@"数据搜索失败出错: %@", message);
                     [SVProgressHUD showErrorWithStatus:message];
@@ -96,36 +97,34 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                         return;
                     }];
                 }
+                
                 [self refreshTable];
+                
                 BOOL hasMore = [jsonResult[@"hasMore"] boolValue];
                 NSLog(@"noMoreData:%@",jsonResult[@"hasMore"]);
-                [self updatePaginationWithCurrentPage:page hasMore:hasMore];
-                
+                // 如果还有更多数据，增加页码；否则标记为没有更多数据
+                if (hasMore) {
+                    self.page += 1;
+                } else {
+                    // 可以显示"没有更多数据"的提示
+                    NSLog(@"没有更多评论数据");
+                    [self setFooterNoMoreDataWithText:@"读取完毕-发布一个APP吧！\nTrollApps by 十三哥 2026"];
+                }
+          
             });
         } failure:^(NSError *error) {
             NSLog(@"异步请求Error: %@", error);
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
-            [SVProgressHUD dismissWithDelay:2 completion:nil];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
+                [SVProgressHUD dismissWithDelay:2 completion:nil];
+                [self refreshTable];
+            });
+            
         }];
     
     
 }
 
-// 更新分页状态
-- (void)updatePaginationWithCurrentPage:(NSInteger)currentPage hasMore:(BOOL)hasMore {
-    // 结束刷新控件动画
-    [self endRefreshing];
-    
-    // 如果还有更多数据，增加页码；否则标记为没有更多数据
-    if (hasMore) {
-        self.page = currentPage + 1;
-    } else {
-        // 可以显示"没有更多数据"的提示
-        NSLog(@"没有更多评论数据");
-        
-        [self setFooterNoMoreDataWithText:@"读取完毕-发布一个APP吧！\nTrollApps by 十三哥 2026"];
-    }
-}
 /**
  返回对应的 SectionController（子类必须实现）
  @param object 数据模型对象

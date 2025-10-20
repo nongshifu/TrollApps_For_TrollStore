@@ -19,6 +19,7 @@ typedef NS_ENUM(NSInteger, FilterType) {
 NS_ASSUME_NONNULL_BEGIN
 
 @interface DownloadManagerViewController : DemoBaseViewController
++ (instancetype)sharedInstance;
 - (void)handleTaskStatusChanged;
 @property (nonatomic, assign) FilterType currentFilterType;      // 当前筛选类型
 @end

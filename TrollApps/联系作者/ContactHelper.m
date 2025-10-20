@@ -6,7 +6,7 @@
 
 #import "ContactHelper.h"
 #import <SVProgressHUD/SVProgressHUD.h>
-
+#import "TTCHATViewController.h"
 @implementation ContactHelper
 
 /// 单例初始化
@@ -79,6 +79,27 @@
             [self openTelegramChat:userInfo.tg];
         }];
         [alertController addAction:tgAction];
+    }
+    // 6.直接app内私信
+    if (userInfo.udid.length >5) {
+        UIAlertAction *udidAction = [UIAlertAction actionWithTitle:@"发起私信会话"
+                                                              style:UIAlertActionStyleDestructive
+                                                            handler:^(UIAlertAction *action) {
+            // 1. 创建聊天页面实例
+            TTCHATViewController *conversationVC = [[TTCHATViewController alloc] initWithConversationType:ConversationType_PRIVATE targetId:userInfo.udid];
+            conversationVC.targetId = userInfo.udid;
+            conversationVC.title = userInfo.nickname ?: @"私聊中"; // 简化写法
+            
+            // 2. 创建新的导航控制器，将聊天页面作为根视图（核心：包装导航）
+            UINavigationController *chatNav = [[UINavigationController alloc] initWithRootViewController:conversationVC];
+            
+            // 3. 设置导航控制器全屏弹出（关键：模态样式设置在导航控制器上）
+            chatNav.modalPresentationStyle = UIModalPresentationFullScreen;
+            
+            // 5. 弹出导航控制器（无论当前页面状态，统一用 present 弹出）
+            [[UIView getTopViewController] presentViewController:chatNav animated:YES completion:nil];
+        }];
+        [alertController addAction:udidAction];
     }
     
     // 取消按钮

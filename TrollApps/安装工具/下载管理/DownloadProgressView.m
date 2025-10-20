@@ -24,6 +24,7 @@ static const CGFloat kAutoShrinkDelay = 3;     // 自动缩回延迟（秒）
 @property (nonatomic, strong) UILabel *fileNameLabel;  // 文件名标签
 @property (nonatomic, strong) UIButton *actionButton;  // 操作按钮（展开后显示）
 
+
 // 状态变量
 @property (nonatomic, assign) CGFloat currentProgress; // 当前进度
 @property (nonatomic, assign) BOOL isExpanded;         // 是否展开

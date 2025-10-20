@@ -23,6 +23,7 @@
 
 @property (nonatomic, assign) NSInteger currentPage; // 当前页码（从0开始）
 @property (nonatomic, assign) NSInteger totalCount;  // 总结果数（用于判断是否有更多数据）
+@property (nonatomic, strong) UISearchController *searchController;
 
 @end
 
@@ -36,14 +37,14 @@
     self.title = @"AppStore搜索";
     self.zx_hideBaseNavBar = YES;
     self.zx_showSystemNavBar = YES;
-    
+    self.isTapViewToHideKeyboard = YES;
     [self setupCountryData];
     [self setupNavigationBarWithSearch];
     [self setupNavigationBar];
     [self setupTableView];
     
     [self setupRefresh]; // 初始化刷新控件
-    [self performSearchWithText:@"游戏"];
+    
     
     
 }
@@ -52,8 +53,16 @@
     [super viewWillAppear:animated];
     self.navigationController.navigationBarHidden = NO;
     self.tabBarController.tabBar.hidden = NO;
-    // 确保在视图即将显示时设置导航栏，覆盖系统默认设置
     [self setupNavigationBarWithSearch];
+    // 确保在视图即将显示时设置导航栏，覆盖系统默认设置
+    
+    if(!self.keyword){
+        [self performSearchWithText:@"游戏"];
+    }else{
+        self.searchController.searchBar.text =self.keyword;
+        [self performSearchWithText:self.keyword];
+    }
+    
 }
 
 #pragma mark - 初始化导航栏（含搜索框和地区选择）
@@ -62,16 +71,16 @@
     self.navigationController.navigationBarHidden = NO;
     self.tabBarController.tabBar.hidden = YES;
     // 创建搜索控制器
-    UISearchController *searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
-    searchController.searchResultsUpdater = self;
-    searchController.obscuresBackgroundDuringPresentation = NO;
-    searchController.searchBar.placeholder = @"输入应用名称搜索";
-    searchController.searchBar.delegate = self;
-    searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
-    searchController.searchBar.returnKeyType = UIReturnKeyDone;
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    self.searchController.searchResultsUpdater = self;
+    self.searchController.obscuresBackgroundDuringPresentation = NO;
+    self.searchController.searchBar.placeholder = @"输入应用名称搜索";
+    self.searchController.searchBar.delegate = self;
+    self.searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
+    self.searchController.searchBar.returnKeyType = UIReturnKeyDone;
     
     // 配置导航项
-    self.navigationItem.searchController = searchController;
+    self.navigationItem.searchController = self.searchController;
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
     
     // 地区选择按钮（移至右侧）
@@ -264,8 +273,8 @@
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     [searchBar resignFirstResponder];
-    self.keyword = @"";
-    [self performSearchWithText:@"游戏"];
+//    self.keyword = @"";
+//    [self performSearchWithText:@"游戏"];
 }
 
 // 执行搜索请求
@@ -373,6 +382,7 @@
 }
 
 #pragma mark - 内存管理
+
 - (void)dealloc {
     [self.searchTimer invalidate];
 }

@@ -10,6 +10,7 @@
 #import "AppVersionHistoryModel.h"
 #import <Masonry.h>
 #import <SDWebImage/SDWebImage.h>
+#import "FileInstallManager.h"
 
 @interface AppVersionHistoryCell ()
 @property (nonatomic, strong) AppVersionHistoryModel *appVersionHistoryModel;
@@ -50,15 +51,15 @@
     [self.contentView addSubview:_sizeLabel];
     
     // 强制更新标签
-    _mandatoryLabel = [[UILabel alloc] init];
-    _mandatoryLabel.font = [UIFont boldSystemFontOfSize:10];
-    _mandatoryLabel.textColor = [UIColor whiteColor];
-    _mandatoryLabel.backgroundColor = [UIColor redColor];
-    _mandatoryLabel.textAlignment = NSTextAlignmentCenter;
-    _mandatoryLabel.layer.cornerRadius = 4;
-    _mandatoryLabel.layer.masksToBounds = YES;
-    _mandatoryLabel.hidden = YES; // 默认隐藏
-    [self.contentView addSubview:_mandatoryLabel];
+    _mandatoryButton = [[UIButton alloc] init];
+    _mandatoryButton.titleLabel.font = [UIFont boldSystemFontOfSize:10];
+    [_mandatoryButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    _mandatoryButton.contentEdgeInsets = UIEdgeInsetsMake(3, 8, 3, 8);
+    _mandatoryButton.backgroundColor = [UIColor redColor];
+    _mandatoryButton.layer.cornerRadius = 4;
+    _mandatoryButton.layer.masksToBounds = YES;
+    _mandatoryButton.hidden = YES; // 默认隐藏
+    [self.contentView addSubview:_mandatoryButton];
     
     // 更新说明标签
     _releaseNotesLabel = [[UILabel alloc] init];
@@ -100,7 +101,7 @@
     }];
     
     // 强制更新标签
-    [_mandatoryLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_mandatoryButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(_versionNameLabel.mas_right).offset(8);
         make.centerY.equalTo(_versionNameLabel);
         make.height.equalTo(@18);
@@ -184,9 +185,10 @@
                                  version.release_notes : @"无更新说明";
     
     // 设置强制更新标签
-    self.mandatoryLabel.hidden = !version.is_mandatory;
+    self.mandatoryButton.hidden = !version.is_mandatory;
     if (version.is_mandatory) {
-        self.mandatoryLabel.text = @"强制更新";
+        [self.mandatoryButton setTitle:@"强制更新" forState:UIControlStateNormal];
+        
     }
     
     // 确保布局更新（如果需要）
@@ -226,11 +228,10 @@
         [SVProgressHUD dismissWithDelay:1];
         return;
     }
-    [[UIApplication sharedApplication] openURL:URL options:@{} completionHandler:^(BOOL success) {
-        if(success){
-            
-        }
+    [[FileInstallManager sharedManager] installFileWithURL:URL completion:^(BOOL success, NSError * _Nullable error) {
+        
     }];
+    
 }
 
 @end

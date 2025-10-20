@@ -582,7 +582,7 @@
 }
 
 - (void)iconClick:(NSURLSessionDownloadTask *)task{
-    DownloadManagerViewController *vc =[DownloadManagerViewController new];
+    DownloadManagerViewController *vc =[DownloadManagerViewController sharedInstance];
     [[vc.view getTopViewController] presentPanModal:vc];
 }
 

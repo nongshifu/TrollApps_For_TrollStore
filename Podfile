@@ -1,5 +1,5 @@
 # Uncomment the next line to define a global platform for your project
-# platform :ios, '9.0'
+# platform :ios, '11.0'
 
 target 'TrollApps' do
   # Comment the next line if you don't want to use dynamic frameworks
@@ -29,5 +29,6 @@ target 'TrollApps' do
   pod 'HXPhotoPickerObjC' #帖子照片展示
   pod 'HXPhotoPickerObjC/SDWebImage'
   pod 'HXPhotoPickerObjC/SDWebImage_AF'
+  pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
 
 end

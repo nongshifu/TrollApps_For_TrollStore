@@ -19,9 +19,9 @@
 #import "ProfileRightViewController.h"
 #import "FeedbackViewController.h"
 #import "loadData.h"
-
+#import "moodStatusViewController.h"
 // 是否打印日志
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
 NSString *className = NSStringFromClass([self class]); \
@@ -388,8 +388,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         MyCollectionViewController *vc = [MyCollectionViewController new];
         [self presentPanModal:vc];
     }];
-    [self zx_setSubLeftBtnWithText:@"反馈" clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
-        FeedbackViewController *vc = [FeedbackViewController new];
+    [self zx_setSubLeftBtnWithText:@"发布状态" clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
+        moodStatusViewController *vc = [moodStatusViewController new];
+        vc.udid = self.userInfo.udid;
         [self presentPanModal:vc];
     }];
     
@@ -532,6 +533,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         // 显示VIP信息
         self.vipExpireLabel.hidden = NO;
+        
+        
+        [self loginRCIM];
     } else {
         // 未获取UDID
         [self.udidButton setTitle:@"点击安装获取UDID" forState:UIControlStateNormal];
@@ -566,6 +570,43 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.vipExpireLabel.text = vipText;
     
+}
+
+- (void)loginRCIM{
+    [[RCCoreClient sharedCoreClient] connectWithToken:self.userInfo.token dbOpened:^(RCDBErrorCode code) {
+        //消息数据库打开，可以进入到主页面
+        NSLog(@"消息数据库打开，可以进入到主页面");
+        
+    } success:^(NSString *userId) {
+        //连接成功
+        NSLog(@"连接成功");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            //设置自己的用户信息
+           
+            NSString *url = [NSString stringWithFormat:@"%@/%@",localURL,self.userInfo.avatar];
+            NSLog(@"设置用户url信息：%@",url);
+            RCUserInfo *_currentUserInfo = [[RCUserInfo alloc] initWithUserId:self.userInfo.udid name:self.userInfo.nickname portrait:url];
+            NSLog(@"设置用户信息：%@",_currentUserInfo);
+            //设置当前用户信息
+            _currentUserInfo.extra = [self.userInfo yy_modelToJSONString];;
+            NSLog(@"登录成功拓展数据:%@",_currentUserInfo.extra);
+            //设置当前用户信息
+            [RCIM sharedRCIM].currentUserInfo = _currentUserInfo;
+            //刷新本地缓存
+            [[RCIM sharedRCIM] refreshUserInfoCache:_currentUserInfo withUserId:userId];
+            
+        });
+        
+    } error:^(RCConnectErrorCode errorCode) {
+        if (errorCode == RC_CONN_TOKEN_INCORRECT) {
+            //从 APP 服务获取新 token，并重连
+            NSLog(@"从 APP 服务获取新 token，并重连");
+        } else {
+            //无法连接到 IM 服务器，请根据相应的错误码作出对应处理
+            NSLog(@"无法连接到 IM 服务器，请根据相应的错误码作出对应处理");
+        }
+    }];
 }
 
 #pragma mark - 数据加载与处理
@@ -652,10 +693,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     if ([self canAccessUDID]) {
         [self fetchAndDisplayDeviceIdentifier];
     } else {
-        // 检查长效Token
-        if (self.localLongTermToken.length == 0) {
-            [self generateLongTermToken]; // 生成新Token
-        }
         
         // 跳转到浏览器安装描述文件（携带IDFV和Token）
         [self installProfile];
@@ -706,6 +743,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)installProfile {
+    // 检查长效Token
+    if (self.localLongTermToken.length == 0) {
+        [self generateLongTermToken]; // 生成新Token
+    }
+    
     // 获取IDFV和长效Token
     NSString *idfv = [self getIDFV];
     NSString *token = self.localLongTermToken;

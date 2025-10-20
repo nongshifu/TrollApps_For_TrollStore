@@ -86,21 +86,21 @@
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 始终显示搜索框
     
     // 左侧"最近"按钮
-    UIBarButtonItem *recentItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭"
+    UIBarButtonItem *dismissItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭"
                                                                    style:UIBarButtonItemStylePlain
                                                                   target:self
                                                                   action:@selector(dismiss:)];
-    recentItem.tintColor = [UIColor labelColor];
-    self.navigationItem.leftBarButtonItem = recentItem;
+    dismissItem.tintColor = [UIColor labelColor];
+   
     
-    // 右侧"我的"按钮
-    UIBarButtonItem *myItem = [[UIBarButtonItem alloc] initWithTitle:@"最近"
-                                                               style:UIBarButtonItemStylePlain
-                                                              target:self
-                                                              action:@selector(recently:)];
-    myItem.tintColor = [UIColor labelColor];
+    UIButton * cleanButton= [[UIButton alloc] init];
+    [cleanButton setTitle:@"清除" forState:UIControlStateNormal];
+    [cleanButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    cleanButton.titleLabel.font = [UIFont systemFontOfSize:16];
+    [cleanButton addTarget:self action:@selector(cleanButtonTap) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *cleanItem = [[UIBarButtonItem alloc] initWithCustomView:cleanButton];
     
-    self.navigationItem.rightBarButtonItems = @[myItem, recentItem]; // 保留原有"最近"按钮
+    self.navigationItem.leftBarButtonItems = @[dismissItem, cleanItem]; // 保留原有"最近"按钮
     
     
     // 添加确认选择按钮（导航栏右侧）
@@ -111,14 +111,9 @@
     [self.confirmButton addTarget:self action:@selector(confirmSelectedImages) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *confirmItem = [[UIBarButtonItem alloc] initWithCustomView:self.confirmButton];
     
-    UIButton * cleanButton= [[UIButton alloc] init];
-    [cleanButton setTitle:@"清除" forState:UIControlStateNormal];
-    [cleanButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
-    cleanButton.titleLabel.font = [UIFont systemFontOfSize:16];
-    [cleanButton addTarget:self action:@selector(cleanButtonTap) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *cleanItem = [[UIBarButtonItem alloc] initWithCustomView:cleanButton];
+   
     
-    self.navigationItem.leftBarButtonItems = @[confirmItem,cleanItem];
+    self.navigationItem.rightBarButtonItem = confirmItem;
     // 隐藏系统返回按钮，使用自定义左侧按钮
     self.navigationItem.hidesBackButton = YES;
    
@@ -395,7 +390,7 @@
     // 更新确认按钮标题（显示选中数量）
     [self.confirmButton setTitle:[NSString stringWithFormat:@"确认(%ld)", self.selectedImages.count] forState:UIControlStateNormal];
     UIBarButtonItem *confirmItem = [[UIBarButtonItem alloc] initWithCustomView:self.confirmButton];
-    self.navigationItem.leftBarButtonItem = confirmItem;
+    self.navigationItem.rightBarButtonItem = confirmItem;
     
     //选择的时候发送点击对象
     BOOL newisSelected = [self.selectedUrlSet containsObject:imageUrl];//读取最新状态
@@ -433,11 +428,11 @@
     }
     
     // 3. 延迟0.5秒执行搜索（防抖核心）
-    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-                                                       target:self
-                                                     selector:@selector(performSearch)
-                                                     userInfo:nil
-                                                      repeats:NO];
+//    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+//                                                       target:self
+//                                                     selector:@selector(performSearch)
+//                                                     userInfo:nil
+//                                                      repeats:NO];
 }
 
 // 实际执行搜索的方法
@@ -452,6 +447,7 @@
     // 结束编辑时立即执行搜索（忽略防抖延迟）
     [self.searchTimer invalidate];
     self.searchTimer = nil;
+    //自动搜索
     [self performSearch];
 }
 

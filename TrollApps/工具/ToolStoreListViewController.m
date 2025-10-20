@@ -200,7 +200,10 @@ typedef NS_ENUM(NSInteger, SortType) {
     [self refreshLoadInitialData];
     item.title = self.isMyTool ? @"市场":@"我的";
     
+    self.title = self.isMyTool ? @"我的发布":@"热门工具";
+    
 }
+
 //排序
 - (void)rightTapped:(UIBarButtonItem*)item {
     

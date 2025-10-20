@@ -147,22 +147,26 @@
 
 #pragma mark - 分类标签处理
 
-/// 加载本地缓存的套餐数据
+/// 加载本地缓存的tag数据
 - (void)loadLocalTags {
-    NSData *data = [[NSUserDefaults standardUserDefaults] objectForKey:@"tags"];
+    NSData *data = [[NSUserDefaults standardUserDefaults] objectForKey:SAVE_SERVER_TAGS_KEY];
     if (data) {
         NSArray *dictArray = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
         if (dictArray) {
             self.tags= [NSMutableArray arrayWithArray:dictArray];
         }
     }else{
-        self.tags = [NSMutableArray arrayWithArray:@[@"巨魔IPA", @"游戏辅助", @"多开软件", @"定位", @"脚本",
+        self.tags = [NSMutableArray arrayWithArray:@[@"最新",@"最火",@"推荐",@"巨魔IPA", @"游戏辅助", @"多开软件", @"Dylib", @"定位", @"脚本",
                                                                           @"有根越狱插件", @"无根插件", @"影音", @"工具",
                                                                           @"系统增强", @"其他"]];
+        [[NSUserDefaults standardUserDefaults] setObject:self.tags forKey:SAVE_LOCAL_TAGS_KEY];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
     }
+   
 }
 
-/// 从远程加载套餐数据
+/// 从远程加载tag数据
 - (void)loadTagsFromRemote {
     // 格式化日期为时间戳或ISO格式
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -194,7 +198,7 @@
                     // 缓存到本地
                     NSData *cacheData = [NSJSONSerialization dataWithJSONObject:self.tags options:0 error:nil];
                     if (cacheData) {
-                        [[NSUserDefaults standardUserDefaults] setObject:cacheData forKey:@"tags"];
+                        [[NSUserDefaults standardUserDefaults] setObject:cacheData forKey:SAVE_SERVER_TAGS_KEY];
                         [[NSUserDefaults standardUserDefaults] synchronize];
                     }
                 }
@@ -322,9 +326,7 @@
             }
         });
     } failure:^(NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-        });
+        
     }];
 }
 

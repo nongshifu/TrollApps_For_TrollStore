@@ -417,7 +417,7 @@
                             [self.dataSource  addObject:comment];
                         }
                     }
-                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"phone.circle" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
+                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"message" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
                     
                     if(self.dataSource.count > 2){
                         id model = [self.dataSource objectAtIndex:1];

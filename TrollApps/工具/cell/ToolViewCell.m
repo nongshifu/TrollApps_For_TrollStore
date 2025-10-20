@@ -15,7 +15,7 @@
 #import "loadData.h"
 #import "LikeModel.h"
 #import "NewProfileViewController.h"
-
+#import "QRCodeGeneratorViewController.h"
 
 @interface ToolViewCell ()<MiniButtonViewDelegate>
 
@@ -355,6 +355,7 @@
 }
 
 #pragma mark - action
+
 - (void)addComment:(NSString *)action button:(UIButton *)button{
     NSString *addComment = action;
     UIButton *commentButton = button;
@@ -390,9 +391,10 @@
     [[self getTopViewController] presentViewController:alertController animated:YES completion:nil];
 }
 
-- (void)openHtml:(UIButton*)button {
+- (void)openHtml:(WebToolModel*)model {
+    if(!model)model = self.toolModel;
     // 直接初始化，内部会自动判断单例中是否存在
-    WebViewController *webVC = [[WebViewController alloc] initWithToolModel:self.toolModel];
+    WebViewController *webVC = [[WebViewController alloc] initWithToolModel:model];
     // 显示控制器（无论新创建还是复用已有实例，直接 present 即可）
     [[self getTopViewController] presentPanModal:webVC];
     
@@ -518,62 +520,68 @@
     
     // 显示加载提示
     [SVProgressHUD showWithStatus:@"准备分享..."];
-    [SVProgressHUD dismissWithDelay:1 completion:^{
+    // 添加应用URL
+    NSString *urlString = [NSString stringWithFormat:@"%@/%@/tool_detail.php?shareUser_id=%ld", localURL,self.toolModel.tool_path ,[loadData sharedInstance].userModel.user_id];
+    NSLog(@"分享的工具URL：%@",urlString);
+    [SVProgressHUD dismissWithDelay:0.5];
+   
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"分享" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         
-        // 添加应用URL
-        NSString *urlString = [NSString stringWithFormat:@"%@/%@/index.html?shareUser_id=%ld", localURL,self.toolModel.tool_path ,[loadData sharedInstance].userModel.user_id];
-        NSLog(@"分享的工具URL：%@",urlString);
         
-        NSURL *appURL = [NSURL URLWithString:[urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-        
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"分享" message:nil preferredStyle:UIAlertControllerStyleAlert];
-        // 添加取消按钮
-        UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            
-            
-        }];
-        [alert addAction:cancelAction];
-        UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"拷贝连接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIPasteboard *paste = [UIPasteboard generalPasteboard];
-            paste.string = urlString;
-            [SVProgressHUD showSuccessWithStatus:@"已复制到剪贴板"];
-            [SVProgressHUD dismissWithDelay:1];
-            [self incrementToolShareCount];
-        }];
-        [alert addAction:confirmAction];
-        UIAlertAction*confirmAction2 = [UIAlertAction actionWithTitle:@"分享到APP" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            
-            
-            // 1. 准备分享内容
-            NSMutableArray *shareItems = [NSMutableArray array];
-            
-            NSLog(@"分享的工具appURL：%@",appURL);
-            if (appURL) {
-                [shareItems addObject:appURL];
-            }
-            
-            // 添加应用名称和描述
-            NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
-                                   self.toolModel.tool_name,
-                                   self.toolModel.tool_description ?: @"快来一起看看吧！"];
-            [shareItems addObject:shareText];
-            
-            NSString *iconURL = [NSString stringWithFormat:@"%@/%@/icon.png", localURL,self.toolModel.tool_path];
-            NSLog(@"分享的工具图标URL：%@",iconURL);
-            [[UIImageView new] sd_setHighlightedImageWithURL:[NSURL URLWithString:iconURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                if(image){
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self presentShareControllerWithItems:shareItems appIcon:image];
-                    });
-                }else{
-                    [self presentShareControllerWithItems:shareItems appIcon:[UIImage systemImageNamed:@"wand.and.stars.inverse"]];
-                }
-            }];
-        }];
-        [alert addAction:confirmAction2];
-        
-        [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
     }];
+    [alert addAction:cancelAction];
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"生成二维码" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self generateQRCodeWithUrlString:urlString];
+    }];
+    [alert addAction:confirmAction];
+    
+    UIAlertAction*confirmAction2 = [UIAlertAction actionWithTitle:@"拷贝连接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string =urlString;
+        [SVProgressHUD showSuccessWithStatus:@"连接已经拷贝到剪贴板"];
+        [SVProgressHUD dismissWithDelay:1];
+    }];
+    [alert addAction:confirmAction2];
+    
+    UIAlertAction*confirmAction3 = [UIAlertAction actionWithTitle:@"分享到" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSURL *appURL = [NSURL URLWithString:urlString];
+        // 1. 准备分享内容
+        NSMutableArray *shareItems = [NSMutableArray array];
+        
+        NSLog(@"分享的工具appURL：%@",appURL);
+        if (appURL) {
+            [shareItems addObject:appURL];
+        }
+        
+        // 添加应用名称和描述
+        NSString *shareText = [NSString stringWithFormat:@"%@\n%@",
+                               self.toolModel.tool_name,
+                               self.toolModel.tool_description ?: @"快来一起看看吧！"];
+        [shareItems addObject:shareText];
+        
+        NSString *iconURL = [NSString stringWithFormat:@"%@/%@/icon.png", localURL,self.toolModel.tool_path];
+        NSLog(@"分享的工具图标URL：%@",iconURL);
+        [[UIImageView new] sd_setHighlightedImageWithURL:[NSURL URLWithString:iconURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+            if(image){
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self presentShareControllerWithItems:shareItems appIcon:image];
+                });
+            }else{
+                [self presentShareControllerWithItems:shareItems appIcon:[UIImage systemImageNamed:@"wand.and.stars.inverse"]];
+            }
+        }];
+    }];
+   
+    [alert addAction:confirmAction3];
+    
+    
+    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
     
     
     
@@ -654,6 +662,12 @@
     
     // 6. 显示分享控制器
     [[self getTopViewController] presentViewController:activityVC animated:YES completion:nil];
+}
+
+- (void)generateQRCodeWithUrlString:(NSString*)urlString {
+    // 将用户 ID 转换为字符串mySoulChat://user?id=123456
+    QRCodeGeneratorViewController *vc = [[QRCodeGeneratorViewController alloc] initWithURLString:urlString title:self.toolModel.tool_name];
+    [[self getTopViewController] presentPanModal:vc];
 }
 
 @end

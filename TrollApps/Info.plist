@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>我们需要访问您的相机，以便您可以拍摄照片！</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -17,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.0.1</string>
+	<string>1.0.3</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -39,6 +37,10 @@
 	<string>我们需要访问您的相机，以便您可以拍摄照片！</string>
 	<key>NSFileProviderUsageDescription</key>
 	<string>访问文件以读取和保存相关数据</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>我们需要访问您的相机，以便您可以拍摄照片！</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>需要访问相册以保存二维码图片</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>我们需要使用您的麦克风进行录音</string>
 	<key>UIBackgroundModes</key>

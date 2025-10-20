@@ -52,7 +52,10 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import "JXCategoryView.h"
-
+#import <RongIMKit/RongIMKit.h>
+//IM组件
+#import <RongIMKit/RongIMKit.h>
+#import <RongIMLib/RongIMLib.h>
 //自开发组件
 
 #import "TimeTool.h"

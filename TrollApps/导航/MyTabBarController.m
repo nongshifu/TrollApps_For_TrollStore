@@ -18,7 +18,7 @@
 #import "EditUserProfileViewController.h"
 #import "config.h"
 #import "NewProfileViewController.h"
-
+#import "ChatListViewController.h"
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -234,7 +234,7 @@
                                                               imageName:@""
                                                           selectedImage:@""]
     ];
-    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[CommunityViewController new]
+    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[ChatListViewController new]
                                                                   title:@"广场"
                                                               imageName:@"message"
                                                           selectedImage:@"message.fill"]

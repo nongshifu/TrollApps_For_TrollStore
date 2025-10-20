@@ -6,6 +6,15 @@
 #import "NetworkClient.h"
 #import "TokenGenerator.h"
 
+//是否打印
+#define MY_NSLog_ENABLED NO
+
+#define NSLog(fmt, ...) \
+if (MY_NSLog_ENABLED) { \
+NSString *className = NSStringFromClass([self class]); \
+NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
+}
+
 @interface NetworkClient ()
 
 @property (nonatomic, strong) TokenGenerator *tokenGenerator;
