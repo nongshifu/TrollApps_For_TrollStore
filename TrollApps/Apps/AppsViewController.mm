@@ -17,7 +17,7 @@
 #import "loadData.h"
 #import "MyCollectionViewController.h"
 #import "ArrowheadMenu.h"
-
+#import "UserProfileViewController.h"
 #include <dlfcn.h>
 //是否打印
 #define MY_NSLog_ENABLED NO
@@ -36,7 +36,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) NSMutableArray<AppListViewController *> *viewControllers;
 @property (nonatomic, strong) UIPageViewController *pageViewController; // 页面控制器
 @property (nonatomic, strong) AppListViewController *currentVC;//所选择的控制器
-@property (nonatomic, strong) UISearchBar *searchView;//搜索框
+@property (nonatomic, strong) UISearchBar *searchBar;//搜索框
 
 @property (nonatomic, strong) NSString *currentSearchKeyword;//关键词
 @property (nonatomic, assign) NSInteger currentPageIndex;//分类下标
@@ -99,7 +99,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super viewDidLayoutSubviews];
     // 在这里进行与布局完成后相关的操作，比如获取子视图的最终尺寸等
     NSLog(@"视图布局完成");
-    self.switchAppListButton.alpha = !self.searchView.alpha;
+    self.switchAppListButton.alpha = !self.searchBar.alpha;
 }
 
 // 注销通知
@@ -152,7 +152,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)keyboardWillHide:(NSNotification *)notification {
     self.keyboardHeight = 0;
     self.keyboardIsShow = NO;
-    self.searchView.alpha = self.currentSearchKeyword.length > 0;
+    self.searchBar.alpha = self.currentSearchKeyword.length > 0;
     [self updateViewConstraints];
     NSLog(@"键盘隐藏");
 }
@@ -230,7 +230,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.switchAppListButton = [UIButton buttonWithType:UIButtonTypeSystem];
         self.switchAppListButton.titleLabel.font = [UIFont boldSystemFontOfSize:16];
         self.switchAppListButton.titleLabel.textColor = [UIColor labelColor];
-        [self.switchAppListButton setTitle:@"我的" forState:UIControlStateNormal];
+        [self.switchAppListButton setTitle:@"全部" forState:UIControlStateNormal];
         [self.switchAppListButton addTarget:self action:@selector(switchAppList:) forControlEvents:UIControlEventTouchUpInside];
         [self.zx_navBar addSubview:self.switchAppListButton];
     }
@@ -253,13 +253,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self zx_setRightBtnWithImg:[UIImage systemImageNamed:@"magnifyingglass.circle"]
                     clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
 
-        weakSelf.searchView.alpha = 1;
+        weakSelf.searchBar.alpha = 1;
         [weakSelf updateViewConstraints];
 
         [UIView animateWithDuration:0.3 animations:^{
             [weakSelf.view layoutIfNeeded];
         } completion:^(BOOL finished) {
-            [weakSelf.searchView becomeFirstResponder];
+            [weakSelf.searchBar becomeFirstResponder];
         }];
     }];
 
@@ -269,10 +269,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
     //设置左侧按钮
     [self zx_setLeftBtnWithImg:avatarImage clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
-        AppSearchViewController *vc = [AppSearchViewController new];
-
-        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
-        [self presentViewController:navVC animated:YES completion:nil];
+        UserProfileViewController *vc = [UserProfileViewController new];
+        
+        vc.user_udid = [loadData sharedInstance].userModel.udid;
+        
+        [self presentPanModal:vc];
     }];
 
 
@@ -360,16 +361,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //设置搜索框
 - (void)setupSearchView {
-    self.searchView = [[UISearchBar alloc] initWithFrame:CGRectMake(100, 0, 150, 40)];
-    self.searchView.delegate = self;
-    self.searchView.searchTextField.layer.borderWidth = 1;
-    self.searchView.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.2].CGColor;
-    self.searchView.alpha = 0;
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(100, 0, 150, 40)];
+    self.searchBar.delegate = self;
+    self.searchBar.searchTextField.layer.borderWidth = 1;
+    self.searchBar.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.2].CGColor;
+    self.searchBar.alpha = 0;
     // 设置背景图片为透明
-    [self.searchView setBackgroundImage:[UIImage new]];
+    [self.searchBar setBackgroundImage:[UIImage new]];
     
     // 设置搜索框的背景颜色
-    UITextField *searchField = [self.searchView valueForKey:@"searchField"];
+    UITextField *searchField = [self.searchBar valueForKey:@"searchField"];
     if (searchField) {
         searchField.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3]
                                                          darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.1]
@@ -377,7 +378,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         searchField.layer.cornerRadius = 10.0;
         searchField.layer.masksToBounds = YES;
     }
-    [self zx_addCustomTitleView:self.searchView];
+    [self zx_addCustomTitleView:self.searchBar];
 
 }
 
@@ -493,18 +494,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)switchAppList:(UIButton*)button{
     self.showMyApp = !self.showMyApp;
-    NSString *msg = self.showMyApp ? @"已切换为我的APP" :@"切换显示全部APP";
-    [SVProgressHUD showImage:[UIImage systemImageNamed:@"scribble"] status:msg];
-    [SVProgressHUD dismissWithDelay:2];
+    
 
     for (AppListViewController *vc in self.viewControllers) {
         vc.showMyApp = self.showMyApp;
+        [vc.dataSource removeAllObjects];
+        [vc refreshTable];
         [vc refreshLoadInitialData];
     }
     NSString *title = self.showMyApp ? @"我的" :@"全部";
     
     [button setTitle:title forState:UIControlStateNormal];
-    button.alpha = !self.searchView.alpha;
+    button.alpha = !self.searchBar.alpha;
+    NSString *msg = self.showMyApp ? @"切换为我的APP" :@"切换显示全部APP";
+    [SVProgressHUD showImage:[UIImage systemImageNamed:@"scribble"] status:msg];
+    [SVProgressHUD dismissWithDelay:2];
 }
 
 // 排序按钮点击
@@ -541,9 +545,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)setupViewConstraints{
     
-    [self.searchView mas_updateConstraints:^(MASConstraintMaker *make) {
+    [self.searchBar mas_updateConstraints:^(MASConstraintMaker *make) {
         make.width.equalTo(@(150));
-        make.right.equalTo(self.searchView.superview.mas_right).offset(0);
+        make.right.equalTo(self.searchBar.superview.mas_right).offset(0);
         make.height.mas_equalTo(40);
         make.centerY.equalTo(self.zx_navTitleLabel);
     }];
@@ -603,7 +607,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.width.mas_equalTo(75);
 
     }];
-    self.switchAppListButton.alpha = !self.searchView.alpha;
+    self.switchAppListButton.alpha = !self.searchBar.alpha;
     
 }
 
@@ -685,7 +689,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     self.currentSearchKeyword = searchBar.searchTextField.text;
     NSLog(@"键盘点击搜索:%@",self.currentSearchKeyword);
-    self.searchView.alpha = self.currentSearchKeyword.length > 0;
+    self.searchBar.alpha = self.currentSearchKeyword.length > 0;
     [self performSearchWithKeyword:self.currentSearchKeyword]; // 调用防抖搜索
     [self.view endEditing:YES];
     [self updateViewConstraints];

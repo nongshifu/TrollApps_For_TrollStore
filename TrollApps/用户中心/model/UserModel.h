@@ -30,6 +30,7 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 @property (nonatomic, copy) NSString *qq;
 @property (nonatomic, copy) NSString *tg;
 @property (nonatomic, copy) NSString *bio;
+@property (nonatomic, copy) NSString *moodStatus;
 @property (nonatomic, assign) NSInteger gender;
 @property (nonatomic, copy) NSString *token;
 @property (nonatomic, copy) NSString *email;
@@ -46,7 +47,10 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 @property (nonatomic, assign) NSInteger app_count;
 @property (nonatomic, assign) NSInteger role;
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
-
+@property (nonatomic, assign) NSInteger follower_count;//粉丝量
+@property (nonatomic, assign) NSInteger following_count;//关注量
+@property (nonatomic, assign) BOOL isFollow;//是否已经关注
+@property (nonatomic, assign) BOOL isShowFollows;//是否显示收藏列表 关注列表等隐私内容
 /**
  判断VIP是否到期
  @param vipDateString VIP到期日期字符串（格式：yyyy-MM-dd HH:mm:ss）

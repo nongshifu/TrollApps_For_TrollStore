@@ -20,6 +20,7 @@
 #import "FeedbackViewController.h"
 #import "loadData.h"
 #import "moodStatusViewController.h"
+#import "UserProfileViewController.h"
 // 是否打印日志
 #define MY_NSLog_ENABLED YES
 #define NSLog(fmt, ...) \
@@ -35,6 +36,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIButton *udidButton;     // UDID获取按钮
 @property (nonatomic, strong) UILabel *statusLabel;     // 显示获取状态
 @property (nonatomic, strong) UILabel *vipExpireLabel;
+@property (nonatomic, strong) UILabel *bioTextView;
+@property (nonatomic, strong) UITextView *moodTextView;
 @property (nonatomic, strong) UILabel *serialNumberLabel;
 
 @property (nonatomic, strong) UIAlertController *loadingAlert;
@@ -285,6 +288,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.nicknameLabel.userInteractionEnabled = YES;
     [self.nicknameLabel addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeNickname:)]];
     [self.view addSubview:self.nicknameLabel];
+    // 个性签名
+    self.bioTextView = [UILabel new];
+    self.bioTextView.numberOfLines = 3;
+    self.bioTextView.font = [UIFont boldSystemFontOfSize:10];
+    self.bioTextView.textAlignment = NSTextAlignmentCenter;
+    self.bioTextView.textColor = [UIColor secondaryLabelColor];
+    [self.view addSubview:self.bioTextView];
     
     // UDID按钮
     self.udidButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -315,6 +325,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.vipExpireLabel.textColor = [UIColor systemOrangeColor];
     self.vipExpireLabel.hidden = YES; // 默认隐藏
     [self.view addSubview:self.vipExpireLabel];
+    
+    
+    //状态
+    self.moodTextView = [UITextView new];
+    self.moodTextView.editable = NO;
+    self.moodTextView.backgroundColor = [UIColor clearColor];
+    self.moodTextView.font = [UIFont systemFontOfSize:10];
+    [self.view addSubview:self.moodTextView];
     
     // 移除原有collectionView，添加备用视图（后期放VIP套餐表格）
     [self.collectionView removeFromSuperview];
@@ -376,7 +394,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     };
 }
 
-
+//设置导航
 - (void)setupNavigationBar {
     self.zx_showSystemNavBar = NO;
     self.zx_hideBaseNavBar = NO;
@@ -384,11 +402,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.zx_navBar.zx_lineViewHeight = 0;
     self.zx_navBarBackgroundColorAlpha = 0;
     
-    [self zx_setLeftBtnWithImg:[UIImage systemImageNamed:@"star.lefthalf.fill"] clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
-        MyCollectionViewController *vc = [MyCollectionViewController new];
+    [self zx_setLeftBtnWithImg:[UIImage systemImageNamed:@"applelogo"] clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
+        UserProfileViewController *vc = [UserProfileViewController new];
+        
+        vc.user_udid = self.userInfo.udid;
         [self presentPanModal:vc];
     }];
-    [self zx_setSubLeftBtnWithText:@"发布状态" clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
+    [self zx_setSubLeftBtnWithText:@"动态" clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
         moodStatusViewController *vc = [moodStatusViewController new];
         vc.udid = self.userInfo.udid;
         [self presentPanModal:vc];
@@ -425,10 +445,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.centerX.equalTo(self.view);
         make.height.equalTo(@30);
     }];
+    // 个性签名
+    [self.bioTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.nicknameLabel.mas_bottom).offset(10);
+        make.centerX.equalTo(self.view);
+        make.width.equalTo(@(kWidth-80));
+    }];
     
     // UDID按钮约束
     [self.udidButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.nicknameLabel.mas_bottom).offset(10);
+        make.top.equalTo(self.bioTextView.mas_bottom).offset(10);
         make.centerX.equalTo(self.view);
         make.height.equalTo(@40);
         make.width.equalTo(@(kWidth-80));
@@ -447,9 +473,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.centerX.equalTo(self.view);
     }];
     
+    // 心情状态
+    [self.moodTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.vipExpireLabel.mas_bottom).offset(10);
+        make.centerX.equalTo(self.view);
+        make.width.equalTo(@(kWidth-80));
+        make.height.equalTo(@0);
+    }];
+    
     // 备用视图约束（后期VIP套餐表格）
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.vipExpireLabel.mas_bottom).offset(20);
+        make.top.equalTo(self.moodTextView.mas_bottom).offset(20);
         make.left.equalTo(self.view).offset(20);
         make.right.equalTo(self.view).offset(-20);
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
@@ -470,13 +504,25 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [UIView animateWithDuration:0.5 animations:^{
         if(self.isScrollingUp && self.scrollY >0 && self.scrollY <=100){
+            CGFloat avaWidth = 0;
             [self.avatarImageView mas_updateConstraints:^(MASConstraintMaker *make) {
-                make.width.height.equalTo(@100);
+                make.width.height.equalTo(@(avaWidth));
             }];
-            self.avatarImageView.layer.cornerRadius = 50;
+            self.avatarImageView.layer.cornerRadius = avaWidth/2;
+            self.bioTextView.text = self.userInfo.moodStatus;
+            [self.nicknameLabel mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.height.equalTo(@(0));
+            }];
+            [self zx_setMultiTitle:self.userInfo.nickname subTitle:self.userInfo.bio];
         }else if(!self.isScrollingUp && self.scrollY <=20){
             [self.avatarImageView mas_updateConstraints:^(MASConstraintMaker *make) {
                 make.width.height.equalTo(@200);
+            }];
+            self.bioTextView.text = self.userInfo.bio;
+            [self zx_setMultiTitle:@"" subTitle:@""];
+            self.nicknameLabel.text = self.userInfo.nickname;
+            [self.nicknameLabel mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.height.equalTo(@(self.nicknameLabel.font.pointSize));
             }];
             self.avatarImageView.layer.cornerRadius = 100;
         }
@@ -518,7 +564,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }
         }];
     }
+    if(self.userInfo.bio.length>0){
+        self.bioTextView.text = userModel.bio;
+    }
+    if(self.userInfo.moodStatus.length>0){
+        self.bioTextView.text = userModel.bio;
+    }
     
+    [self.moodTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.vipExpireLabel.mas_bottom).offset(10);
+        make.centerX.equalTo(self.view);
+        make.width.equalTo(@(kWidth-80));
+        make.height.equalTo(@0);
+    }];
     // 3. 更新UDID显示（核心适配点）
     if (userModel.udid.length > 0) {
         // 已获取UDID
@@ -573,10 +631,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)loginRCIM{
+    
     [[RCCoreClient sharedCoreClient] connectWithToken:self.userInfo.token dbOpened:^(RCDBErrorCode code) {
         //消息数据库打开，可以进入到主页面
         NSLog(@"消息数据库打开，可以进入到主页面");
-        
+       
     } success:^(NSString *userId) {
         //连接成功
         NSLog(@"连接成功");
@@ -595,6 +654,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [RCIM sharedRCIM].currentUserInfo = _currentUserInfo;
             //刷新本地缓存
             [[RCIM sharedRCIM] refreshUserInfoCache:_currentUserInfo withUserId:userId];
+            
             
         });
         

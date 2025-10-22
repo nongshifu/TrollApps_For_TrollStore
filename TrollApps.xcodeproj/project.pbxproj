@@ -1395,7 +1395,7 @@
 		};
 		C287212D2E28266500ABC6AE /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
+			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1406,7 +1406,7 @@
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\n# 1. ldid 工具路径（如果已在环境变量中可省略，否则填绝对路径）\nLDID_PATH=\"ldid\"\n# 2. 权限文件 RootSign.entitlements 路径（相对于项目根目录或绝对路径）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"\n# 3. IPA 输出目录（默认为桌面，可自定义）\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\n# 4. IPA 文件名（默认为项目名+时间戳）\nIPA_NAME=\"${PROJECT_NAME}.ipa\"\n\n# ==============================================\n# 自动获取 Xcode 编译产物路径（无需修改）\n# ==============================================\n# 编译后的 .app 路径\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\n# .app 内的可执行文件路径（与 PRODUCT_NAME 同名）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 检查必要文件是否存在\n# ==============================================\n# 检查 .app 是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：编译产物 .app 不存在，路径：${APP_PATH}\"\n    exit 1\nfi\n\n# 检查可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在，路径：${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# 检查 ldid 是否可用\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then\n    echo \"❌ 错误：未找到 ldid 工具，请检查路径是否正确\"\n    exit 1\nfi\n\n# 检查权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：RootSign.entitlements 不存在，路径：${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 使用 ldid 签名可执行文件\n# ==============================================\necho \"📝 开始使用 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\n# 检查签名是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ 签名失败！请检查 entitlements 文件格式或 ldid 权限\"\n    exit 1\nfi\necho \"✅ 签名成功！\"\n\n# ==============================================\n# 打包 IPA（IPA 要求应用必须放在 Payload 目录下）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的 .app 到 Payload 目录\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\n# 压缩为 IPA\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r \"${IPA_FULL_PATH}\" .\n\n# 检查打包是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ IPA 打包失败！\"\n    exit 1\nfi\n\n# 清理临时文件\nrm -rf \"${TMP_IPA_DIR}\"\n\necho \"✅ IPA 打包完成！路径：${IPA_FULL_PATH}\"\n";
 		};

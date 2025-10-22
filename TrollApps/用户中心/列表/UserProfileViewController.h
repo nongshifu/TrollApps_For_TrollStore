@@ -16,8 +16,6 @@ NS_ASSUME_NONNULL_BEGIN
 /// 更新用户模型并刷新UI
 - (void)updateWithUserModel:(UserModel *)userModel;
 
-@property (nonatomic, strong) UserModel *userInfo;
-
 //查询用户的UDID
 @property (nonatomic, strong) NSString *user_udid;
 

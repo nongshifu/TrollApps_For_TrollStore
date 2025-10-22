@@ -51,6 +51,7 @@
     
     // 内容信息对比（影响展示的文本/URL）
     if (![self.app_description isEqualToString:other.app_description]) return NO;
+    
     if (![self.version_name isEqualToString:other.version_name]) return NO;
     if (![self.icon_url isEqualToString:other.icon_url]) return NO;
     if (![self.release_notes isEqualToString:other.release_notes]) return NO;

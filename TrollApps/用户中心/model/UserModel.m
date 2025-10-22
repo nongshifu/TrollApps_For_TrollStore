@@ -43,13 +43,19 @@
     if (![self.qq isEqualToString:other.qq]) return NO;
     if (![self.tg isEqualToString:other.tg]) return NO;
     if (![self.bio isEqualToString:other.bio]) return NO;
+    if (![self.moodStatus isEqualToString:other.moodStatus]) return NO;
     
     // 状态信息对比
     if (self.gender != other.gender) return NO;
+    if (self.isFollow != other.isFollow) return NO;
+    if (self.isShowFollows != other.isShowFollows) return NO;
+    
     if (self.vip_level != other.vip_level) return NO;
     if (self.downloads_number != other.downloads_number) return NO;
     if (self.like_count != other.like_count) return NO;
     if (self.reply_count != other.reply_count) return NO;
+    if (self.follower_count != other.follower_count) return NO;
+    if (self.following_count != other.following_count) return NO;
     if (self.app_count != other.app_count) return NO;
     if (self.role != other.role) return NO;
     

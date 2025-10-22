@@ -132,6 +132,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     return NO;
 }
+
 #pragma mark -监听主题
 - (void)topBackageView{
     //创建一个空视图渐变色

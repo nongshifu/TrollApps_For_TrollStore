@@ -114,7 +114,7 @@
     //发送消息携带用户信息
     [RCIM sharedRCIM].enableMessageAttachUserInfo = YES;
     //是否持久化缓存用户信息缓存
-    [RCIM sharedRCIM].enablePersistentUserInfoCache = NO;
+    [RCIM sharedRCIM].enablePersistentUserInfoCache = YES;
     //用户信息代理
     [RCIM sharedRCIM].userInfoDataSource = self;
     
@@ -125,20 +125,23 @@
     NSLog(@"读取用户信息：%@",userId);
    
     [UserModel getUserInfoWithUserId:userId success:^(UserModel * _Nonnull userModel) {
+        NSLog(@"读取用户信息：%@",userModel);
         if(userModel){
             
             NSString *avaurl = [NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970];
+            NSLog(@"读取用户信息avaurl：%@",avaurl);
             RCUserInfo *userInfo = [[RCUserInfo alloc] initWithUserId:userId name:userModel.nickname portrait:avaurl];
+            [[RCIM sharedRCIM] refreshUserInfoCache:userInfo withUserId:userId];
             if(userInfo){
                 NSDictionary *userDic = [userModel yy_modelToJSONObject];
                 if(userDic){
                     userInfo.extra = [userDic yy_modelToJSONString];
                 }
-                completion(userInfo);
+                return completion(userInfo);
             }
         }
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
-        completion(nil);
+        return completion(nil);
     }];
     
 }

@@ -105,7 +105,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)setupSubviews {
     // 1. 输入提示标签
     self.hintLabel = [UILabel new];
-    self.hintLabel.text = @"分享你的心情吧...";
+    self.hintLabel.text = @"分享你的动态心情吧...";
     self.hintLabel.textColor = [UIColor labelColor];
     self.hintLabel.font = [UIFont systemFontOfSize:16];
     [self.view addSubview:self.hintLabel];
@@ -114,8 +114,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.contentTextView = [UITextView new];
     self.contentTextView.font = [UIFont systemFontOfSize:16];
     self.contentTextView.delegate = self;
-    self.contentTextView.backgroundColor = [UIColor clearColor];
+    self.contentTextView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
     self.contentTextView.returnKeyType = UIReturnKeyDone;
+    self.contentTextView.layer.cornerRadius = 15;
     [self.view addSubview:self.contentTextView];
     
     // 3. 字数统计标签（固定在安全区域底部，与contentTextView分离）
@@ -291,11 +292,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // contentTextView初始约束：顶部接hintLabel，底部距离安全区域底部有默认间距
     [self.contentTextView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.hintLabel.mas_bottom).offset(8);
+        make.top.equalTo(self.hintLabel.mas_bottom).offset(16);
         make.left.right.equalTo(self.view).inset(16);
-        make.height.equalTo(@300);
-//        make.bottom.equalTo(self.wordCountLabel.mas_top).offset(-10);
+//        make.height.equalTo(@300);
+        make.bottom.equalTo(self.wordCountLabel.mas_top).offset(-10);
     }];
     
+}
+#pragma mark - HWPanModalPresentable
+
+- (PanModalHeight)longFormHeight {
+    return PanModalHeightMake(PanModalHeightTypeContent, 500);
+}
+- (CGFloat)keyboardOffsetFromInputView{
+    return 30;
 }
 @end

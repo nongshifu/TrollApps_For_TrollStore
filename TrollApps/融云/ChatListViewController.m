@@ -182,7 +182,7 @@
 
 // 自定义 cell
 - (void)willDisplayConversationTableCell:(RCConversationBaseCell *)cell atIndexPath:(NSIndexPath *)indexPath {
-    
+    [super willDisplayConversationTableCell:cell atIndexPath:indexPath];
     RCConversationCell *mycel = (RCConversationCell *)cell;
     mycel.backgroundColor = [UIColor clearColor];
     mycel.selectionStyle = UITableViewCellSelectionStyleNone;  // 禁用 cell 的点击效果
@@ -204,7 +204,7 @@
     
     //显示最后一条内容的Label
     mycel.messageContentLabel.textColor = [UIColor secondaryLabelColor];
-    mycel.messageContentLabel.text = [self truncateString:model.lastestMessage.conversationDigest];
+//    mycel.messageContentLabel.text = [self truncateString:model.lastestMessage.conversationDigest];
     mycel.messageContentLabel.layer.masksToBounds = YES;
     
     //显示最后一条内容的时间
@@ -224,14 +224,14 @@
     
     
 
-//
+
 //
 //    [UserModel getUserInfoWithUdid:targetId success:^(UserModel * _Nonnull userModel) {
 //        [self updateCellUIWithUserId:userModel cell:mycel];
 //    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
 //
 //    }];
-    
+//    
     
 }
 

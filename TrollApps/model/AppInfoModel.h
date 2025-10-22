@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *update_date;
 @property (nonatomic, copy) NSString *udid;
 @property (nonatomic, copy) NSString *idfv;
+
 @property (nonatomic, assign) NSInteger like_count;
 @property (nonatomic, assign) BOOL isLike;
 @property (nonatomic, assign) NSInteger collect_count;

@@ -12,8 +12,9 @@
 #import "ShowOneAppViewController.h"
 #import "WebToolModel.h"
 #import "ToolViewCell.h"
+#import "UserModelCell.h"
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -64,13 +65,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     if(self.selectedIndex==0){
         [self loadUserAppDataWithPage:page];
-    }else{
+    }else if(self.selectedIndex==1){
         [self loadToolDataWithPage:page];
+    }else if(self.selectedIndex==2){
+        [self loadUserFollowerDataWithPage:page type:YES];
+    }else if(self.selectedIndex==3){
+        [self loadUserFollowerDataWithPage:page type:NO];
     }
     
 }
 /**
- 加载指定页数数据（子类必须实现）
+ 加载用户web工具
  @param page 当前请求的页码
  */
 - (void)loadToolDataWithPage:(NSInteger)page{
@@ -159,7 +164,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 /**
- 加载指定页数数据（子类必须实现）
+ 加载用户APP
  @param page 当前请求的页码
  */
 - (void)loadUserAppDataWithPage:(NSInteger)page{
@@ -242,6 +247,92 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 }
 
+
+/**
+ 加载用户粉丝 isFollower = YES 粉丝列表   isFollower = NO 关注列表
+ @param page 当前请求的页码
+ */
+- (void)loadUserFollowerDataWithPage:(NSInteger)page type:(BOOL)isFollower{
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    
+    if (!udid || udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
+    
+    NSString * keyword = self.keyword ? self.keyword : @"";
+    NSDictionary *dic = @{
+        @"action":@"getFollowList",
+        @"keyword":keyword,
+        @"tag":self.tag ?:@"",
+        @"pageSize":@(20),
+        @"udid":udid,
+        @"sortType":@(self.sort),
+        @"page":@(page)
+        
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];
+    
+    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+   
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+            
+        } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self endRefreshing];
+                if(self.page <=1){
+                    [self.dataSource removeAllObjects];
+                }
+                if(!jsonResult) {
+                    NSLog(@"返回数据类型错误: %@", stringResult);
+                    [SVProgressHUD showErrorWithStatus:@"返回数据类型错误"];
+                    [SVProgressHUD dismissWithDelay:2 completion:nil];
+                    return;
+                }
+                
+                NSLog(@"读取数据jsonResult: %@", jsonResult);
+                NSInteger  code = [jsonResult[@"code"] intValue];
+                
+                NSString *message = jsonResult[@"msg"];
+                
+                if(code == 200){
+                    NSDictionary * data = jsonResult[@"data"];
+                    NSDictionary * pagination =data[@"pagination"];
+                    NSArray *list =data[@"list"];
+                    for (NSDictionary *dic in list) {
+                        UserModel *model = [UserModel yy_modelWithDictionary:dic];
+                        [self.dataSource addObject:model];
+                    }
+                    [self refreshTable];
+                    BOOL hasMore = [pagination[@"hasMore"] boolValue];
+                    if(!hasMore){
+                        [self handleNoMoreData];
+                    }
+                    
+                    
+                }else{
+                    NSLog(@"数据搜索失败出错: %@", message);
+                    [SVProgressHUD showErrorWithStatus:message];
+                    [SVProgressHUD dismissWithDelay:2 completion:^{
+                        return;
+                    }];
+                }
+                
+            });
+        } failure:^(NSError *error) {
+            NSLog(@"异步请求Error: %@", error);
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
+            [SVProgressHUD dismissWithDelay:2 completion:nil];
+        }];
+    
+    
+
+
+}
+
+
 /**
  返回对应的 SectionController（子类必须实现）
  @param object 数据模型对象
@@ -251,12 +342,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     if ([object isKindOfClass:[AppInfoModel class]]) {
         
         return [[TemplateSectionController alloc] initWithCellClass:[AppInfoCell class] modelClass:[AppInfoModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
-    }else{
-        if ([object isKindOfClass:[WebToolModel class]]) {
-            
-            return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
-        }
+    }else if ([object isKindOfClass:[WebToolModel class]]) {
+        
+        return [[TemplateSectionController alloc] initWithCellClass:[ToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
+    }else if ([object isKindOfClass:[UserModel class]]) {
+        
+        return [[TemplateSectionController alloc] initWithCellClass:[UserModelCell class] modelClass:[UserModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:NO];
     }
+    
     return nil;
 }
 

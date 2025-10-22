@@ -195,6 +195,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)refreshLoadInitialData {
     if(self.dataSource.count>0){
         [self.dataSource removeAllObjects];
+        
     }
     
     self.page = 1;

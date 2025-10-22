@@ -18,6 +18,7 @@
 #import "ContactHelper.h"
 #import "WebToolModel.h"
 #import "MoodStatusModel.h"
+#import "MyCollectionViewController.h"
 //是否打印
 #define MY_NSLog_ENABLED NO
 
@@ -27,11 +28,17 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource>
+@interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
+
+@property (nonatomic, strong) UserModel *userInfo;
+
 @property (nonatomic, strong) UIImageView *avatarImageView;//头像
 @property (nonatomic, strong) UILabel *nicknameLabel;//名字
+@property (nonatomic, strong) UILabel *bioLabel;//简介
 @property (nonatomic, strong) UILabel *jianjie;//简介
 @property (nonatomic, strong) UIButton *contact;//联系对方
+@property (nonatomic, strong) UIButton *followButtom;//关注按钮
+@property (nonatomic, strong) UIButton *showFollowListButton;//显示粉丝列表
 
 @property (nonatomic, strong) UISegmentedControl *segmentedControl;
 @property (nonatomic, assign) NSInteger selectedIndex;
@@ -46,6 +53,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UIPageViewController *pageViewController; // 页面控制器
 @property (nonatomic, strong) UserListViewController *currentVC;//所选择的控制器
 
+@property (nonatomic, strong) UISearchBar *searchBar; // 搜索框
+@property (nonatomic, assign) BOOL isSearch; // 搜索状态
 @end
 
 @implementation UserProfileViewController
@@ -90,14 +99,41 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     tapGesture.cancelsTouchesInView = NO; // 确保不影响其他控件的事件
     self.avatarImageView.userInteractionEnabled = YES;
     [self.avatarImageView addGestureRecognizer:tapGesture];
-    
-   
     [self.view addSubview:self.avatarImageView];
+    
+    
+    // 初始化关注按钮（使用自定义类型，避免系统默认样式干扰）
+    self.followButtom = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.followButtom.layer.cornerRadius = 10;
+    self.followButtom.layer.masksToBounds = YES; // 确保圆角生效
+    self.followButtom.titleLabel.font = [UIFont systemFontOfSize:13];
+    self.followButtom.backgroundColor = [UIColor redColor];
+
+    // 3. 可选：设置按钮文字（如需要）
+    [self.followButtom setTitle:@"关注" forState:UIControlStateNormal];
+    [self.followButtom setTitle:@"已关注" forState:UIControlStateSelected];
+    [self.followButtom setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
+    self.followButtom.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
+
+
+    // 绑定点击事件
+    [self.followButtom addTarget:self action:@selector(followButtomTap:) forControlEvents:UIControlEventTouchUpInside];
+
+    [self.view addSubview:self.followButtom];
+    
+    
+    
+    
+    
+    self.contact = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.contact setTitle:@"@ TA" forState:UIControlStateNormal];
+    [self.contact addTarget:self action:@selector(contactButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.contact];
     
     // 昵称
     self.nicknameLabel = [[UILabel alloc] init];
     self.nicknameLabel.text = @"用户中心"; // 默认未注册
-    self.nicknameLabel.font = [UIFont boldSystemFontOfSize:24];
+    self.nicknameLabel.font = [UIFont boldSystemFontOfSize:20];
     self.nicknameLabel.textAlignment = NSTextAlignmentCenter;
     self.nicknameLabel.userInteractionEnabled = YES;
     UITapGestureRecognizer *tapGesture2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(editProfile:)];
@@ -106,10 +142,20 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.nicknameLabel addGestureRecognizer:tapGesture2];
     [self.view addSubview:self.nicknameLabel];
     
+    // 个性签名
+    self.bioLabel = [[UILabel alloc] init];
+    self.bioLabel.text = @"个性签名"; // 默认未注册
+    self.bioLabel.font = [UIFont boldSystemFontOfSize:10];
+    self.bioLabel.textAlignment = NSTextAlignmentCenter;
+    self.bioLabel.numberOfLines = 3;
+    self.bioLabel.textColor = [UIColor secondaryLabelColor];
+    [self.view addSubview:self.bioLabel];
+    
+    
     // 简介
     self.jianjie = [[UILabel alloc] init];
     self.jianjie.text = @"简介"; // 默认未注册
-    self.jianjie.font = [UIFont boldSystemFontOfSize:14];
+    self.jianjie.font = [UIFont boldSystemFontOfSize:12];
     self.jianjie.textAlignment = NSTextAlignmentCenter;
     self.jianjie.numberOfLines = 0;
     self.jianjie.textColor = [UIColor orangeColor];
@@ -119,6 +165,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.jianjie.userInteractionEnabled = YES;
     [self.jianjie addGestureRecognizer:tapGesture3];
     [self.view addSubview:self.jianjie];
+    
+    self.showFollowListButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.showFollowListButton.layer.cornerRadius = 10;
+    self.showFollowListButton.layer.masksToBounds = YES; // 确保圆角生效
+    self.showFollowListButton.titleLabel.font = [UIFont systemFontOfSize:13];
+    self.showFollowListButton.backgroundColor = [UIColor systemGrayColor];
+
+    // 3. 可选：设置按钮文字（如需要）
+    [self.showFollowListButton setTitle:@"查看Ta的 收藏/粉丝/关注" forState:UIControlStateNormal];
+    
+    [self.showFollowListButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
+    self.showFollowListButton.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
+    // 绑定点击事件
+    [self.showFollowListButton addTarget:self action:@selector(showFollowListButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.showFollowListButton];
     
     
     // 选项卡标题
@@ -131,10 +192,33 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.segmentedControl];
     
+    // 搜索框（新增）
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 150, 35)];
+    self.searchBar.delegate = self;
+    self.searchBar.placeholder = @"搜索内容...";
+    self.searchBar.searchTextField.layer.borderWidth = 1;
+    self.searchBar.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.2].CGColor;
+//    self.searchBar.alpha = 0;
+    // 设置背景图片为透明
+    [self.searchBar setBackgroundImage:[UIImage new]];
+    
+    // 设置搜索框的背景颜色
+    UITextField *searchField = [self.searchBar valueForKey:@"searchField"];
+    if (searchField) {
+        searchField.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3]
+                                                         darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.1]
+        ];
+        searchField.font = [UIFont systemFontOfSize:12];
+        searchField.layer.cornerRadius = 10.0;
+        searchField.layer.masksToBounds = YES;
+    }
+    
+    [self.view addSubview:self.searchBar];
+    
     //排序
     self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.sortButton.layer.cornerRadius = 15;
-    self.sortButton.titleLabel.font = [UIFont boldSystemFontOfSize:13];
+    self.sortButton.titleLabel.font = [UIFont systemFontOfSize:13];
     [self.sortButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
     self.sortButton.backgroundColor = [UIColor colorWithLightColor:[UIColor whiteColor] darkColor:[[UIColor whiteColor] colorWithAlphaComponent:0.2]];
     [self.sortButton setTitle:@"NEW" forState:UIControlStateNormal];
@@ -142,7 +226,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.view addSubview:self.sortButton];
     
     self.contact = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.contact setTitle:@"联系TA" forState:UIControlStateNormal];
+    [self.contact setTitle:@"@ Ta" forState:UIControlStateNormal];
     [self.contact addTarget:self action:@selector(contactButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.contact];
     
@@ -205,6 +289,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //设置约束
 - (void)setupViewConstraints {
+    CGFloat height = 36;
     [self.contact mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.view).offset(-25);
         make.top.equalTo(self.view).offset(15);
@@ -217,32 +302,63 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.width.height.equalTo(@140);
        
     }];
+    [self.followButtom mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.right.equalTo(self.avatarImageView);
+        make.height.mas_equalTo(@25);
+    }];
+    
+    
     [self.nicknameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
         make.width.equalTo(@200);
        
     }];
-    [self.jianjie mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.bioLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.nicknameLabel.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
         make.width.equalTo(@(kWidth-40));
        
     }];
+    //简介数据摘要
+    [self.jianjie mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.bioLabel.mas_bottom).offset(15);
+        make.centerX.equalTo(self.view);
+        make.width.equalTo(@(kWidth-40));
+       
+    }];
+    //粉丝列表按钮
+    [self.showFollowListButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+        make.centerX.equalTo(self.view);
+        make.height.mas_equalTo(25);
+    }];
+    
     //选项卡
     [self.segmentedControl mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+        make.top.equalTo(self.showFollowListButton.mas_bottom).offset(15);
         make.left.equalTo(self.view.mas_left).offset(20);
-        make.width.equalTo(@200);
-        make.height.equalTo(@30);
+        make.height.mas_equalTo(height);
     }];
+    
+    
+    
     //排序按钮
     [self.sortButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+        make.centerY.equalTo(self.segmentedControl);
         make.right.equalTo(self.view.mas_right).offset(-20);
-        make.height.equalTo(@30);
-        make.width.equalTo(@50);
+        make.height.mas_equalTo(height);
+        make.width.equalTo(@45);
     }];
+    
+    // 搜索框约束（新增）
+    [self.searchBar mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.segmentedControl.mas_right).offset(5);
+        make.right.equalTo(self.sortButton.mas_left).offset(-5);
+        make.height.mas_equalTo(height);
+        make.centerY.equalTo(self.segmentedControl);
+    }];
+    
     // 表格视图约束（合并冲突的旧约束）
     [self.pageViewController.view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.sortButton.mas_bottom).offset(15);
@@ -266,7 +382,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super updateViewConstraints];
     
     
-    if(self.currentVC.isScrollingUp && self.currentVC.scrollY >0 && self.currentVC.scrollY <=100){
+    if(self.currentVC.isScrollingUp && self.currentVC.scrollY >0 && self.currentVC.scrollY <=50){
         CGFloat width = 60;
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.view).offset(20);
@@ -282,14 +398,35 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
         }];
         self.nicknameLabel.textAlignment = NSTextAlignmentLeft;
-        
-        [self.jianjie mas_remakeConstraints:^(MASConstraintMaker *make) {
+        [self.bioLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.nicknameLabel.mas_bottom).offset(10);
             make.left.equalTo(self.avatarImageView.mas_right).offset(10);
             make.right.equalTo(self.view.mas_right).offset(-20);
             
         }];
+        self.bioLabel.textAlignment = NSTextAlignmentLeft;
+        
+        [self.jianjie mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.bioLabel.mas_bottom).offset(10);
+            make.left.equalTo(self.avatarImageView.mas_right).offset(10);
+            make.right.equalTo(self.view.mas_right).offset(-20);
+            
+        }];
         self.jianjie.textAlignment = NSTextAlignmentLeft;
+        
+        
+        [self.followButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.bottom.equalTo(self.avatarImageView.mas_bottom).offset(15);
+            make.height.mas_equalTo(@20);
+            make.centerX.equalTo(self.avatarImageView);
+        }];
+        self.followButtom.layer.cornerRadius = 10;
+        
+        [self.showFollowListButton mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+            make.left.equalTo(self.avatarImageView);
+            make.height.mas_equalTo(25);
+        }];
         
     }else if(!self.currentVC.isScrollingUp && self.currentVC.scrollY <=20){
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
@@ -299,6 +436,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             
         }];
         self.avatarImageView.layer.cornerRadius = 70;
+        [self.followButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.bottom.right.equalTo(self.avatarImageView);
+            make.height.mas_equalTo(@25);
+        }];
+        self.followButtom.layer.cornerRadius = 12.5;
         
         [self.nicknameLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
@@ -306,18 +448,33 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             make.width.equalTo(@200);
             
         }];
+        [self.bioLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.nicknameLabel.mas_bottom).offset(10);
+            make.centerX.equalTo(self.view);
+            make.width.equalTo(@(kWidth-40));
+            
+        }];
+        self.bioLabel.textAlignment = NSTextAlignmentCenter;
         self.nicknameLabel.textAlignment = NSTextAlignmentCenter;
         
         [self.jianjie mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(self.nicknameLabel.mas_bottom).offset(15);
+            make.top.equalTo(self.bioLabel.mas_bottom).offset(15);
             make.centerX.equalTo(self.view);
             make.width.equalTo(@(kWidth-40));
             
         }];
         self.jianjie.textAlignment = NSTextAlignmentCenter;
         
+        [self.showFollowListButton mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+            make.centerX.equalTo(self.view);
+            make.height.mas_equalTo(25);
+        }];
+        
         
     }
+    
+    
     [self.currentVC.scrollToTopButton mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.currentVC.collectionView.mas_bottom).offset(-10);
         make.width.height.equalTo(@35);
@@ -326,15 +483,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     // 表格视图约束
-    CGFloat offsetY = self.selectedIndex ==0 ? 0 :50;//如果在评论列表页面 上移动50给评论视图
+    CGFloat offsetY = self.selectedIndex == 2 ? 50 :0;//如果在评论列表页面 上移动50给评论视图
     [self.pageViewController.view mas_updateConstraints:^(MASConstraintMaker *make) {
        
         make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight - offsetY);
     }];
     
     [UIView animateWithDuration:0.4 animations:^{
-        //仅在评论列表显示发布评论视图
-        self.commentInputView.alpha = self.selectedIndex;
+        //仅在评论列表显示发布评论视图 并且非搜索状态
+        self.commentInputView.alpha = (self.selectedIndex == 2 && !self.isSearch);
         
         CGFloat offsHeight = self.keyboardIsShow ? self.keyboardHeight : 0;
         self.commentInputView.frame = CGRectMake(0, self.viewHeight - offsHeight - self.originalInputHeight, kWidth, self.originalInputHeight);
@@ -434,33 +591,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark - 读取用户数据
 
-/// 更新用户模型并刷新UI
-- (void)updateWithUserModel:(UserModel *)userModel {
-    
-    // 1. 更新昵称
-    self.nicknameLabel.text = userModel.nickname.length > 0 ? userModel.nickname : @"用户名";
-    
-    // 2. 更新头像
-    if (userModel.avatar.length > 0) {
-        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
-        NSLog(@"avatarURL:%@",avatarURL);
-        // 加载图片，使用刷新缓存选项
-        [self.avatarImageView sd_setImageWithURL:avatarURL
-                              placeholderImage:self.avatarImageView.image?:[UIImage systemImageNamed:@"person.crop.circle.fill"]
-                                         options:SDWebImageRefreshCached completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if(image){
-                self.avatarImageView.image = image;
-                
-            }
-        }];
-    }
-    // 统计信息（下载量+注册时间）
-    NSString *total = [NSString stringWithFormat:@"发布APP: %ld 个 · 收到攒: %ld · 评论: %ld\n", userModel.app_count,userModel.like_count,userModel.reply_count];
-    NSString *registerDate = [TimeTool getTimeformatDateForDay:userModel.register_time];
-    self.jianjie.text = [NSString stringWithFormat:@"%@注册于 %@", total, registerDate];
-}
-
-
 // 请求用户数据
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
     _user_udid = udid;
@@ -521,7 +651,42 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }];
 }
 
-
+/// 更新用户模型并刷新UI
+- (void)updateWithUserModel:(UserModel *)userModel {
+    
+    // 1. 更新昵称
+    self.nicknameLabel.text = userModel.nickname.length > 0 ? userModel.nickname : @"用户名";
+    
+    // 2. 更新头像
+    if (userModel.avatar.length > 0) {
+        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+        NSLog(@"avatarURL:%@",avatarURL);
+        // 加载图片，使用刷新缓存选项
+        [self.avatarImageView sd_setImageWithURL:avatarURL
+                              placeholderImage:self.avatarImageView.image?:[UIImage systemImageNamed:@"person.crop.circle.fill"]
+                                         options:SDWebImageRefreshCached completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+            if(image){
+                self.avatarImageView.image = image;
+                
+            }
+        }];
+    }
+    self.bioLabel.text =userModel.bio.length>0 ? userModel.bio : @"个性签名";
+    // 统计信息（下载量+注册时间）
+    NSString *total = [NSString stringWithFormat:@"APP: %ld 个 · 收到攒: %ld · 评论: %ld · 粉丝量：%ld\n", userModel.app_count,userModel.like_count,userModel.reply_count,userModel.follower_count];
+    NSString *registerDate = [TimeTool getTimeformatDateForDay:userModel.register_time];
+    self.jianjie.text = [NSString stringWithFormat:@"%@注册于 %@", total, registerDate];
+    if(userModel.isFollow){
+        self.followButtom.selected = YES;
+        self.followButtom.backgroundColor = [UIColor systemBlueColor];
+    }
+    if([userModel.udid isEqual:self.user_udid]){
+        self.followButtom.backgroundColor = [UIColor systemGrayColor];
+        [self.followButtom setTitle:@"自己" forState:UIControlStateNormal];
+        [self.followButtom setTitle:@"自己" forState:UIControlStateSelected];
+        self.followButtom.enabled = NO;
+    }
+}
 
 /**
  * 当滚动视图滚动时调用此方法。
@@ -647,6 +812,82 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     return YES;
 }
 
+//查看粉丝列表
+- (void)followButtomTap:(UIButton *)sender {
+ 
+    
+    // 这里添加网络请求逻辑（调用关注/取关接口）
+    BOOL isFollow = sender.selected; // YES=关注，NO=取关
+    [self requestFollowAction:!isFollow];
+}
+
+#pragma mark - 关注按钮的点击
+
+- (void)showFollowListButtonTap:(UIButton *)sender {
+    if(!self.userInfo.isShowFollows){
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"对方设置了隐私-无法查看哦"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    MyCollectionViewController *vc = [MyCollectionViewController new];
+    vc.selectedIndex = 0;
+    vc.showFollowList = self.userInfo.isShowFollows;
+    [self presentPanModal:vc];
+ 
+}
+
+// 模拟网络请求
+- (void)requestFollowAction:(BOOL)isFollow {
+    // 实际项目中调用接口，根据结果更新状态
+    // 如果接口失败，需要将按钮状态还原：self.followButtom.selected = !isFollow;
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    if (udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
+    // 构建请求参数（根据实际接口调整）
+    NSDictionary *params = @{
+        @"action": @"followAction",
+        @"udid": udid,
+        @"target_udid": self.user_udid,
+        @"isFollow": @(isFollow),
+        
+    };
+    
+    [SVProgressHUD showWithStatus:@"发送中..."];
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                             parameters:params
+                                                   udid:udid
+                                               progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        NSLog(@"关注用户返回jsonResult:%@",jsonResult);
+        NSLog(@"关注用户返回stringResult:%@",stringResult);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(!jsonResult || !jsonResult[@"code"]){
+                return;
+            }
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString * msg = jsonResult[@"msg"];
+            
+            if (code == 200) {
+                NSDictionary *data = jsonResult[@"data"];
+                BOOL isFollow = [data[@"isFollow"] boolValue];
+                self.followButtom.selected = isFollow;
+                self.followButtom.backgroundColor = isFollow ? [UIColor systemBlueColor]:[UIColor systemPinkColor];
+                
+            }
+            [SVProgressHUD showSuccessWithStatus:msg];
+            [SVProgressHUD dismissWithDelay:1];
+        });
+    } failure:^(NSError *error) {
+        [SVProgressHUD showErrorWithStatus:@"网络错误，发送失败"];
+        [SVProgressHUD dismissWithDelay:2];
+    }];
+}
 
 
 #pragma mark - CommentInputViewDelegate
@@ -762,7 +1003,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
         
         // 表格视图约束
-        CGFloat offsetY = self.selectedIndex ==0 ? 0 :50;//如果在评论列表页面 上移动50给评论视图
+        CGFloat offsetY = self.selectedIndex == 2 ? 50 :0;//如果在评论列表页面 上移动50给评论视图
         [self.pageViewController.view mas_updateConstraints:^(MASConstraintMaker *make) {
            
             make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight - offsetY);
@@ -780,5 +1021,61 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }];
     }
 }
+
+
+#pragma mark - UISearchBarDelegate
+
+// 实时输入时触发（延迟搜索，避免频繁请求）
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    // 延迟0.5秒执行，避免输入过程中频繁请求
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(handleSearch:) object:nil];
+    [self performSelector:@selector(handleSearch:) withObject:searchText afterDelay:0.5];
+}
+
+// 点击搜索按钮时触发
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    self.isSearch = NO;
+    [searchBar resignFirstResponder]; // 收起键盘
+    [self handleSearch:searchBar.text];
+    [self updateViewConstraints];
+}
+
+// 取消搜索时触发
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    searchBar.text = @"";
+    [searchBar resignFirstResponder];
+    self.isSearch = NO;
+    [self handleSearch:@""]; // 清空搜索
+    [self updateViewConstraints];
+}
+
+// 处理搜索逻辑（同步关键词到子控制器）
+- (void)handleSearch:(NSString *)keyword {
+    NSString *trimmedKeyword = [keyword stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    
+    // 同步到所有子控制器
+    for (UserListViewController *vc in self.viewControllers) {
+        vc.keyword = trimmedKeyword;
+        vc.page = 1;
+        [vc.dataSource removeAllObjects];
+        [vc loadDataWithPage:vc.page];
+    }
+}
+
+// 开始编辑时显示取消按钮
+- (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar {
+    self.isSearch = YES;
+    searchBar.showsCancelButton = NO;
+    return YES;
+}
+
+// 结束编辑时隐藏取消按钮
+- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
+    self.isSearch = NO;
+    searchBar.showsCancelButton = NO;
+    [self updateViewConstraints];
+}
+
+
 
 @end

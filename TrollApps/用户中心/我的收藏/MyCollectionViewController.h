@@ -11,7 +11,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MyCollectionViewController : DemoBaseViewController
-
+@property (nonatomic, assign) NSInteger selectedIndex;
+@property (nonatomic, assign) BOOL showFollowList;//是否显示关注列表
 @end
 
 NS_ASSUME_NONNULL_END

@@ -25,6 +25,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 @interface MyCollectionViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate,MenuViewControllerDelegate, UIPageViewControllerDelegate,UIPageViewControllerDataSource, UISearchBarDelegate>
+@property (nonatomic, strong) NSArray *titles;//标题数组
+@property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UISearchBar *searchView;//搜索框
 @property (nonatomic, strong) dispatch_source_t searchDebounceTimer; // 搜索防抖定时器
 @property (nonatomic, strong) UIButton *sortButton;
@@ -37,7 +39,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) NSMutableArray <MyFavoritesListViewController*>*viewControllers;
 @property (nonatomic, strong) UIPageViewController *pageViewController; // 页面控制器
 @property (nonatomic, strong) MyFavoritesListViewController *currentVC;//所选择的控制器
-@property (nonatomic, assign) NSInteger selectedIndex;
+
 @property (nonatomic, strong) UIPageControl *pageControl;
 
 @property (nonatomic, strong) NSArray<NSString *>*sortArray;
@@ -51,17 +53,28 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor clearColor];
     self.isTapViewToHideKeyboard = YES;
+    self.titles = @[@"Ta收藏的App",@"Ta收藏的Web工具",@"Ta的粉丝",@"Ta的关注"];
+    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 5, kWidth, 40)];
+    self.titleLabel.text = self.titles[self.selectedIndex];
+    self.titleLabel.textColor = [UIColor labelColor];
+    self.titleLabel.font = [UIFont boldSystemFontOfSize:20];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:self.titleLabel];
 
+    //右侧按钮
     UIButton *button = [UIButton systemButtonWithImage:[UIImage systemImageNamed:@"chevron.compact.down"] target:self action:@selector(close:)];
     button.frame = CGRectMake(kWidth - 45, 10, 30, 30);
     button.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
     button.layer.cornerRadius = 15;
     [self.view addSubview:button];
-    self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
     
+    
+    //排序数组
+    self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
+    //排序按钮
     self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.sortButton setTitle:@"New" forState:UIControlStateNormal];
-    self.sortButton.frame = CGRectMake(kWidth - 140, 10, 80, 30);
+    self.sortButton.frame = CGRectMake(20, 50, 100, 40);
     self.sortButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
     [self.sortButton addTarget:self action:@selector(sortButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     self.sortButton.layer.cornerRadius = 15;
@@ -83,7 +96,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //设置搜索框
 - (void)setupSearchView {
-    self.searchView = [[UISearchBar alloc] initWithFrame:CGRectMake(8, 10, 240, 40)];
+    self.searchView = [[UISearchBar alloc] initWithFrame:CGRectMake(kWidth - 215, 50, 210, 40)];
     self.searchView.delegate = self;
     self.searchView.searchTextField.layer.borderWidth = 1;
     self.searchView.searchTextField.layer.borderColor = [[UIColor labelColor] colorWithAlphaComponent:0.5].CGColor;
@@ -115,7 +128,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 // 初始化子页面控制器
 - (void)setupViewControllers {
     self.viewControllers = [NSMutableArray array];
-    for (int i = 0; i < 2; i++) {
+    int count = self.showFollowList ? 4 : 4;
+    for (int i = 0; i < count; i++) {
         MyFavoritesListViewController *controller = [[MyFavoritesListViewController alloc] init];
         controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
@@ -143,7 +157,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.pageViewController.view.layer.masksToBounds = YES;
     
     // 设置初始页面
-    self.currentVC = self.viewControllers[0];
+    self.currentVC = self.viewControllers[self.selectedIndex];
     [self.pageViewController setViewControllers:@[self.currentVC]
                                       direction:UIPageViewControllerNavigationDirectionForward
                                        animated:NO
@@ -160,8 +174,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 //指示器
 - (void)setupPageControl {
     self.pageControl = [[UIPageControl alloc] init];
-    self.pageControl.numberOfPages = 2;
-    self.pageControl.currentPage = 0;
+    self.pageControl.numberOfPages = self.viewControllers.count;
+    self.pageControl.currentPage = self.selectedIndex;
     self.pageControl.pageIndicatorTintColor = [UIColor grayColor];
     self.pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
     self.pageControl.translatesAutoresizingMaskIntoConstraints = NO;
@@ -199,7 +213,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 处理左边图标点击逻辑
     
-    NSArray *icon = @[@"clock", @"arrow.clockwise.icloud", @"message", @"hand.thumbsup.fill", @"star", @"arrowshape.turn.up.right"];
+    NSArray *icon = @[@"clock", @"calendar.badge.clock", @"message", @"hand.thumbsup.fill", @"star", @"arrowshape.turn.up.right"];
     CGSize menuUnitSize = CGSizeMake(130, 40);
     CGFloat distanceFromTriggerSwitch = 10;
     UIFont * font = [UIFont boldSystemFontOfSize:13];
@@ -284,16 +298,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     targetVC.selectedIndex = index;
  
 
-    
-    NSString *buttonTitle = index == 0 ? @"软件" :@"工具";
+    NSArray * titles = @[@"软件", @"工具", @"粉丝", @"关注"];
+    NSString *buttonTitle = titles[index];
     [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
     
-    if(index == 0){
-        self.searchView.placeholder = @"搜索我收藏的APP";
+    NSArray * searchtitles = @[@"搜索我收藏的APP", @"搜索我收藏的工具", @"搜索Ta的粉丝(昵称)", @"搜索Ta的关注(昵称)"];
+    self.searchView.placeholder = searchtitles[index];
+    if(index<2){
+        self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
     }else{
-        self.searchView.placeholder = @"搜索我收藏的工具";
+        self.sortArray = @[@"最新关注", @"最早关注"];
     }
-    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
         NSString *buttonTitle = self.sortArray[targetVC.sort];
@@ -348,6 +363,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark - UISearchBarDelegate
 
+// 开始编辑时显示取消按钮
+- (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar {
+    
+    searchBar.showsCancelButton = YES;
+    return YES;
+}
+
+
 // 当文本即将改变时调用，用于输入验证
 - (BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     // 获取当前搜索框中的文本
@@ -378,6 +401,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 // 当文本编辑结束时调用
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
+    searchBar.showsCancelButton = NO;
     self.keyword = searchBar.searchTextField.text;
     [self performSearchWithKeyword:self.keyword]; // 调用防抖搜索
 }
@@ -479,7 +503,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         MyFavoritesListViewController *VC = (MyFavoritesListViewController*)pageViewController.viewControllers.firstObject;
         
         NSInteger index = [self.viewControllers indexOfObject:VC];
-        
+        self.titleLabel.text = self.titles[index];
         [self switchUIWithIndex:index];
         
     }

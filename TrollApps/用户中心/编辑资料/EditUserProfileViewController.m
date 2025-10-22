@@ -32,6 +32,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) UITextField *qqTextField;
 @property (nonatomic, strong) UITextField *tgTextField;
 @property (nonatomic, strong) UISegmentedControl *genderSegmentedControl;
+@property (nonatomic, strong) UISegmentedControl *showFollowsSegmentedControl;
+
+@property (nonatomic, strong) UILabel *bioLabel;
 @property (nonatomic, strong) UITextView *bioTextView;
 @property (nonatomic, strong) UILabel *bioCountLabel;
 
@@ -172,10 +175,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [contentView addSubview:self.tgTextField];
     
     // 性别选择器
-    self.genderSegmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"保密", @"男", @"女"]];
+    self.genderSegmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"男", @"女"]];
     self.genderSegmentedControl.selectedSegmentIndex = 0;
     self.genderSegmentedControl.translatesAutoresizingMaskIntoConstraints = NO;
     [contentView addSubview:self.genderSegmentedControl];
+    
+    self.showFollowsSegmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"仅自己可见", @"公开 收藏/粉丝/关注 列表"]];
+    self.showFollowsSegmentedControl.selectedSegmentIndex = 1;
+    self.showFollowsSegmentedControl.translatesAutoresizingMaskIntoConstraints = NO;
+    [contentView addSubview:self.showFollowsSegmentedControl];
+    
+    //个人简介提示
+    self.bioLabel = [UILabel new];
+    self.bioLabel.text = @"个性签名";
+    self.bioLabel.textColor = [UIColor tertiaryLabelColor];
+    [contentView addSubview:self.bioLabel];
     
     // 个人简介文本视图
     self.bioTextView = [[UITextView alloc] init];
@@ -288,9 +302,20 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.right.equalTo(self.contentView).offset(-20);
         make.height.equalTo(@44);
     }];
-    
-    [self.bioTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.showFollowsSegmentedControl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.genderSegmentedControl.mas_bottom).offset(20);
+        make.left.equalTo(self.contentView).offset(20);
+        make.right.equalTo(self.contentView).offset(-20);
+        make.height.equalTo(@44);
+    }];
+    [self.bioLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.showFollowsSegmentedControl.mas_bottom).offset(20);
+        make.left.equalTo(self.contentView).offset(20);
+        make.right.equalTo(self.contentView).offset(-20);
+        
+    }];
+    [self.bioTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.bioLabel.mas_bottom).offset(10);
         make.left.equalTo(self.contentView).offset(20);
         make.right.equalTo(self.contentView).offset(-20);
         make.height.equalTo(@120);
@@ -378,11 +403,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     self.tgTextField.text = user.tg ?: @"";
                     
                     // 设置性别
-                    if (user.gender) {
-                        self.genderSegmentedControl.selectedSegmentIndex = user.gender;
-                    } else {
-                        self.genderSegmentedControl.selectedSegmentIndex = 0; // 默认为保密
-                    }
+                    self.genderSegmentedControl.selectedSegmentIndex = user.gender;
+                    //隐私
+                    self.genderSegmentedControl.selectedSegmentIndex = user.isShowFollows;
                     
                     // 设置个人简介
                     self.bioTextView.text = user.bio ?: @"";
@@ -496,6 +519,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     userInfo.qq = self.qqTextField.text;
     userInfo.tg = self.tgTextField.text;
     userInfo.gender = self.genderSegmentedControl.selectedSegmentIndex;
+    userInfo.isShowFollows = self.showFollowsSegmentedControl.selectedSegmentIndex;
     userInfo.bio = self.bioTextView.text;
     
     
