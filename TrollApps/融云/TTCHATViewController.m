@@ -8,7 +8,8 @@
 
 #import "TTCHATViewController.h"
 #import "UserProfileViewController.h"
-
+#import "ToolMessage.h"
+#import "ToolMessageCell.h"
 #import "UIView.h"
 //是否打印
 #define MY_NSLog_ENABLED YES
@@ -19,8 +20,17 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface TTCHATViewController ()<RCIMClientReceiveMessageDelegate,RCTypingStatusDelegate,RCMessageDestructDelegate>
+@interface TTCHATViewController ()<RCIMClientReceiveMessageDelegate,RCTypingStatusDelegate,RCMessageDestructDelegate,UISearchResultsUpdating,UISearchBarDelegate>
+@property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
+@property (nonatomic, assign) long long startTime; // 开始时间
+@property (nonatomic, strong) UIDatePicker *datePicker; // 时间选择器
 
+@property (nonatomic, strong) UIView *headerView; // 时间选择器父视图
+@property (nonatomic, assign) BOOL isRefresh; // 是否搜索总
+
+@property (nonatomic, strong) NSMutableArray<RCMessage *> *messages;//搜索的数据数组
+// 用于保存上一个页面的搜索控制器（退出时恢复）
+@property (nonatomic, strong) UISearchController *searchController;
 @end
 
 @implementation TTCHATViewController
@@ -28,15 +38,17 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor clearColor];
+    self.view.backgroundColor = [UIColor systemBackgroundColor];
     //消息列表表格
     self.conversationMessageCollectionView.backgroundColor = [UIColor clearColor];
     self.conversationMessageCollectionView.delegate = self;
     self.conversationMessageCollectionView.dataSource = self;
-    
-    
+    //默认时间
+    self.startTime = 0;
     // 默认读取 30 条
     self.defaultHistoryMessageCountOfChatRoom = 30;
+    // 初始化数据
+    self.messages = [NSMutableArray array];
     // 下拉刷新 30
     self.defaultMessageCount = 30;
     self.enableContinuousReadUnreadVoice = YES; // 语音连续播放
@@ -62,38 +74,25 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.chatSessionInputBarControl setCommonPhrasesList:@[@"你好,认识一下", @"看了你的动态很不错哦", @"啾咪，我来打招呼了！", @"哈喽,在干嘛呢", @"你好,我在的."]];
     self.chatSessionInputBarControl.backgroundColor = [UIColor secondarySystemBackgroundColor];
     
+    [self registerClass:[ToolMessageCell class] forMessageClass:[ToolMessage class]];
+    
+    
+    // 创建顶部容器视图
+    self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50)];
+    self.headerView.backgroundColor = [UIColor clearColor];
+    self.headerView.hidden = YES;
+    [self.view addSubview:self.headerView];
+    // 设置时间选择器
+    self.datePicker = [[UIDatePicker alloc] init];
+    self.datePicker.datePickerMode = UIDatePickerModeDateAndTime;
+    [self.datePicker addTarget:self action:@selector(datePickerValueChanged:) forControlEvents:UIControlEventValueChanged];
+    [self.headerView addSubview:self.datePicker];
+    
+    [self setupNavigationBarWithSearch];
+    
 
 }
 
-// 显示之前
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-//    [self.navigationController setNavigationBarHidden:YES];
-    self.tabBarController.tabBar.hidden = YES;
-   
-}
-
-// 显示后
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
-    //储存正在聊天的ID 用来判断是否显示通知 离开控制器后要删除
-    
-    
-    [self.navigationController setNavigationBarHidden:NO];
-    self.tabBarController.tabBar.hidden = YES;
-    
-    //监听消息
-    [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
-    //输入状态监听
-    [[RCCoreClient sharedCoreClient] setRCTypingStatusDelegate:self];
-    //阅后既焚监听器
-    [[RCCoreClient sharedCoreClient] setRCMessageDestructDelegate:self];
-    
-    [self UpdateTheNumberOfUnreadMessages];
-    [self updateViewConstraints];
-    
-}
 
 - (void)updateViewConstraints {
     [super updateViewConstraints];
@@ -107,8 +106,49 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         self.navigationItem.leftBarButtonItem = leftItem;
     }
+    
+    [self.headerView mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.conversationMessageCollectionView.mas_top).offset(-5); // 顶部偏移量
+        make.width.mas_equalTo(kWidth - 40);
+        make.height.mas_equalTo(40);
+        make.left.equalTo(self.view).offset(20);
+    }];
+
+
 
 }
+
+- (void)setupNavigationBarWithSearch {
+   
+    self.navigationController.navigationBarHidden = NO;
+    self.tabBarController.tabBar.hidden = YES;
+    // 创建搜索控制器
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    self.searchController.searchResultsUpdater = self;
+    self.searchController.searchBar.delegate = self;
+    
+    self.searchController.obscuresBackgroundDuringPresentation = NO;
+    self.searchController.searchBar.placeholder = @"输入搜索内容";
+
+    self.searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
+    self.searchController.searchBar.returnKeyType = UIReturnKeySearch;
+    
+    // 配置导航项
+    self.navigationItem.searchController = self.searchController;
+    self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
+    
+    // 地区选择按钮（移至右侧）
+    UIBarButtonItem *closeItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    closeItem.tintColor = [UIColor labelColor];
+    
+    // 判断是否是模态弹出
+    BOOL isPresentedModally = [self isModal];
+    // 仅在模态时设置右侧关闭按钮，否则隐藏
+    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : nil;
+   
+    
+}
+
 /// 判断当前控制器是否是模态弹出
 - (BOOL)isModalPresented {
     // 情况1：当前控制器直接被模态弹出（未包装在导航控制器中）
@@ -133,42 +173,50 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     return NO;
 }
 
-#pragma mark -监听主题
-- (void)topBackageView{
-    //创建一个空视图渐变色
-    UIView * navigationControllerBackageView =[[UIView alloc] initWithFrame:CGRectMake(0,-( 100-self.navigationController.navigationBar.bounds.size.height), self.view.frame.size.width, 100)];
-    navigationControllerBackageView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.95];
-    NSUInteger gradientSize = 3; // 渐变色数组的大小
-    CGFloat desiredAlpha = 0.3; // 设置透明度，范围为0到1之间
-    [UIColor setColor:gradientSize desiredAlpha:desiredAlpha uiview:navigationControllerBackageView ColorType:WarmColor];
-    
-    //视图转图片
-    UIImage *image =[self convertViewToPNG:navigationControllerBackageView];
-    //顶部背景图
-    [self.navigationController.navigationBar setBackgroundImage:image forBarMetrics:UIBarMetricsDefault];
-    //清除分割线
-    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
-    if (@available(iOS 13.0, *)) {
-        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
-        [appearance configureWithOpaqueBackground];
-        //此处变化----改变裁剪区域--->>>>>
-        CGFloat h = get_TOP_NAVIGATION_BAR_HEIGHT +get_TOP_STATUS_BAR_HEIGHT;//记得适配头发帘屏
-        //CGImageCreateWithImageInRect 是C的函数，使用的坐标都是像素
-        //在iOS中使用的都是点坐标
-        //所以在高分辨率的状态下加载了@2x或@3x的图片，而CGImageCreateWithImageInRect还是以@1x的尺寸去进行裁剪，最终只裁剪了部分尺寸的内容
-        //[UIScreen mainScreen].scale -> 获取当前屏幕坐标与像素坐标的比例
-        CGImageRef part = CGImageCreateWithImageInRect(image.CGImage, CGRectMake(0, 0, image.size.width * [UIScreen mainScreen].scale, h * [UIScreen mainScreen].scale));
+//点击关闭
+- (void)back{
+    BOOL isModal = [self isModalPresented];
+    if(isModal){
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }else{
+        [self.navigationController popViewControllerAnimated:YES];
         
-        UIImage *back = [UIImage imageWithCGImage:part];
-        //这句要写，CGImageCreateWithImageInRect是c的方法要注意内存泄漏
-        CGImageRelease(part);
-        
-        appearance.backgroundImage = back;
-        self.navigationController.navigationBar.standardAppearance = appearance;
-        self.navigationController.navigationBar.scrollEdgeAppearance=self.navigationController.navigationBar.standardAppearance;
     }
     
 }
+
+#pragma mark - action 函数
+
+// 辅助方法：判断当前控制器是否是模态弹出
+- (BOOL)isModal {
+    // 情况1：直接被present（如：[vc presentViewController:self animated:YES completion:nil]）
+    if (self.presentingViewController != nil) {
+        return YES;
+    }
+    
+    // 情况2：被导航控制器包裹后，导航控制器被present（如：[vc presentViewController:nav animated:YES completion:nil]，而self是nav的根控制器）
+    if (self.navigationController != nil &&
+        self.navigationController.presentingViewController.presentedViewController == self.navigationController &&
+        self.navigationController.viewControllers.firstObject == self) {
+        return YES;
+    }
+    
+    // 情况3：被其他容器控制器（如UIPageViewController）包裹后被present
+    if (self.parentViewController != nil && self.parentViewController.presentingViewController != nil) {
+        return YES;
+    }
+    
+    return NO;
+}
+
+
+//最近使用
+- (void)recently {
+    
+}
+
+#pragma mark -监听主题
+
 ///视图转PNG图片对象
 - (UIImage *)convertViewToPNG:(UIView *)view {
     UIGraphicsBeginImageContextWithOptions(view.bounds.size, NO, 0.0);
@@ -176,28 +224,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
-}
-
-
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-    [super traitCollectionDidChange:previousTraitCollection];
-    if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
-        // 主题发生了变化，进行相应处理
-        
-//        [self topBackageView];
-        
-        
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            
-            // 设置状态栏样式
-            self.navigationController.navigationBar.tintColor = [UIColor labelColor];
-            [self setNeedsStatusBarAppearanceUpdate];
-            // 强制视图重新布局和绘制
-            [self.view setNeedsLayout];
-            [self.view layoutIfNeeded];
-        });
-        
-    }
 }
 
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gesture {
@@ -210,16 +236,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
-- (void)back{
-    BOOL isModal = [self isModalPresented];
-    if(isModal){
-        [self dismissViewControllerAnimated:YES completion:nil];
-    }else{
-        [self.navigationController popViewControllerAnimated:YES];
-        
-    }
-    
-}
 
 #pragma mark -消息代理
 - (void)onReceived:(RCMessage *)message left:(int)left object:(id)object {
@@ -272,7 +288,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
 }
 
-
+//更新未读消息
 - (void)UpdateTheNumberOfUnreadMessages {
     __block int myCount = 0;
     [[RCCoreClient sharedCoreClient] getUnreadCount:self.conversationType targetId:self.targetId completion:^(int count) {
@@ -369,25 +385,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
-//搜索状态下的帖子正文获取标签变色
-- (void)setupLabel:(UILabel *)label withKey:(NSString *)key {
-    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:label.text];
-    UIColor *tagColor = [[UIColor redColor] colorWithAlphaComponent:0.7];
-    
-    NSRange searchRange = NSMakeRange(0, label.text.length);
-    while (searchRange.location < label.text.length) {
-        // 使用 NSCaseInsensitiveSearch 选项进行不区分大小写的搜索
-        NSRange range = [label.text rangeOfString:key options:NSCaseInsensitiveSearch range:searchRange];
-        if (range.location != NSNotFound) {
-            [attributedString addAttribute:NSForegroundColorAttributeName value:tagColor range:range];
-            searchRange.location = range.location + range.length;
-            searchRange.length = label.text.length - searchRange.location;
-        } else {
-            break;
-        }
-    }
-    label.attributedText = attributedString;
-}
 
 //头像点击
 - (void)didTapCellPortrait:(NSString *)userId{
@@ -401,8 +398,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 }
 
-
-
 //检查显示位置
 - (BOOL)checkIfTableViewAtBottom:(RCBaseCollectionView *)tableView {
     CGFloat contentHeight = tableView.contentSize.height;
@@ -415,6 +410,315 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         return YES;
     }
     return NO;
+}
+
+#pragma mark - 主题变化
+
+- (void)setBackgroundUI {
+    
+    // 在其他类中
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UIWindow *rootWindow = appDelegate.window;
+    
+
+    // 设置背景颜色和透明度
+    
+    rootWindow.backgroundColor = [UIColor systemBackgroundColor];
+    
+    // 添加浮动小球
+    if (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+        NSLog(@"切换到暗色模式");
+        self.view.backgroundColor = [UIColor systemBackgroundColor];
+        [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
+        [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.5];
+    
+        
+    } else {
+        NSLog(@"切换到亮色模式");
+        self.view.backgroundColor = [UIColor systemBackgroundColor];
+        [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+        [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.99 ballalpha:0.3];
+    
+    }
+    
+    
+    
+}
+
+- (BOOL)isDarkMode {
+    return self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+   
+    
+    [self setBackgroundUI];
+}
+
+#pragma mark - 控制器代理
+
+// 显示之前
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+//    [self.navigationController setNavigationBarHidden:YES];
+    self.tabBarController.tabBar.hidden = YES;
+    
+    // 1. 保存上一个页面的搜索控制器（用于返回时恢复）
+    self.searchController.obscuresBackgroundDuringPresentation = NO;
+    self.searchController.searchBar.placeholder = @"搜索聊天记录";
+    self.searchController.searchResultsUpdater = self;
+    self.searchController.searchBar.delegate = self;
+    // 2. 清除当前导航栏的搜索控制器（核心：移除搜索框）
+    self.navigationItem.searchController = self.searchController;
+    self.navigationItem.hidesSearchBarWhenScrolling = YES; // 确保搜索框不残留
+    
+    // 3. 重置导航栏样式（可选，确保高度正常）
+    self.navigationController.navigationBar.translucent = YES; // 恢复默认半透明
+    self.navigationController.navigationBar.barTintColor = [UIColor systemBackgroundColor]; // 重置背景色
+    self.navigationController.navigationBar.shadowImage = [UIImage new]; // 移除底部阴影（若有）
+    
+    // 4. 强制刷新导航栏布局（解决高度计算异常）
+    [self.navigationController.navigationBar layoutIfNeeded];
+   
+}
+
+// 显示后
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
+    //储存正在聊天的ID 用来判断是否显示通知 离开控制器后要删除
+    
+    
+    [self.navigationController setNavigationBarHidden:NO];
+    self.tabBarController.tabBar.hidden = YES;
+    
+    //监听消息
+    [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
+    //输入状态监听
+    [[RCCoreClient sharedCoreClient] setRCTypingStatusDelegate:self];
+    //阅后既焚监听器
+    [[RCCoreClient sharedCoreClient] setRCMessageDestructDelegate:self];
+    
+    [self UpdateTheNumberOfUnreadMessages];
+    [self updateViewConstraints];
+    [self setBackgroundUI];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    // 退出时恢复上一个页面的搜索控制器（确保返回社区页后搜索框正常显示）
+    if (self.searchController) {
+        self.navigationController.topViewController.navigationItem.searchController = self.searchController;
+        self.navigationController.topViewController.navigationItem.hidesSearchBarWhenScrolling = NO; // 恢复社区页的搜索框配置
+    }
+}
+
+
+#pragma mark - UISearchBarDelegate（补充状态监听）
+
+// 1. 搜索框开始编辑（用户点击搜索框，进入编辑状态）→ 显示历史搜索视图
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    // 显示历史搜索视图，并刷新历史搜索数据
+    self.headerView.hidden = NO;
+    // 刷新约束（确保视图位置正确）
+    [self.view layoutIfNeeded];
+}
+
+// 2. 搜索框结束编辑（用户收起键盘、点击页面其他区域）→ 隐藏历史搜索视图
+- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
+    self.headerView.hidden = NO;
+}
+
+// 3. 点击搜索框“取消”按钮 → 重新初始化控制器
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    // 1. 基础操作：收起键盘、清空输入框
+    [searchBar resignFirstResponder];
+    searchBar.text = @"";
+    self.keyword = @"";   // 清空关键词（关键：重置搜索标记）
+    
+    // 2. 重置搜索相关状态变量
+    self.isRefresh = NO;  // 重置搜索刷新标记
+    self.startTime = 0;   // 重置时间选择器初始值（对应“从最早开始”）
+    [self.messages removeAllObjects]; // 清空搜索结果数组（关键：避免残留搜索数据）
+    
+    // 3. 隐藏搜索相关视图（时间选择器）
+    self.headerView.hidden = YES;
+    
+    // 4. 核心：重新加载当前会话的原始历史消息（恢复非搜索状态的消息列表）
+    [self reloadOriginalConversationMessages];
+    
+    // 5. 刷新未读消息计数（确保显示正确的未读状态）
+    [self UpdateTheNumberOfUnreadMessages];
+}
+
+// 4. 点击搜索按钮（键盘Done键），执行搜索
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [searchBar resignFirstResponder];
+    [self performSearchWithText:searchBar.text]; // 调用完善后的搜索方法
+}
+
+#pragma mark - UISearchResultsUpdating 代理（搜索防抖）
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+    NSString *searchText = searchController.searchBar.text;
+    NSLog(@"输入过程2：%@", searchText);
+    
+    // 停止之前的定时器，避免重复触发
+    [self.searchTimer invalidate];
+    
+    // 0.5秒后执行搜索（防抖）
+    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+                                                       target:self
+                                                     selector:@selector(executeDebounceSearch:)
+                                                     userInfo:searchText
+                                                      repeats:NO];
+}
+
+// 防抖搜索执行方法
+- (void)executeDebounceSearch:(NSTimer *)timer {
+    NSString *searchText = timer.userInfo;
+    [self performSearchWithText:searchText];
+}
+
+// 辅助方法：重新加载当前会话的原始历史消息（从SDK获取，覆盖搜索结果）
+- (void)reloadOriginalConversationMessages {
+    // 显示加载提示（可选，提升用户体验）
+    [SVProgressHUD showWithStatus:@"加载中..."];
+    
+
+    [[RCCoreClient sharedCoreClient] searchMessages:self.conversationType
+                                           targetId:self.targetId
+                                             userId:self.targetId
+                                              count:100
+                                          startTime:0
+                                         completion:^(NSArray<RCMessage *> * _Nullable messages) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            for (RCMessage * message in messages) {
+                RCMessageModel *rCMessageModel = [[RCMessageModel alloc] initWithMessage:message];
+                [self.conversationDataRepository addObject:rCMessageModel];
+                [SVProgressHUD dismissWithDelay:0.5];
+            }
+            [self.conversationMessageCollectionView reloadData];
+        });
+    }];
+    
+}
+
+#pragma mark - 执行搜索请求（表层+深层历史消息）
+
+- (void)performSearchWithText:(NSString *)text {
+    self.keyword = text;
+    NSLog(@"搜索：%@",self.keyword);
+    [SVProgressHUD showWithStatus:@"搜索中"];
+    self.startTime = (long long)([self.datePicker.date timeIntervalSince1970] * 1000);
+    // 1. 关键词为空时，恢复原始数据并返回
+    if (self.keyword.length == 0) {
+        [SVProgressHUD dismissWithDelay:0.5];
+        // 关键补充：关闭搜索框键盘（需在主线程执行）
+        self.startTime = 0;
+        return;
+
+    }
+    self.isRefresh = YES;
+    [[RCCoreClient sharedCoreClient] searchMessages:ConversationType_PRIVATE
+                                           targetId:self.targetId
+                                            keyword:self.keyword
+                                              count:100
+                                          startTime:self.startTime
+                                         completion:^(NSArray<RCMessage *> * _Nullable messages) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"搜索结果:%ld self.keyword：%@",messages.count,self.keyword);
+            [SVProgressHUD dismissWithDelay:0.5];
+            if (messages.count > 0) {
+                if(self.isRefresh){
+                    [self.messages removeAllObjects];
+                    [self.conversationDataRepository removeAllObjects];
+                }
+                [self.messages addObjectsFromArray:messages];
+                for (RCMessage * message in messages) {
+                    RCMessageModel *rCMessageModel = [[RCMessageModel alloc] initWithMessage:message];
+                    [self.conversationDataRepository addObject:rCMessageModel];
+                }
+                
+                self.isRefresh = NO;
+            }else{
+                [SVProgressHUD showInfoWithStatus:@"搜索到 0 条"];
+                [SVProgressHUD dismissWithDelay:1];
+            }
+            [self.conversationMessageCollectionView reloadData];
+        });
+    }];
+}
+
+#pragma mark - 时间选择器 UIDatePicker Action
+
+- (void)datePickerValueChanged:(UIDatePicker *)datePicker {
+    self.startTime = (long long)([datePicker.date timeIntervalSince1970] * 1000);
+}
+
+#pragma mark - 重写cell显示
+
+- (void)willDisplayMessageCell:(RCMessageBaseCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+    [super willDisplayMessageCell:cell atIndexPath:indexPath];
+    RCMessageModel *model = [self.conversationDataRepository objectAtIndex:indexPath.row];
+    if ([cell isKindOfClass:[RCTextMessageCell class]] && model.conversationType == ConversationType_PRIVATE) {
+        // 转为对应的cell
+        RCTextMessageCell *c =  (RCTextMessageCell *)cell;
+        // 设置文字颜色
+        [self setupLabel:c.textLabel withKey:self.keyword];
+        
+        //设置未读
+        if (model.content && (model.sentStatus == SentStatus_READ ||model.sentStatus == SentStatus_SENT) && model.messageDirection == MessageDirection_SEND) {
+            for (UIView *view in [((RCMessageCell *)cell).statusContentView subviews]) {
+                if (view == ((RCMessageCell *)cell).messageFailedStatusView){
+                    continue;
+                }
+                [view removeFromSuperview];
+            }
+            CGRect statusContentViewFrame = ((RCMessageCell *)cell).statusContentView.frame;
+            UILabel *hasReadView = [[UILabel alloc] initWithFrame:CGRectMake(statusContentViewFrame.size.width-30,statusContentViewFrame.size.height-16, 30, 16)];
+            hasReadView.textAlignment = NSTextAlignmentRight;
+            hasReadView.font = [UIFont systemFontOfSize:10];
+            hasReadView.textColor = [UIColor tertiaryLabelColor];
+            hasReadView.tag = 1001;
+            ((RCMessageCell *)cell).statusContentView.hidden = NO;
+            if (model.sentStatus == SentStatus_READ) {
+                hasReadView.text = @"已读";
+                [((RCMessageCell *)cell).statusContentView addSubview:hasReadView];
+            } else if (model.sentStatus == SentStatus_SENT) {
+                hasReadView.text = @"未读";
+                [((RCMessageCell *)cell).statusContentView addSubview:hasReadView];
+            }
+        }else{
+            UIView *tagView = [((RCMessageCell *)cell).statusContentView viewWithTag:1001];
+            if (tagView) {
+                [tagView removeFromSuperview];
+            }
+        }
+    }
+    
+}
+
+//搜索状态下的帖子正文获取标签变色
+- (void)setupLabel:(UILabel *)label withKey:(NSString *)key {
+    if(label.text.length == 0 || key.length == 0)return;
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:label.text];
+
+    NSRange range = [label.text rangeOfString:key];
+    if (range.location!= NSNotFound) {
+        UIColor *tagColor = [[UIColor redColor] colorWithAlphaComponent:0.7];
+        [attributedString addAttribute:NSForegroundColorAttributeName value:tagColor range:range];
+    }
+    label.attributedText = attributedString;
+}
+
+- (RCMessage *)willAppendAndDisplayMessage:(RCMessage *)message {
+    if(self.keyword.length > 0 ){
+        if(![message.content.conversationDigest containsString:self.keyword]) return nil;
+    }
+    return message;
 }
 
 @end

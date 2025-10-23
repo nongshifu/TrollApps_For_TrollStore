@@ -16,7 +16,8 @@
 #import "LikeModel.h"
 #import "NewProfileViewController.h"
 #import "QRCodeGeneratorViewController.h"
-
+#import "CommunityViewController.h"
+#import "ToolMessage.h"
 @interface ToolViewCell ()<MiniButtonViewDelegate>
 
 // 左侧头像
@@ -111,7 +112,7 @@
     self.useButton.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightMedium];
     self.useButton.backgroundColor = [UIColor systemBlueColor];
     self.useButton.layer.cornerRadius = 15;
-    [self.useButton addTarget:self action:@selector(openHtml:) forControlEvents:UIControlEventTouchUpInside];
+    [self.useButton addTarget:self action:@selector(openHtmlButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.useButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.contentView addSubview:self.useButton];
 }
@@ -361,6 +362,7 @@
     UIButton *commentButton = button;
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"评论" message:@"请输入评论内容" preferredStyle:UIAlertControllerStyleAlert];
     
+    
     // 添加输入框
     [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"输入内容";
@@ -391,10 +393,15 @@
     [[self getTopViewController] presentViewController:alertController animated:YES completion:nil];
 }
 
+- (void)openHtmlButton:(UIButton*)button{
+    [self openHtml:self.toolModel];
+}
+
 - (void)openHtml:(WebToolModel*)model {
-    if(!model)model = self.toolModel;
+   
     // 直接初始化，内部会自动判断单例中是否存在
     WebViewController *webVC = [[WebViewController alloc] initWithToolModel:model];
+    
     // 显示控制器（无论新创建还是复用已有实例，直接 present 即可）
     [[self getTopViewController] presentPanModal:webVC];
     
@@ -451,6 +458,7 @@
             }
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString * msg = jsonResult[@"msg"];
+            
             if(code ==200){
                 id data = jsonResult[@"data"];
                 if(![data isKindOfClass:[NSDictionary class]]){
@@ -462,6 +470,10 @@
                 NSInteger tag = button.tag;
                 NSLog(@"查看点赞回复:%d",status);
                 UIImage *iconImage = [UIImage new];
+                //发送融云消息
+                if((status && tag < 4) || tag == 4){
+                    [self sendRcimMessage:tag];
+                }
                 switch (tag) {
                     case 1:
                         //收藏
@@ -506,6 +518,19 @@
     }];
 }
 
+- (void)sendRcimMessage:(NSInteger)tag{
+    NSArray *msgs = @[@"", @"我收藏了你的应用", @"我点赞了你的应用", @"我踩了你的应用", @"我评论了你的应用", @"我分享了你的应用"];
+    ToolMessage *message = [[ToolMessage alloc] init];
+    message.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],self.toolModel.tool_name];
+    
+    message.extra = [self.toolModel yy_modelToJSONString];
+    [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.toolModel.udid content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        
+        
+    }];
+}
 
 - (void)handleShareAction {
     
@@ -579,6 +604,22 @@
     }];
    
     [alert addAction:confirmAction3];
+    
+    UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        // 修改后：包装导航栏 + 底部模态样式
+        CommunityViewController *vc = [CommunityViewController new];
+        
+        // 1. 创建导航控制器，将vc作为根控制器（核心：让vc拥有导航栏）
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        // 2. 设置底部模态弹出样式（iOS 13+ 推荐，底部滑入）
+        navVC.modalPresentationStyle = UIModalPresentationFullScreen; // 或 UIModalPresentationPageSheet
+        // 3. 弹出导航控制器（而非直接弹出vc）
+        [[self getviewController] presentViewController:navVC animated:YES completion:nil];
+    }];
+   
+    [alert addAction:confirmAction4];
+    
+    
     
     
     [[self getTopViewController] presentViewController:alert animated:YES completion:nil];

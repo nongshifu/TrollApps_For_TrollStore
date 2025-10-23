@@ -16,6 +16,8 @@
 #import "AppCommentCell.h"
 #import "CommentModel.h"
 #import "ContactHelper.h"
+#import "ToolMessage.h"
+
 
 @interface ShowOneToolViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
@@ -161,6 +163,7 @@
     [self.dataSource removeAllObjects];
     self.page = 1;
     [self loadDataWithPage:1];
+    
 }
 
 //左上角更新按钮

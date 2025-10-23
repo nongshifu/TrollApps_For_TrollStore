@@ -20,6 +20,7 @@
 // WebViewController.m
 - (instancetype)initWithToolModel:(WebToolModel *)toolModel {
     // 第一步：查询单例中是否已存在该工具的控制器
+    NSLog(@"tool_id:%ld",toolModel.tool_id);
     WebToolManager *manager = [WebToolManager sharedManager];
     WebViewController *existingVC = (WebViewController *)[manager getControllerForToolId:toolModel.tool_id];
     

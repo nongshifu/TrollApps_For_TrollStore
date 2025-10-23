@@ -234,7 +234,7 @@
                                                               imageName:@""
                                                           selectedImage:@""]
     ];
-    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[ChatListViewController new]
+    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[CommunityViewController new]
                                                                   title:@"广场"
                                                               imageName:@"message"
                                                           selectedImage:@"message.fill"]

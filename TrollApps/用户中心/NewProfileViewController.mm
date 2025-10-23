@@ -106,6 +106,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     self.hidesVerticalScrollIndicator = YES;
     self.hidesHorizontalScrollIndicator = YES;
+    
     [self testgetSerialNumber];
     
 }
@@ -635,6 +636,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [[RCCoreClient sharedCoreClient] connectWithToken:self.userInfo.token dbOpened:^(RCDBErrorCode code) {
         //消息数据库打开，可以进入到主页面
         NSLog(@"消息数据库打开，可以进入到主页面");
+        
        
     } success:^(NSString *userId) {
         //连接成功
@@ -654,7 +656,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [RCIM sharedRCIM].currentUserInfo = _currentUserInfo;
             //刷新本地缓存
             [[RCIM sharedRCIM] refreshUserInfoCache:_currentUserInfo withUserId:userId];
-            
+            //读取未读消息
+            // 1. 获取AppDelegate实例
+            AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+            // 2. 读取未读消息
+            [appDelegate getTotalUnreadCount];
             
         });
         

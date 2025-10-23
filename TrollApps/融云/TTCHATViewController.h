@@ -39,12 +39,13 @@ typedef NS_ENUM(NSUInteger, ChatInitiationType) {
 @property (nonatomic, strong) RCMessageContent *message;
 @property (nonatomic, strong) UserModel *user;
 //搜索关键字
-@property (nonatomic, strong) NSString *SearchKey;
+@property (nonatomic, strong) NSString *keyword;
 
 //发起会话的位置
 @property (nonatomic, assign) ChatInitiationType ChatFromType;
 //发起会话携带的对象
 @property (nonatomic, strong) id ChatObj;
+
 
 @end
 

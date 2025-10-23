@@ -5,11 +5,12 @@
 //  Created by 十三哥 on 2025/6/30.
 //
 
-#import "TemplateListController.h"
-
+#import <RongIMKit/RongIMKit.h>
+#import <UIKit/UIKit.h>
+#import "config.h"
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CommunityViewController : TemplateListController
+@interface CommunityViewController : RCConversationListViewController
 
 @end
 

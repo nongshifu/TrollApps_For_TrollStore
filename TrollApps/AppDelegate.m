@@ -4,10 +4,12 @@
 //
 //
 #import "AppDelegate.h"
-#import "MyTabBarController.h"
+
 #import "loadData.h"
 #import "config.h"
 #import "UserModel.h"
+#import "ToolMessage.h"
+#import "ToolMessageCell.h"
 @interface AppDelegate ()
 
 @end
@@ -19,8 +21,8 @@
     // Override point for customization after application launch.
     
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    MyTabBarController *tabBar = [[MyTabBarController alloc] init];
-    self.sideMenuController = [[LGSideMenuController alloc] initWithRootViewController:tabBar leftViewController:nil rightViewController:nil];
+    self.tabBarController = [[MyTabBarController alloc] init];
+    self.sideMenuController = [[LGSideMenuController alloc] initWithRootViewController:self.tabBarController leftViewController:nil rightViewController:nil];
     
     self.window.rootViewController = self.sideMenuController;
     
@@ -117,7 +119,8 @@
     [RCIM sharedRCIM].enablePersistentUserInfoCache = YES;
     //用户信息代理
     [RCIM sharedRCIM].userInfoDataSource = self;
-    
+    //注册自定义消息类型
+    [[RCIM sharedRCIM] registerMessageType:[ToolMessage class]];
 
 }
 - (void)getUserInfoWithUserId:(NSString *)userId completion:(void(^)(RCUserInfo *userInfo))completion {
@@ -171,5 +174,48 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+#pragma mark - 接收消息后
+- (void)onReceived:(RCMessage *)message left:(int)left object:(id)object {
+    NSLog(@"列表界面onReceived收到消息extra:%@",message.content.senderUserInfo.extra);
+    if(left ==0){
+        [self getTotalUnreadCount];
+    }
+    
+    
+}
 
+- (void)getTotalUnreadCount{
+    
+    
+    [[RCCoreClient sharedCoreClient] getTotalUnreadCountWith:^(int unreadCount) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(unreadCount > 0){
+                
+                if (!self.tabBarController) return; // 防止空指针
+                
+                // 3. 关键：获取要设置红点的Tab（根据你的项目调整索引，例如：0=首页，1=聊天，2=我的）
+                NSInteger targetTabIndex = 3; // 假设「聊天Tab」是索引1，根据实际调整
+                if (self.tabBarController.tabBar.items.count <= targetTabIndex) return; // 避免数组越界
+                UITabBarItem *chatTabItem = self.tabBarController.tabBar.items[targetTabIndex];
+                
+                // 4. 设置系统红点（带未读数字，超过99显示“99+”）
+                NSString *badgeText = (unreadCount > 99) ? @"99+" : [NSString stringWithFormat:@"%d", unreadCount];
+                chatTabItem.badgeValue = badgeText;
+                // 可选：自定义徽章颜色（默认红色，可改为其他色）
+                chatTabItem.badgeColor = [UIColor redColor];
+                
+            } else {
+                // 未读数量为0时，清除红点（需对应上面的Tab索引）
+                
+                if (!self.tabBarController) return;
+                
+                NSInteger targetTabIndex = 1; // 和上面的Tab索引保持一致
+                if (self.tabBarController.tabBar.items.count <= targetTabIndex) return;
+                UITabBarItem *chatTabItem = self.tabBarController.tabBar.items[targetTabIndex];
+                chatTabItem.badgeValue = nil; // 清除红点
+            }
+        });
+    }];
+
+}
 @end

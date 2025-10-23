@@ -20,6 +20,8 @@
 		C2592F042EA6D0790089E268 /* moodStatusCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F032EA6D0790089E268 /* moodStatusCell.m */; };
 		C2592F072EA6DBC30089E268 /* CustomMoodStatusNavView.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F062EA6DBC30089E268 /* CustomMoodStatusNavView.m */; };
 		C2592F0A2EA6DE200089E268 /* PublishMoodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F092EA6DE200089E268 /* PublishMoodViewController.m */; };
+		C2592F0D2EAA175D0089E268 /* ToolMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F0C2EAA175D0089E268 /* ToolMessage.m */; };
+		C2592F102EAA1A140089E268 /* ToolMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F0F2EAA1A140089E268 /* ToolMessageCell.m */; };
 		C28720352E2542C300ABC6AE /* UserModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9A2E2542C200ABC6AE /* UserModel.m */; };
 		C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9D2E2542C200ABC6AE /* TemplateListController.m */; };
 		C28720372E2542C300ABC6AE /* TemplateSectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9E2E2542C200ABC6AE /* TemplateSectionController.m */; };
@@ -174,6 +176,10 @@
 		C2592F062EA6DBC30089E268 /* CustomMoodStatusNavView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CustomMoodStatusNavView.m; sourceTree = "<group>"; };
 		C2592F082EA6DE200089E268 /* PublishMoodViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublishMoodViewController.h; sourceTree = "<group>"; };
 		C2592F092EA6DE200089E268 /* PublishMoodViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PublishMoodViewController.m; sourceTree = "<group>"; };
+		C2592F0B2EAA175D0089E268 /* ToolMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolMessage.h; sourceTree = "<group>"; };
+		C2592F0C2EAA175D0089E268 /* ToolMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolMessage.m; sourceTree = "<group>"; };
+		C2592F0E2EAA1A140089E268 /* ToolMessageCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolMessageCell.h; sourceTree = "<group>"; };
+		C2592F0F2EAA1A140089E268 /* ToolMessageCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolMessageCell.m; sourceTree = "<group>"; };
 		C2871F9A2E2542C200ABC6AE /* UserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserModel.m; sourceTree = "<group>"; };
 		C2871F9B2E2542C200ABC6AE /* UserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserModel.h; sourceTree = "<group>"; };
 		C2871F9D2E2542C200ABC6AE /* TemplateListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TemplateListController.m; sourceTree = "<group>"; };
@@ -504,6 +510,10 @@
 				C2592EF62EA67C8F0089E268 /* ChatListViewController.m */,
 				C2592EF82EA69A940089E268 /* TTCHATViewController.h */,
 				C2592EF92EA69A940089E268 /* TTCHATViewController.m */,
+				C2592F0B2EAA175D0089E268 /* ToolMessage.h */,
+				C2592F0C2EAA175D0089E268 /* ToolMessage.m */,
+				C2592F0E2EAA1A140089E268 /* ToolMessageCell.h */,
+				C2592F0F2EAA1A140089E268 /* ToolMessageCell.m */,
 			);
 			path = "融云";
 			sourceTree = "<group>";
@@ -1395,7 +1405,7 @@
 		};
 		C287212D2E28266500ABC6AE /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 8;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1406,7 +1416,7 @@
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\n# 1. ldid 工具路径（如果已在环境变量中可省略，否则填绝对路径）\nLDID_PATH=\"ldid\"\n# 2. 权限文件 RootSign.entitlements 路径（相对于项目根目录或绝对路径）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"\n# 3. IPA 输出目录（默认为桌面，可自定义）\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\n# 4. IPA 文件名（默认为项目名+时间戳）\nIPA_NAME=\"${PROJECT_NAME}.ipa\"\n\n# ==============================================\n# 自动获取 Xcode 编译产物路径（无需修改）\n# ==============================================\n# 编译后的 .app 路径\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\n# .app 内的可执行文件路径（与 PRODUCT_NAME 同名）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 检查必要文件是否存在\n# ==============================================\n# 检查 .app 是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：编译产物 .app 不存在，路径：${APP_PATH}\"\n    exit 1\nfi\n\n# 检查可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在，路径：${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# 检查 ldid 是否可用\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then\n    echo \"❌ 错误：未找到 ldid 工具，请检查路径是否正确\"\n    exit 1\nfi\n\n# 检查权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：RootSign.entitlements 不存在，路径：${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 使用 ldid 签名可执行文件\n# ==============================================\necho \"📝 开始使用 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\n# 检查签名是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ 签名失败！请检查 entitlements 文件格式或 ldid 权限\"\n    exit 1\nfi\necho \"✅ 签名成功！\"\n\n# ==============================================\n# 打包 IPA（IPA 要求应用必须放在 Payload 目录下）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的 .app 到 Payload 目录\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\n# 压缩为 IPA\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r \"${IPA_FULL_PATH}\" .\n\n# 检查打包是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ IPA 打包失败！\"\n    exit 1\nfi\n\n# 清理临时文件\nrm -rf \"${TMP_IPA_DIR}\"\n\necho \"✅ IPA 打包完成！路径：${IPA_FULL_PATH}\"\n";
 		};
@@ -1423,6 +1433,7 @@
 				C287205F2E2542C300ABC6AE /* AppSearchCell.m in Sources */,
 				C287219E2E30051000ABC6AE /* ImageGridSearchViewController.m in Sources */,
 				C28720942E268BF100ABC6AE /* LikeModel.m in Sources */,
+				C2592F0D2EAA175D0089E268 /* ToolMessage.m in Sources */,
 				C28721982E2FC64300ABC6AE /* CenterMenu.m in Sources */,
 				C287206B2E2542C300ABC6AE /* UIResponder+DoneButton.m in Sources */,
 				C28720692E2542C300ABC6AE /* UIView.m in Sources */,
@@ -1455,6 +1466,7 @@
 				C28721B72E32649900ABC6AE /* CommandExecutor.m in Sources */,
 				C287213B2E2B520800ABC6AE /* loadData.mm in Sources */,
 				C287204F2E2542C300ABC6AE /* UploadFileItem.m in Sources */,
+				C2592F102EAA1A140089E268 /* ToolMessageCell.m in Sources */,
 				C287203F2E2542C300ABC6AE /* VIPPackage.m in Sources */,
 				C287208D2E25609300ABC6AE /* UserModelCell.m in Sources */,
 				C28721222E281E9600ABC6AE /* PidModel.mm in Sources */,
