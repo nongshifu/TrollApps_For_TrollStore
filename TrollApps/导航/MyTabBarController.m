@@ -19,6 +19,8 @@
 #import "config.h"
 #import "NewProfileViewController.h"
 #import "ChatListViewController.h"
+#import "UserProfileViewController.h"
+#import "loadData.h"
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -176,8 +178,11 @@
             
             return;
         case 3:{
-            HelpViewController *publishVC = [[HelpViewController alloc] init];
-            publishVC.title = @"发布需求";
+            NSString *udid = [loadData sharedInstance].userModel.udid;
+            if(!udid || udid.length<5)return;
+            UserProfileViewController *publishVC = [[UserProfileViewController alloc] init];
+            publishVC.user_udid = [loadData sharedInstance].userModel.udid;
+            publishVC.title = @"我的关注";
             [self presentPanModal:publishVC];
         }
             

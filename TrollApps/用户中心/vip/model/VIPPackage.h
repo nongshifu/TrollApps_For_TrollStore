@@ -13,14 +13,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VIPPackage : NSObject <IGListDiffable>
 
-@property (nonatomic, copy) NSString *packageId;      // 套餐ID
-@property (nonatomic, copy) NSString *title;          // 套餐标题
-@property (nonatomic, copy) NSString *vipDescription;    // 套餐描述
-@property (nonatomic, copy) NSString *price;          // 价格
-@property (nonatomic, assign) NSInteger level;                // VIP等级
-@property (nonatomic, copy) NSString *themeColor;           // 主题色
-@property (nonatomic, assign )BOOL isRecommended;             // 是否推荐
-@property (nonatomic, copy) NSString *recommendedTitle; //推荐标题
+@property (nonatomic, copy) NSString *packageId;       // 对应JSON的packageId
+@property (nonatomic, assign) NSInteger downloadsNumber;// 对应JSON的downloadsNumber
+@property (nonatomic, copy) NSString *title;            // 对应JSON的title
+@property (nonatomic, copy) NSString *vipDescription;   // 对应JSON的vipDescription
+@property (nonatomic, copy) NSString *price;            // 对应JSON的price（带¥符号）
+@property (nonatomic, assign) NSInteger level;          // 对应JSON的level
+@property (nonatomic, assign) NSInteger vipDay;         // 对应JSON的vipDay
+@property (nonatomic, copy) NSString *themeColor;       // 对应JSON的themeColor
+@property (nonatomic, assign) BOOL isRecommended;       // 对应JSON的isRecommended
+@property (nonatomic, copy) NSString *recommendedTitle; // 对应JSON的recommendedTitle
 
 @end
 

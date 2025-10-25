@@ -22,6 +22,11 @@
 		C2592F0A2EA6DE200089E268 /* PublishMoodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F092EA6DE200089E268 /* PublishMoodViewController.m */; };
 		C2592F0D2EAA175D0089E268 /* ToolMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F0C2EAA175D0089E268 /* ToolMessage.m */; };
 		C2592F102EAA1A140089E268 /* ToolMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F0F2EAA1A140089E268 /* ToolMessageCell.m */; };
+		C2592F1C2EABBFFA0089E268 /* UserCardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F182EABBFFA0089E268 /* UserCardViewController.m */; };
+		C2592F1D2EABBFFA0089E268 /* QRCodeScannerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F192EABBFFA0089E268 /* QRCodeScannerViewController.m */; };
+		C2592F202EAD17570089E268 /* vip_purchase_historyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F1F2EAD17570089E268 /* vip_purchase_historyCell.m */; };
+		C2592F232EAD17760089E268 /* VipPurchaseHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F222EAD17760089E268 /* VipPurchaseHistoryModel.m */; };
+		C2592F262EAD18BF0089E268 /* VipPurchaseHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2592F252EAD18BF0089E268 /* VipPurchaseHistoryViewController.m */; };
 		C28720352E2542C300ABC6AE /* UserModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9A2E2542C200ABC6AE /* UserModel.m */; };
 		C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9D2E2542C200ABC6AE /* TemplateListController.m */; };
 		C28720372E2542C300ABC6AE /* TemplateSectionController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2871F9E2E2542C200ABC6AE /* TemplateSectionController.m */; };
@@ -180,6 +185,16 @@
 		C2592F0C2EAA175D0089E268 /* ToolMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolMessage.m; sourceTree = "<group>"; };
 		C2592F0E2EAA1A140089E268 /* ToolMessageCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolMessageCell.h; sourceTree = "<group>"; };
 		C2592F0F2EAA1A140089E268 /* ToolMessageCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolMessageCell.m; sourceTree = "<group>"; };
+		C2592F182EABBFFA0089E268 /* UserCardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserCardViewController.m; sourceTree = "<group>"; };
+		C2592F192EABBFFA0089E268 /* QRCodeScannerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QRCodeScannerViewController.m; sourceTree = "<group>"; };
+		C2592F1A2EABBFFA0089E268 /* QRCodeScannerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QRCodeScannerViewController.h; sourceTree = "<group>"; };
+		C2592F1B2EABBFFA0089E268 /* UserCardViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserCardViewController.h; sourceTree = "<group>"; };
+		C2592F1E2EAD17570089E268 /* vip_purchase_historyCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vip_purchase_historyCell.h; sourceTree = "<group>"; };
+		C2592F1F2EAD17570089E268 /* vip_purchase_historyCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vip_purchase_historyCell.m; sourceTree = "<group>"; };
+		C2592F212EAD17760089E268 /* VipPurchaseHistoryModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VipPurchaseHistoryModel.h; sourceTree = "<group>"; };
+		C2592F222EAD17760089E268 /* VipPurchaseHistoryModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VipPurchaseHistoryModel.m; sourceTree = "<group>"; };
+		C2592F242EAD18BF0089E268 /* VipPurchaseHistoryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VipPurchaseHistoryViewController.h; sourceTree = "<group>"; };
+		C2592F252EAD18BF0089E268 /* VipPurchaseHistoryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VipPurchaseHistoryViewController.m; sourceTree = "<group>"; };
 		C2871F9A2E2542C200ABC6AE /* UserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserModel.m; sourceTree = "<group>"; };
 		C2871F9B2E2542C200ABC6AE /* UserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserModel.h; sourceTree = "<group>"; };
 		C2871F9D2E2542C200ABC6AE /* TemplateListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TemplateListController.m; sourceTree = "<group>"; };
@@ -535,6 +550,17 @@
 			path = "状态说说";
 			sourceTree = "<group>";
 		};
+		C2592F172EABBFFA0089E268 /* 名片二维码 */ = {
+			isa = PBXGroup;
+			children = (
+				C2592F1A2EABBFFA0089E268 /* QRCodeScannerViewController.h */,
+				C2592F192EABBFFA0089E268 /* QRCodeScannerViewController.m */,
+				C2592F1B2EABBFFA0089E268 /* UserCardViewController.h */,
+				C2592F182EABBFFA0089E268 /* UserCardViewController.m */,
+			);
+			path = "名片二维码";
+			sourceTree = "<group>";
+		};
 		C2871F9C2E2542C200ABC6AE /* 表格控制器模板TemplateListController */ = {
 			isa = PBXGroup;
 			children = (
@@ -583,6 +609,8 @@
 			children = (
 				C2871FB22E2542C300ABC6AE /* cell */,
 				C2871FB52E2542C300ABC6AE /* model */,
+				C2592F242EAD18BF0089E268 /* VipPurchaseHistoryViewController.h */,
+				C2592F252EAD18BF0089E268 /* VipPurchaseHistoryViewController.m */,
 			);
 			path = vip;
 			sourceTree = "<group>";
@@ -590,6 +618,8 @@
 		C2871FB22E2542C300ABC6AE /* cell */ = {
 			isa = PBXGroup;
 			children = (
+				C2592F1E2EAD17570089E268 /* vip_purchase_historyCell.h */,
+				C2592F1F2EAD17570089E268 /* vip_purchase_historyCell.m */,
 				C2871FB32E2542C300ABC6AE /* VIPPackageCell.m */,
 				C2871FB42E2542C300ABC6AE /* VIPPackageCell.h */,
 			);
@@ -601,6 +631,8 @@
 			children = (
 				C2871FB62E2542C300ABC6AE /* VIPPackage.h */,
 				C2871FB72E2542C300ABC6AE /* VIPPackage.m */,
+				C2592F212EAD17760089E268 /* VipPurchaseHistoryModel.h */,
+				C2592F222EAD17760089E268 /* VipPurchaseHistoryModel.m */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -946,6 +978,7 @@
 		C28720852E255E9300ABC6AE /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
+				C2592F172EABBFFA0089E268 /* 名片二维码 */,
 				C2592EFB2EA6CEF90089E268 /* 状态说说 */,
 				C2871FB92E2542C300ABC6AE /* NewProfileViewController.h */,
 				C2871FBB2E2542C300ABC6AE /* NewProfileViewController.mm */,
@@ -1457,6 +1490,7 @@
 				C2592F042EA6D0790089E268 /* moodStatusCell.m in Sources */,
 				C28720362E2542C300ABC6AE /* TemplateListController.m in Sources */,
 				C28720422E2542C300ABC6AE /* NewProfileViewController.mm in Sources */,
+				C2592F262EAD18BF0089E268 /* VipPurchaseHistoryViewController.m in Sources */,
 				C28720612E2542C300ABC6AE /* AppSearchViewController.m in Sources */,
 				C287206E2E2542C300ABC6AE /* UIColor.m in Sources */,
 				C28720442E2542C300ABC6AE /* CommunityViewController.m in Sources */,
@@ -1468,6 +1502,7 @@
 				C287204F2E2542C300ABC6AE /* UploadFileItem.m in Sources */,
 				C2592F102EAA1A140089E268 /* ToolMessageCell.m in Sources */,
 				C287203F2E2542C300ABC6AE /* VIPPackage.m in Sources */,
+				C2592F202EAD17570089E268 /* vip_purchase_historyCell.m in Sources */,
 				C287208D2E25609300ABC6AE /* UserModelCell.m in Sources */,
 				C28721222E281E9600ABC6AE /* PidModel.mm in Sources */,
 				C28720602E2542C300ABC6AE /* ITunesAppModel.m in Sources */,
@@ -1503,6 +1538,7 @@
 				C287205D2E2542C300ABC6AE /* ShowOneAppViewController.m in Sources */,
 				4F639DFF2272E94C00776206 /* main.m in Sources */,
 				C287203C2E2542C300ABC6AE /* DemoBaseNavigationController.m in Sources */,
+				C2592F232EAD17760089E268 /* VipPurchaseHistoryModel.m in Sources */,
 				C28722982E3374EC00ABC6AE /* BaseBottomSheetVC.m in Sources */,
 				C287205A2E2542C300ABC6AE /* CommentModel.m in Sources */,
 				C28721652E2F9FD500ABC6AE /* DownloadTaskModel.m in Sources */,
@@ -1541,8 +1577,10 @@
 				C28722922E336ABF00ABC6AE /* AppVersionHistoryViewController.m in Sources */,
 				C287203B2E2542C300ABC6AE /* DemoBaseViewController.m in Sources */,
 				C287227B2E326C4200ABC6AE /* AppListController.m in Sources */,
+				C2592F1C2EABBFFA0089E268 /* UserCardViewController.m in Sources */,
 				C287204E2E2542C300ABC6AE /* DocumentPickerViewController.m in Sources */,
 				C28721232E281E9600ABC6AE /* Root.m in Sources */,
+				C2592F1D2EABBFFA0089E268 /* QRCodeScannerViewController.m in Sources */,
 				C28722872E326ECF00ABC6AE /* DylibHistoryController.m in Sources */,
 				4F639DF12272E94500776206 /* AppDelegate.m in Sources */,
 				C28721452E2BE2B200ABC6AE /* WebToolManager.m in Sources */,

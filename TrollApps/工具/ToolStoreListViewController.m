@@ -31,6 +31,7 @@ typedef NS_ENUM(NSInteger, SortType) {
 @property (nonatomic, assign)  BOOL isMyTool;
 @property (nonatomic, strong)  UIBarButtonItem * rightItem;
 @property (nonatomic, assign)  SortType sortType;
+@property (nonatomic, strong)  UISearchController *searchController;
 @end
 
 @implementation ToolStoreListViewController
@@ -79,33 +80,34 @@ typedef NS_ENUM(NSInteger, SortType) {
     self.navigationController.navigationBarHidden = NO;
     self.tabBarController.tabBar.hidden = NO;
     // 创建搜索控制器
-    UISearchController *searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
-    searchController.searchResultsUpdater = self;
-    searchController.obscuresBackgroundDuringPresentation = NO;
-    searchController.searchBar.placeholder = @"输入应用名称搜索";
-    searchController.searchBar.delegate = self;
-    searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
-    searchController.searchBar.returnKeyType = UIReturnKeyDone;
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    self.searchController.searchResultsUpdater = self;
+    self.searchController.obscuresBackgroundDuringPresentation = NO;
+    self.searchController.searchBar.placeholder = @"全站搜索你要的Web工具";
+    self.searchController.searchBar.delegate = self;
+    self.searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
+    self.searchController.searchBar.returnKeyType = UIReturnKeyDone;
     
     // 配置导航项
-    self.navigationItem.searchController = searchController;
+    self.navigationItem.searchController = self.searchController;
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
     
-    // 地区选择按钮（移至右侧）
-    self.rightItem = [[UIBarButtonItem alloc] initWithTitle:@"排序" style:UIBarButtonItemStylePlain target:self action:@selector(rightTapped:)];
+    // 地区选择按钮（移至右侧）text.alignright
+   
+    self.rightItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"text.alignright"] style:UIBarButtonItemStylePlain target:self action:@selector(rightTapped:)];
     self.rightItem.tintColor = [UIColor labelColor];
     self.navigationItem.rightBarButtonItem = self.rightItem;
     
     // 关闭按钮
-    UIBarButtonItem * leftItem = [[UIBarButtonItem alloc] initWithTitle:@"最近"
-                                                                       style:UIBarButtonItemStylePlain
-                                                                      target:self
-                                                                      action:@selector(recently)];
+    
+    UIBarButtonItem * leftItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"clock"] style:UIBarButtonItemStylePlain target:self action:@selector(recently)];
+    
+    
     leftItem.tintColor = [UIColor labelColor];
     
     
     // 地区选择按钮（移至右侧）
-    UIBarButtonItem *myItem = [[UIBarButtonItem alloc] initWithTitle:@"我的" style:UIBarButtonItemStylePlain target:self action:@selector(myToolTapped:)];
+    UIBarButtonItem *myItem = [[UIBarButtonItem alloc] initWithTitle:@"ME" style:UIBarButtonItemStylePlain target:self action:@selector(myToolTapped:)];
     myItem.tintColor = [UIColor labelColor];
     
     myItem.tintColor = [UIColor labelColor];
@@ -198,9 +200,14 @@ typedef NS_ENUM(NSInteger, SortType) {
     
     self.isMyTool = !self.isMyTool;
     [self refreshLoadInitialData];
-    item.title = self.isMyTool ? @"市场":@"我的";
+    item.title = self.isMyTool ? @"ALL":@"ME";
     
     self.title = self.isMyTool ? @"我的发布":@"热门工具";
+    if(self.isMyTool){
+        self.searchController.searchBar.placeholder = @"搜索我发布的Web工具";
+    }else{
+        self.searchController.searchBar.placeholder = @"全站搜索你要的Web工具";
+    }
     
 }
 
@@ -308,7 +315,7 @@ typedef NS_ENUM(NSInteger, SortType) {
         @"keyword":self.keyword?:@"",
         @"sortType":@(self.sortType)
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

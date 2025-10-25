@@ -9,6 +9,7 @@
 #import <RongIMKit/RongIMKit.h>
 #import "Config.h"
 #import "UserModel.h"
+#import "ToolMessage.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -41,10 +42,21 @@ typedef NS_ENUM(NSUInteger, ChatInitiationType) {
 //搜索关键字
 @property (nonatomic, strong) NSString *keyword;
 
-//发起会话的位置
-@property (nonatomic, assign) ChatInitiationType ChatFromType;
-//发起会话携带的对象
-@property (nonatomic, strong) id ChatObj;
+/*!
+ 数据模型
+ */
+@property (nonatomic, strong) id shareModel;
+/*!
+ 是否为分享状态
+ */
+@property (nonatomic, assign) BOOL isShare;
+
+
+/*!
+ 消息的类型
+ */
+@property (nonatomic, assign) MessageForType messageForType;
+
 
 
 @end

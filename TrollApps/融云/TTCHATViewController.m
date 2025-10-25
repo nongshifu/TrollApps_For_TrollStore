@@ -31,6 +31,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) NSMutableArray<RCMessage *> *messages;//搜索的数据数组
 // 用于保存上一个页面的搜索控制器（退出时恢复）
 @property (nonatomic, strong) UISearchController *searchController;
+
+@property (nonatomic, strong) UIView *shareView;
 @end
 
 @implementation TTCHATViewController
@@ -43,6 +45,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.conversationMessageCollectionView.backgroundColor = [UIColor clearColor];
     self.conversationMessageCollectionView.delegate = self;
     self.conversationMessageCollectionView.dataSource = self;
+    
+    //添加返回手势
+    UIPanGestureRecognizer *g = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+    [self.view addGestureRecognizer:g];
+    
     //默认时间
     self.startTime = 0;
     // 默认读取 30 条
@@ -144,8 +151,71 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 判断是否是模态弹出
     BOOL isPresentedModally = [self isModal];
     // 仅在模态时设置右侧关闭按钮，否则隐藏
-    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : nil;
+    self.navigationItem.leftBarButtonItem = isPresentedModally ? closeItem : nil;
    
+    
+}
+
+- (void)setupShareView{
+    NSLog(@"设置分享页面 isShare:%d model:%@",self.isShare,self.shareModel);
+    
+    
+    if(!self.isShare || !self.shareModel)return;
+    self.shareView = [[UIView alloc] initWithFrame:CGRectMake(10, 200, 150, 200)];
+    self.shareView.backgroundColor = [UIColor systemGrayColor];
+    self.shareView.layer.cornerRadius = 15;
+    [self.view addSubview:self.shareView];
+    UIImageView *avaImageView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 10, 130, 130)];
+    avaImageView.backgroundColor = [UIColor systemBackgroundColor];
+    avaImageView.layer.cornerRadius = 15;
+    avaImageView.layer.masksToBounds = YES;
+    avaImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self.shareView addSubview:avaImageView];
+    UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 145, 130, 50)];
+    nameLabel.numberOfLines = 0;
+    nameLabel.textColor = [UIColor labelColor];
+    [self.shareView addSubview:nameLabel];
+    
+    UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(35, 5, 80, 30)];
+    [button setTitle:@"点击分享" forState:UIControlStateNormal];
+    button.layer.cornerRadius = 15;
+    button.backgroundColor = [UIColor systemOrangeColor];
+    [button setTintColor:[UIColor whiteColor]];
+    [button addTarget:self action:@selector(shareActio:) forControlEvents:UIControlEventTouchUpInside];
+    [self.shareView addSubview:button];
+    
+    //赋值内容
+    switch (self.messageForType) {
+        case MessageForTypeTool:{
+            WebToolModel *webToolModel = (WebToolModel *)self.shareModel;
+            NSString *iconURL = [NSString stringWithFormat:@"%@/%@/icon.png", localURL,webToolModel.tool_path];
+            NSLog(@"设置分享页面 iconURL:%@",iconURL);
+            NSLog(@"设置分享页面 icon_url:%@",webToolModel.icon_url);
+            [avaImageView sd_setImageWithURL:[NSURL URLWithString:webToolModel.icon_url]];
+            nameLabel.text = webToolModel.tool_name;
+            
+        }
+            
+            break;
+        case MessageForTypeApp:{
+            AppInfoModel *appInfoModel = (AppInfoModel *)self.shareModel;
+            [avaImageView sd_setImageWithURL:[NSURL URLWithString:appInfoModel.icon_url]];
+            nameLabel.text = appInfoModel.app_name;
+        }
+            
+            break;
+        case MessageForTypeUser:{
+            UserModel *userModel = (UserModel *)self.shareModel;
+            [avaImageView sd_setImageWithURL:[NSURL URLWithString:userModel.avatar]];
+            nameLabel.text = userModel.nickname;
+        }
+            
+            break;
+            
+        default:
+            break;
+    }
+    
     
 }
 
@@ -213,6 +283,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 //最近使用
 - (void)recently {
     
+}
+
+- (void)shareActio:(UIButton*)button {
+    [self sendRcimMessage];
 }
 
 #pragma mark -监听主题
@@ -461,8 +535,20 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 // 显示之前
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-//    [self.navigationController setNavigationBarHidden:YES];
+
+    [self.navigationController setNavigationBarHidden:NO];
     self.tabBarController.tabBar.hidden = YES;
+    
+    //监听消息
+    [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
+    //输入状态监听
+    [[RCCoreClient sharedCoreClient] setRCTypingStatusDelegate:self];
+    //阅后既焚监听器
+    [[RCCoreClient sharedCoreClient] setRCMessageDestructDelegate:self];
+    
+    [self UpdateTheNumberOfUnreadMessages];
+    [self updateViewConstraints];
+    [self setBackgroundUI];
     
     // 1. 保存上一个页面的搜索控制器（用于返回时恢复）
     self.searchController.obscuresBackgroundDuringPresentation = NO;
@@ -480,6 +566,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 4. 强制刷新导航栏布局（解决高度计算异常）
     [self.navigationController.navigationBar layoutIfNeeded];
+    
+    
    
 }
 
@@ -488,21 +576,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [super viewDidAppear:animated];
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
     //储存正在聊天的ID 用来判断是否显示通知 离开控制器后要删除
+    [self setupShareView];
     
-    
-    [self.navigationController setNavigationBarHidden:NO];
-    self.tabBarController.tabBar.hidden = YES;
-    
-    //监听消息
-    [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
-    //输入状态监听
-    [[RCCoreClient sharedCoreClient] setRCTypingStatusDelegate:self];
-    //阅后既焚监听器
-    [[RCCoreClient sharedCoreClient] setRCMessageDestructDelegate:self];
-    
-    [self UpdateTheNumberOfUnreadMessages];
-    [self updateViewConstraints];
-    [self setBackgroundUI];
+   
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -719,6 +795,41 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         if(![message.content.conversationDigest containsString:self.keyword]) return nil;
     }
     return message;
+}
+
+- (void)sendRcimMessage{
+    ToolMessage *message = [[ToolMessage alloc] init];
+    NSString * content = @"分享个好东西给你:";
+    if(self.messageForType == MessageForTypeTool){
+        WebToolModel *webToolModel = (WebToolModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"%@\n%@",content,webToolModel.tool_name];
+        message.messageForType = MessageForTypeTool;
+    }
+    else if(self.messageForType == MessageForTypeApp){
+        AppInfoModel *appInfoModel = (AppInfoModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"%@\n%@",content,appInfoModel.app_name];
+        message.messageForType = MessageForTypeApp;
+    }
+    else if(self.messageForType == MessageForTypeUser){
+        UserModel *userModel = (UserModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"分享个用户给你:\n%@",userModel.nickname];
+        message.messageForType = MessageForTypeUser;
+    }
+    
+    message.content = content;
+    
+    message.extra = [self.shareModel yy_modelToJSONString];
+    
+    [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.targetId content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.shareView.hidden = YES;
+            self.isShare = NO;
+            [self.conversationMessageCollectionView reloadData];
+        });
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        
+        
+    }];
 }
 
 @end

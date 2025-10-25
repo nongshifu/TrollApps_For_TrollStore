@@ -62,7 +62,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
     

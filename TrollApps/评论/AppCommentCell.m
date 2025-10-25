@@ -286,7 +286,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     
     // 构建请求参数
-    NSString *url = [NSString stringWithFormat:@"%@/app_action.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php", localURL];
     NSDictionary *params = @{
         @"action": @"toggle_comment_like",
         @"action_type": @(self.appComment.action_type),

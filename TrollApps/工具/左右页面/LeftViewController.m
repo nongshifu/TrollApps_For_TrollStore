@@ -141,7 +141,7 @@
         
      };
      
-     NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+     NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
      NSLog(@"请求URL:%@ 参数:%@", url, dic);
     
      [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST

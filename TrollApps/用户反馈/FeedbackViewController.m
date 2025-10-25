@@ -348,7 +348,7 @@
         @"udid":self.udid,
     };
     //封装URL
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     //请求的自己UDID
     NSString *myUdid = [NewProfileViewController sharedInstance].userInfo.udid ?:[NewProfileViewController sharedInstance].userInfo.idfv;
     //发送
@@ -516,7 +516,7 @@
     [SVProgressHUD showWithStatus:@"提交中..."];
     
     // 发送请求
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:params

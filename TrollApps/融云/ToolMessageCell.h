@@ -8,18 +8,39 @@
 
 #import <RongIMKit/RongIMKit.h>
 #import "ToolMessage.h"
+#import "AppInfoModel.h"
+
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ToolMessageCell : RCMessageCell
+
+
+/*!
+ 消息的类型
+ */
+@property (nonatomic, assign) MessageForType messageForType;
 /*!
  测试消息的帖子内容
  */
 @property (nonatomic, strong) WebToolModel *webToolModel;
 /*!
+ 测试消息的帖子内容
+ */
+@property (nonatomic, strong) AppInfoModel *appInfoModel;
+/*!
+ 数据模型
+ */
+@property (nonatomic, strong) UserModel *userModel;
+/*!
  文本内容的Label
 */
 @property (strong, nonatomic) UILabel *ToolNameLabel;
+
+/*!
+ 文本内容的Button
+*/
+@property (strong, nonatomic) UIButton *versionButton;
 
 /*!
  文本内容的Label

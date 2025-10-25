@@ -415,7 +415,7 @@
         
      };
      
-     NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+     NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
      NSLog(@"请求URL:%@ 参数:%@", url, dic);
     
      [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -445,7 +445,7 @@
         @"tool_id" : @(self.toolModel.tool_id),
         @"content":self.commentContent?:@""
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -471,8 +471,10 @@
                 NSLog(@"查看点赞回复:%d",status);
                 UIImage *iconImage = [UIImage new];
                 //发送融云消息
-                if((status && tag < 4) || tag == 4){
-                    [self sendRcimMessage:tag];
+                if(status && tag < 4){
+                    [self sendRcimMessage:tag text:@""];
+                }else if(tag == 4){
+                    [self sendRcimMessage:tag text:self.commentContent];
                 }
                 switch (tag) {
                     case 1:
@@ -518,18 +520,31 @@
     }];
 }
 
-- (void)sendRcimMessage:(NSInteger)tag{
-    NSArray *msgs = @[@"", @"我收藏了你的应用", @"我点赞了你的应用", @"我踩了你的应用", @"我评论了你的应用", @"我分享了你的应用"];
+- (void)sendRcimMessage:(NSInteger)tag text:(NSString *)text{
+    if(!text) text = @"";//确保非空出现null
+    NSArray *msgs = @[@"我浏览了你的工具", @"我收藏了你的工具", @"我点赞了你的工具", @"我踩了你的工具", @"我评论了你的工具", @"我分享了你的工具"];
     ToolMessage *message = [[ToolMessage alloc] init];
     message.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],self.toolModel.tool_name];
-    
+    message.messageForType = MessageForTypeTool;
     message.extra = [self.toolModel yy_modelToJSONString];
+    
     [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.toolModel.udid content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        
+        RCTextMessage *meg = [[RCTextMessage alloc] init];
+        meg.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],text];
+        [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.toolModel.udid content:meg pushContent:meg.content pushData:meg.content success:^(long messageId) {
+            
+            
+        } error:^(RCErrorCode nErrorCode, long messageId) {
+            
+            
+        }];
         
     } error:^(RCErrorCode nErrorCode, long messageId) {
         
         
     }];
+    
 }
 
 - (void)handleShareAction {
@@ -546,7 +561,9 @@
     // 显示加载提示
     [SVProgressHUD showWithStatus:@"准备分享..."];
     // 添加应用URL
-    NSString *urlString = [NSString stringWithFormat:@"%@/%@/tool_detail.php?shareUser_id=%ld", localURL,self.toolModel.tool_path ,[loadData sharedInstance].userModel.user_id];
+//    NSString *urlString = [NSString stringWithFormat:@"%@/tool/%@/tool_detail.php?shareUser_id=%ld", localURL,self.toolModel.tool_path ,[loadData sharedInstance].userModel.user_id];
+//https://niceiphone.com/uploads/tool/6/22/index.html
+    NSString *urlString = [NSString stringWithFormat:@"%@/uploads/tool/%ld/%ld/index.html?id=%ld&type=tool&shareUser_id=%ld", localURL,[loadData sharedInstance].userModel.user_id, self.toolModel.tool_id,self.toolModel.tool_id,[loadData sharedInstance].userModel.user_id];
     NSLog(@"分享的工具URL：%@",urlString);
     [SVProgressHUD dismissWithDelay:0.5];
    
@@ -608,7 +625,9 @@
     UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         // 修改后：包装导航栏 + 底部模态样式
         CommunityViewController *vc = [CommunityViewController new];
-        
+        vc.isShare = YES;
+        vc.shareModel = self.toolModel;
+        vc.messageForType = MessageForTypeTool;
         // 1. 创建导航控制器，将vc作为根控制器（核心：让vc拥有导航栏）
         UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
         // 2. 设置底部模态弹出样式（iOS 13+ 推荐，底部滑入）
@@ -638,7 +657,7 @@
        
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     NSLog(@"请求URL:%@ 参数:%@", url, dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST

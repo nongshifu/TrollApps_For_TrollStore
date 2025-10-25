@@ -408,7 +408,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"tool_id":@(tool_id),
         @"udid":udid,
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -719,7 +719,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
     }]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"商店搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"AppStore" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         AppSearchViewController * appSaearchViewController = [AppSearchViewController new];
         appSaearchViewController.delegate = self;
@@ -886,7 +886,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [SVProgressHUD dismissWithDelay:2];
         return;
     }
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     
     
     NSLog(@"请求字典:%@",dic);

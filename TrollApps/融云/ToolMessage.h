@@ -8,7 +8,17 @@
 
 #import <RongIMLibCore/RongIMLibCore.h>
 #import "WebToolModel.h"
+#import "AppInfoModel.h"
+#import "UserModel.h"
 NS_ASSUME_NONNULL_BEGIN
+
+
+typedef NS_ENUM(NSInteger, MessageForType) {
+    MessageForTypeTool, // 工具
+    MessageForTypeApp,        // 软件
+    MessageForTypeUser,        // 用户
+  
+};
 
 /*!
  测试消息的类型名
@@ -17,9 +27,22 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ToolMessage : RCMessageContent<NSCoding>
 /*!
- 测试消息的帖子内容
+ 数据模型
  */
 @property (nonatomic, strong) WebToolModel *webToolModel;
+/*!
+ 数据模型
+ */
+@property (nonatomic, strong) AppInfoModel *appInfoModel;
+/*!
+ 数据模型
+ */
+@property (nonatomic, strong) UserModel *userModel;
+
+/*!
+ 消息的类型
+ */
+@property (nonatomic, assign) MessageForType messageForType;
 /*!
  测试消息的内容
  */

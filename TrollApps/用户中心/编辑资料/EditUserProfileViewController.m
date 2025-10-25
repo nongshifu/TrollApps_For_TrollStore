@@ -369,7 +369,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"type":@"udid"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:udid progress:^(NSProgress *progress) {
         
@@ -536,7 +536,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     newDic[@"action"] = @"updateProfile";
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:newDic
                                                    udid:[NewProfileViewController sharedInstance].userInfo.udid progress:^(NSProgress *progress) {
         
@@ -620,7 +620,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 6. 发送请求（使用表单提交而非JSON，避免base64转义问题）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php", localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php", localURL]
                                              parameters:params
                                                    udid:self.userInfo.udid
                                                progress:^(NSProgress *progress) {

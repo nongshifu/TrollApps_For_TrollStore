@@ -21,8 +21,11 @@
 #import "ContactHelper.h"
 #import "HXPhotoURLConverter.h"
 #import "QRCodeGeneratorViewController.h"
+#import "ToolMessage.h"
+#import "CommunityViewController.h"
+
 //是否打印
-#define MY_NSLog_ENABLED NO
+#define MY_NSLog_ENABLED YES
 
 #define NSLog(fmt, ...) \
 if (MY_NSLog_ENABLED) { \
@@ -880,7 +883,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [DemoBaseViewController triggerVibration];
         
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                  urlString:[NSString stringWithFormat:@"%@/app_action.php",localURL]
+                                                  urlString:[NSString stringWithFormat:@"%@/app/app_action.php",localURL]
                                                  parameters:params
                                                        udid:udid
                                                    progress:^(NSProgress *progress) {
@@ -897,6 +900,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 
                 if (code == 200) {
                     [SVProgressHUD showSuccessWithStatus:msg];
+                    //发送给IM
+                    [self sendRcimMessage:3 text:textField.text];
+                    
                     self.appInfoModel.isComment = YES;
                     self.appInfoModel.isComment+=1;
                 } else {
@@ -923,7 +929,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 处理评论操作
     NSLog(@"处理分享操作");
     // 添加应用URL
-    NSString *urlString = [NSString stringWithFormat:@"%@/app_detail.php?id=%ld", localURL, self.appInfoModel.app_id];
+    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_detail.php?id=%ld&type=app", localURL, self.appInfoModel.app_id];
     //系统导航遮挡问题
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     
@@ -990,6 +996,22 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }
     }];
     [alert addAction:confirmAction3];
+    
+    UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        // 修改后：包装导航栏 + 底部模态样式
+        CommunityViewController *vc = [CommunityViewController new];
+        vc.isShare = YES;
+        vc.shareModel = self.appInfoModel;
+        vc.messageForType = MessageForTypeApp;
+        // 1. 创建导航控制器，将vc作为根控制器（核心：让vc拥有导航栏）
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        // 2. 设置底部模态弹出样式（iOS 13+ 推荐，底部滑入）
+        navVC.modalPresentationStyle = UIModalPresentationFullScreen; // 或 UIModalPresentationPageSheet
+        // 3. 弹出导航控制器（而非直接弹出vc）
+        [[self getviewController] presentViewController:navVC animated:YES completion:nil];
+    }];
+   
+    [alert addAction:confirmAction4];
     
     
     [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
@@ -1060,7 +1082,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"正在%@...", message]];
     
     // API地址 - 根据实际情况修改
-    NSString *urlString = [NSString stringWithFormat:@"%@/app_action.php",localURL];
+    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_action.php",localURL];
     
     // 准备请求参数
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
@@ -1096,10 +1118,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             NSString *message = jsonResult[@"msg"];
             if (code != 200){
                 // 失败
-                
                 [SVProgressHUD showErrorWithStatus:message];
                 [SVProgressHUD dismissWithDelay:1];
                 return;
+            }
+            NSDictionary *data = jsonResult[@"data"];
+            BOOL newStatus = [data[@"newStatus"] boolValue];
+            if(newStatus){
+                [self sendRcimMessage:button.tag text:@""];
             }
             
             UIImage *image = button.imageView.image;
@@ -1115,6 +1141,28 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     
     
+}
+
+- (void)sendRcimMessage:(NSInteger)tag text:(NSString *)text{
+    NSArray *msgs = @[@"我收藏了你的软件", @"我点赞了你的软件", @"我踩了你的软件", @"我评论了你的软件", @"我分享了你的软件"];
+    ToolMessage *message = [[ToolMessage alloc] init];
+    message.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],self.appInfoModel.app_name];
+    message.messageForType = MessageForTypeApp;
+    message.extra = [self.appInfoModel yy_modelToJSONString];
+    [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.appInfoModel.udid content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        RCTextMessage *meg = [[RCTextMessage alloc] init];
+        meg.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],text];
+        [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.appInfoModel.udid content:meg pushContent:meg.content pushData:message.content success:^(long messageId) {
+            
+        } error:^(RCErrorCode nErrorCode, long messageId) {
+            
+            
+        }];
+        
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        
+        
+    }];
 }
 
 - (void)updateStatsAfterResponse:(id)response tag:(NSInteger )tag{

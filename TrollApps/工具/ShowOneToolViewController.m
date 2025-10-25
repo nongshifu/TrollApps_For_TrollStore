@@ -217,7 +217,7 @@
         @"tool_id":@(self.webToolModel.tool_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:dic
@@ -269,7 +269,7 @@
         @"type": @"user_id",
         @"queryValue":self.webToolModel.udid,
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
@@ -351,7 +351,7 @@
         @"page": @(currentPage)
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     NSLog(@"请求URL:%@ 参数:%@", url, dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -568,7 +568,7 @@
     
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/tool_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/tool/tool_api.php",localURL]
                                              parameters:params
                                                    udid:udid
                                                progress:^(NSProgress *progress) {

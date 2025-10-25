@@ -606,7 +606,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"type":@"udid"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:udid progress:^(NSProgress *progress) {
         
@@ -858,7 +858,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:params
                                                    udid:udid
                                                progress:^(NSProgress *progress) {
@@ -929,7 +929,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:params
                                                    udid:udid
                                                progress:^(NSProgress *progress) {

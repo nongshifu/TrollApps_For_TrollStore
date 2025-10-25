@@ -12,10 +12,16 @@
 #import "MiniButtonView.h"
 #import "TTCHATViewController.h"
 #import "UserProfileViewController.h"
+#import "MyCollectionViewController.h"
+#import "UserCardViewController.h"
+#import "loadData.h"
+#import "ArrowheadMenu.h"
+#import "QRCodeScannerViewController.h"
+
 
 #define TITLES_SAVE_KEY @"TITLES_SAVE_KEY"
 
-@interface CommunityViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate,RCIMConnectionStatusDelegate,RCIMClientReceiveMessageDelegate,MiniButtonViewDelegate>
+@interface CommunityViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate,RCIMConnectionStatusDelegate,RCIMClientReceiveMessageDelegate,MiniButtonViewDelegate,MenuViewControllerDelegate>
 
 @property (nonatomic, strong)  NSString *keyword;
 @property (nonatomic, strong)  UIView *gradientNavigationView;
@@ -49,7 +55,7 @@
 - (void)setupViews{
     
     //默认
-    self.title = @"交流社区";
+    self.title = @"聊天";
     
     // Do any additional setup after loading the view.
     self.displayConversationTypeArray = @[
@@ -138,30 +144,26 @@
     
     // 判断是否是模态弹出
     BOOL isPresentedModally = [self isModal];
+    
+    UIBarButtonItem *camera = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"qrcode"] style:UIBarButtonItemStylePlain target:self action:@selector(camera:)];
+    camera.tintColor = [UIColor labelColor];
+    
     // 仅在模态时设置右侧关闭按钮，否则隐藏
-    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : nil;
+    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : camera;
     
     // 关闭按钮
-    UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"最近"
-                                                                       style:UIBarButtonItemStylePlain
-                                                                      target:self
-                                                                      action:@selector(recently)];
-    closeButton.tintColor = [UIColor labelColor];
+    UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"heart"] style:UIBarButtonItemStylePlain target:self action:@selector(heart:)];
+    leftButton.tintColor = [UIColor labelColor];
     
     // 关键：禁用系统默认的返回按钮
     self.navigationItem.leftItemsSupplementBackButton = NO; // 禁用补充模式
     self.navigationItem.hidesBackButton = YES; // 隐藏系统返回按钮
     
     // 设置自定义左侧按钮
-    self.navigationItem.leftBarButtonItem = closeButton;
+    self.navigationItem.leftBarButtonItem = leftButton;
 }
 
-#pragma mark - 数据操作
 
-//刷新数据
-- (void)refreshData{
-    
-}
 
 #pragma mark - 约束相关
 
@@ -197,7 +199,7 @@
     
 }
 
-#pragma mark - action 函数
+#pragma mark - 辅助函数
 
 // 辅助方法：判断当前控制器是否是模态弹出
 - (BOOL)isModal {
@@ -221,17 +223,68 @@
     return NO;
 }
 
+#pragma mark - action 函数
+
 // 关闭按钮的点击事件（模态弹出时，通过dismiss关闭）
 - (void)close:(UIBarButtonItem *)item {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-//最近使用
-- (void)recently {
-    
+//显示好友
+- (void)heart:(UIBarButtonItem *)item {
+    MyCollectionViewController *vc = [MyCollectionViewController new];
+    vc.selectedIndex = 3;
+    vc.showFollowList = YES;
+    [self presentPanModal:vc];
 }
 
+//显示好友
+- (void)camera:(UIBarButtonItem *)item {
+    
+    
+    NSArray *title = @[@"我的名片", @"扫一扫"];
+    NSArray *icon = @[@"person.crop.square", @"qrcode", @"qrcode.viewfinder"];
+    CGSize menuUnitSize = CGSizeMake(130, 50);
+    CGFloat distanceFromTriggerSwitch = 10;
+    UIFont * font = [UIFont boldSystemFontOfSize:15];
+    UIColor * menuFontColor = [UIColor labelColor];
+    UIColor * menuBackColor = [[UIColor tertiarySystemBackgroundColor] colorWithAlphaComponent:0.95];
+    UIColor * menuSegmentingLineColor = [UIColor labelColor];
+    
+    ArrowheadMenu *VC = [[ArrowheadMenu alloc] initCustomArrowheadMenuWithTitle:title
+                                                                           icon:icon
+                                                                   menuUnitSize:menuUnitSize
+                                                                       menuFont:font
+                                                                  menuFontColor:menuFontColor
+                                                                  menuBackColor:menuBackColor
+                                                        menuSegmentingLineColor:menuSegmentingLineColor
+                                                      distanceFromTriggerSwitch:distanceFromTriggerSwitch
+                                                                 menuArrowStyle:MenuArrowStyleRound
+                                                                 menuPlacements:ShowAtBottom
+                                                           showAnimationEffects:ShowAnimationZoom
+    ];
+    VC.iconSize = CGSizeMake(27, 25);
+    
+    VC.delegate = self;
+    [VC presentMenuView:item];
+}
 
+#pragma mark - 菜单代理方法
+- (void)menu:(BaseMenuViewController *)menu didClickedItemUnitWithTag:(NSInteger)tag andItemUnitTitle:(NSString *)title {
+    NSLog(@"\n\n\n\n点击了第%lu项名字为%@的菜单项", tag, title);
+    
+    if (tag ==0) {
+        UserCardViewController *vc = [UserCardViewController new];
+        vc.userID = [loadData sharedInstance].userModel.user_id;
+        vc.nickname = [loadData sharedInstance].userModel.nickname;
+        vc.avatarImage = [loadData sharedInstance].userModel.avatarImage;
+        [self presentPanModal:vc];
+    } else if (tag ==1) {
+        // 初始化扫码器
+        QRCodeScannerViewController *scannerVC = [[QRCodeScannerViewController alloc] init];
+        [self.navigationController pushViewController:scannerVC animated:YES];
+    }
+}
 #pragma mark - UISearchBarDelegate（补充状态监听）
 // 1. 搜索框开始编辑（用户点击搜索框，进入编辑状态）→ 显示历史搜索视图
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
@@ -295,7 +348,7 @@
 
 - (void)performSearchWithText:(NSString *)text {
     self.keyword = text;
-    
+    [SVProgressHUD showWithStatus:@"搜索中"];
     // 2. 备份原始数据（避免多次搜索篡改原始数据）
     if (self.backupsArray.count == 0) {
         self.backupsArray = [NSMutableArray arrayWithArray:self.conversationListDataSource];
@@ -305,7 +358,7 @@
         
         // 关键补充：关闭搜索框键盘（需在主线程执行）
         dispatch_async(dispatch_get_main_queue(), ^{
-            
+            [SVProgressHUD dismissWithDelay:0.5];
             [self.searchController resignFirstResponder];
         });
         self.conversationListDataSource = [NSMutableArray arrayWithArray:self.backupsArray];
@@ -348,6 +401,7 @@
         self.conversationListDataSource = [NSMutableArray arrayWithArray:self.searchArray];
         [self refreshConversationTableViewIfNeeded];
     }
+    [SVProgressHUD dismissWithDelay:0.5];
 }
 
 
@@ -368,15 +422,26 @@
 
 
 #pragma mark - 控制器函数
+// 显示之前
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
+    self.tabBarController.tabBar.hidden = NO;
+    self.miniButtonView.hidden = YES;
+    [self setBackgroundUI];
+    [self setupNavigationBarWithSearch];
+    
+    [self updateViewConstraints];
+    
+    
+    
+    
+}
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
-    [self setBackgroundUI];
-   
-    [self updateViewConstraints];
     
-    self.tabBarController.tabBar.hidden = NO;
+    // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
     self.searchController.searchResultsUpdater = self;
     self.searchController.searchBar.delegate = self;
     
@@ -398,10 +463,7 @@
 
 - (void)dealloc {
     // 移除通知观察者
-    [[NSNotificationCenter defaultCenter] removeObserver:UIKeyboardWillShowNotification];
-    [[NSNotificationCenter defaultCenter] removeObserver:UIKeyboardWillHideNotification];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
+   
 }
 
 - (void)setBackgroundUI {
@@ -805,12 +867,41 @@
          conversationModel:(RCConversationModel *)model
                atIndexPath:(NSIndexPath *)indexPath {
     NSLog(@"点击列表 跳转聊天页面");
+    if(!self.isShare){
+        [self openChat:model];
+    }else{
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"分享" message:nil preferredStyle:UIAlertControllerStyleAlert];
+        // 添加取消按钮
+        UIAlertAction*isShareAction = [UIAlertAction actionWithTitle:@"直接分享" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            [self sendRcimMessage:model];
+            
+        }];
+        [alert addAction:isShareAction];
+        UIAlertAction*openShareActionAction = [UIAlertAction actionWithTitle:@"打开聊天" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            
+            [self openChat:model];
+        }];
+        [alert addAction:openShareActionAction];
+        UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+            
+        }];
+        [alert addAction:cancelAction];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
     
+    
+    
+    
+}
+- (void)openChat:(RCConversationModel *)model{
     // 1. 初始化聊天页，保留原有参数配置
     TTCHATViewController *conversationVC = [[TTCHATViewController alloc] initWithConversationType:model.conversationType
                                                                                           targetId:model.targetId];
+    conversationVC.shareModel = self.shareModel;
+    conversationVC.messageForType = self.messageForType;
+    conversationVC.isShare = self.isShare;
     conversationVC.targetId = model.targetId;
-    conversationVC.title = model.conversationTitle; // 聊天页标题会自动作为新导航栏的标题
+    conversationVC.title = model.conversationTitle;
     conversationVC.message = model.lastestMessage;
     conversationVC.locatedMessageSentTime = model.sentTime;
    
@@ -822,5 +913,36 @@
     UserProfileViewController *vc = [[UserProfileViewController alloc] init];
     vc.user_udid = model.targetId;
     [self presentPanModal:vc];
+}
+
+- (void)sendRcimMessage:(RCConversationModel *)rcModel{
+    ToolMessage *message = [[ToolMessage alloc] init];
+    NSString * content = @"分享个好东西给你:";
+    if(self.messageForType == MessageForTypeTool){
+        WebToolModel *webToolModel = (WebToolModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"%@\n%@",content,webToolModel.tool_name];
+        message.messageForType = MessageForTypeTool;
+    }
+    else if(self.messageForType == MessageForTypeApp){
+        AppInfoModel *appInfoModel = (AppInfoModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"%@\n%@",content,appInfoModel.app_name];
+        message.messageForType = MessageForTypeApp;
+    }
+    else if(self.messageForType == MessageForTypeUser){
+        UserModel *userModel = (UserModel *)self.shareModel;
+        content = [NSString stringWithFormat:@"分享个用户给你:\n%@",userModel.nickname];
+        message.messageForType = MessageForTypeUser;
+    }
+    
+    message.content = content;
+    
+    message.extra = [self.shareModel yy_modelToJSONString];
+    
+    [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:rcModel.targetId content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        
+        
+    }];
 }
 @end

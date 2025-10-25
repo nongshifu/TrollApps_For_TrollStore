@@ -57,7 +57,7 @@
                 && [self.version isEqualToString:other.version]
                 && [self.html_file isEqualToString:other.html_file]
     
-    
+                && [self.icon_url isEqualToString:other.icon_url]
                 && [self.update_notes isEqualToString:other.update_notes]
                 && [self.admin_notes isEqualToString:other.admin_notes]
                 && (self.share_count == other.share_count);

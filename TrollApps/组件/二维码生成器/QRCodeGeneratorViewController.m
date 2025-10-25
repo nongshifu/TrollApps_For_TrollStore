@@ -17,6 +17,7 @@
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UIButton *urlCopyButton;
 @property (nonatomic, strong) UIButton *saveButton;
+@property (nonatomic, strong) UIButton *backButton;
 
 @end
 
@@ -57,7 +58,7 @@
     _titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightMedium];
     _titleLabel.textAlignment = NSTextAlignmentCenter;
     _titleLabel.numberOfLines = 0;
-    _titleLabel.textColor = [UIColor darkTextColor];
+    _titleLabel.textColor = [UIColor labelColor];
     [self.view addSubview:_titleLabel];
     
     // 二维码图片
@@ -87,6 +88,11 @@
     [_urlCopyButton.layer setBorderWidth:1.0];
     [_urlCopyButton.layer setBorderColor:[UIColor colorWithRed:0.1 green:0.6 blue:0.9 alpha:1.0].CGColor];
     [self.view addSubview:_urlCopyButton];
+    
+    self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.backButton setTitle:@"关闭" forState:UIControlStateNormal];
+    [self.backButton addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.backButton];
     
     // 设置布局约束
     [self setupConstraints];
@@ -118,6 +124,12 @@
     // 拷贝按钮约束
     [_urlCopyButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(_saveButton.mas_bottom).offset(10);
+        make.leading.trailing.equalTo(self.view).inset(20);
+        make.height.mas_equalTo(50);
+    }];
+    
+    [_backButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(_urlCopyButton.mas_bottom).offset(30);
         make.leading.trailing.equalTo(self.view).inset(20);
         make.height.mas_equalTo(50);
     }];
@@ -153,7 +165,16 @@
 #pragma mark - Actions
 
 - (void)backAction {
-    [self.navigationController popViewControllerAnimated:YES];
+    // 1. 判断是否是“被push到导航栈中”的控制器（可通过导航控制器pop）
+    if (self.navigationController && [self.navigationController.viewControllers containsObject:self]) {
+        // 导航栈中存在当前控制器，说明是通过push进入的，执行pop
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+    // 2. 否则，判断是否是“被模态弹出”的控制器（需通过dismiss关闭）
+    else if (self.presentingViewController || (self.navigationController && self.navigationController.presentingViewController)) {
+        // 存在 presentingViewController，说明是通过present弹出的（无论是否被导航控制器包裹）
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
 }
 
 - (void)saveToAlbumAction {

@@ -51,11 +51,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         //解密帖子数据
         NSDictionary *data = [self.extra yy_modelToJSONObject];
         NSLog(@"从解码器中解码 data 字段，值为: %@", data);
-        self.webToolModel = [WebToolModel yy_modelWithDictionary:data];
-        if (self.webToolModel) {
-            NSLog(@"成功将 data 数据转换为 webToolModel 对象");
-        } else {
-            NSLog(@"将 data 数据转换为 webToolModel 对象失败");
+        if(self.messageForType == MessageForTypeTool || data[@"tool_id"]){
+            self.webToolModel = [WebToolModel yy_modelWithDictionary:data];
+        }else if(self.messageForType == MessageForTypeApp || data[@"app_id"]){
+            self.appInfoModel = [AppInfoModel yy_modelWithDictionary:data];
+        }else if(self.messageForType == MessageForTypeUser || data[@"nickname"]){
+            self.userModel = [UserModel yy_modelWithDictionary:data];
         }
         
     } else {
@@ -143,21 +144,23 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         return;
     }
-    NSLog(@"extra 字符串解析成字典: %@", extraDict);
-
-    // 5. 最后用 YYModel 将 extraDict 转成 WebToolModel
-    self.webToolModel = [WebToolModel yy_modelWithDictionary:extraDict];
-    if (self.webToolModel) {
-        NSLog(@"成功将 extra 字典转成 WebToolModel 对象");
-        // 可选：打印模型关键字段，验证是否解析成功
-        NSLog(@"解析出的 tool_name: %@, tool_path: %@",
-              self.webToolModel.tool_name,
-              self.webToolModel.tool_path);
-    } else {
-        NSLog(@"extra 字典转 WebToolModel 失败（检查模型字段是否与字典key匹配）");
-        // 若失败，可打印不匹配的字段（YYModel 调试用）
-        NSLog(@"YYModel 转换失败详情: %@", extraDict);
+    NSLog(@"消息类型:%ld  extra 字符串解析成字典: %@ ", self.messageForType, extraDict);
+    NSLog(@"tool_id:%@  app_id:%@",extraDict[@"tool_id"],extraDict[@"app_id"]);
+    if(extraDict[@"tool_id"] && [extraDict[@"tool_id"] intValue] >0){
+        NSLog(@"是工具");
+        self.messageForType = MessageForTypeTool;
+        self.webToolModel = [WebToolModel yy_modelWithDictionary:extraDict];
+    }else if(extraDict[@"app_id"] && [extraDict[@"app_id"] intValue] >0){
+        NSLog(@"是软件");
+        self.messageForType = MessageForTypeApp;
+        self.appInfoModel = [AppInfoModel yy_modelWithDictionary:extraDict];
+    }else if(extraDict[@"nickname"] && [extraDict[@"user_id"] intValue] >0){
+        NSLog(@"是用户");
+        self.messageForType = MessageForTypeUser;
+        self.userModel = [UserModel yy_modelWithDictionary:extraDict];
     }
+    
+    
 }
 
 /// 会话列表中显示的摘要

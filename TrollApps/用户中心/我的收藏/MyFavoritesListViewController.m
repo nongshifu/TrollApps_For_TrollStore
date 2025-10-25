@@ -98,7 +98,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"pageSize":@(20),
         @"sort":@(self.sort),// 排序方式（NO=最新收藏，YES=最早收藏）
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     NSLog(@"url:%@ dic:%@",url,dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -188,7 +188,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
    
@@ -272,7 +272,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
    

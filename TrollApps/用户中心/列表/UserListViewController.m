@@ -82,7 +82,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
    
@@ -162,7 +162,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
    
@@ -248,7 +248,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     
     NSLog(@"列表请求url:%@ dic:%@",url,dic);
    
@@ -337,7 +337,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         return;
     }
     // 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST

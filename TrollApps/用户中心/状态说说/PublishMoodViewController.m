@@ -194,7 +194,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     };
     NSLog(@"准备发布params:%@",params);
     // 接口地址（与列表接口一致）
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 显示加载中
     [SVProgressHUD showWithStatus:@"发布中..."];

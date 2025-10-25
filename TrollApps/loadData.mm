@@ -55,7 +55,7 @@
         @"type":@"udid"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:udid progress:^(NSProgress *progress) {
         
@@ -82,7 +82,7 @@
         @"type":@"idfv"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:idfv progress:^(NSProgress *progress) {
         

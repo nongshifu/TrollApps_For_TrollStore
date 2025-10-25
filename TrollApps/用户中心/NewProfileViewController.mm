@@ -7,6 +7,8 @@
 #import "config.h"
 #import <Masonry/Masonry.h>
 #include <sys/sysctl.h>
+#import <WebKit/WebKit.h>
+#import <SafariServices/SafariServices.h>
 #include <dlfcn.h>
 #import "MyCollectionViewController.h"
 #import "UserModel.h"
@@ -21,6 +23,7 @@
 #import "loadData.h"
 #import "moodStatusViewController.h"
 #import "UserProfileViewController.h"
+#import "VipPurchaseHistoryViewController.h"
 // 是否打印日志
 #define MY_NSLog_ENABLED YES
 #define NSLog(fmt, ...) \
@@ -29,7 +32,7 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-@interface NewProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, TemplateSectionControllerDelegate, TemplateListDelegate>
+@interface NewProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, TemplateSectionControllerDelegate, TemplateListDelegate,WKNavigationDelegate>
 
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *nicknameLabel;
@@ -47,6 +50,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, assign) BOOL isBuyIng; // 操作锁：YES正在进行
 @property (nonatomic, copy) NSString *localLongTermToken; // 本地存储的长效Token
 @property (nonatomic, assign) NSTimeInterval tokenExpireTime; // Token过期时间（1个月）
+
+@property (nonatomic, strong) UIButton *historicalOrdersButton;
 
 @end
 
@@ -348,6 +353,20 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.serialNumberLabel.userInteractionEnabled = YES;
     [self.serialNumberLabel addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(testgetSerialNumber)]];
     [self.view addSubview:self.serialNumberLabel];
+    
+    
+    
+    self.historicalOrdersButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.historicalOrdersButton setTitle:@"历史订单" forState:UIControlStateNormal]; // 未获取时的文本
+    [self.historicalOrdersButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.historicalOrdersButton.titleLabel.font = [UIFont systemFontOfSize:13];
+    self.historicalOrdersButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.5];
+    self.historicalOrdersButton.layer.cornerRadius = 5;
+    self.historicalOrdersButton.layer.borderWidth = 1.0;
+    self.historicalOrdersButton.layer.borderColor = [UIColor systemBlueColor].CGColor;
+    [self.historicalOrdersButton setContentEdgeInsets:UIEdgeInsetsMake(2, 5, 2, 5)];
+    [self.historicalOrdersButton addTarget:self action:@selector(handleHistoricalOrdersButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.historicalOrdersButton];
 }
 
 
@@ -497,6 +516,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
     }];
     
+    [self.historicalOrdersButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        
+        make.height.mas_equalTo(20);
+        make.left.equalTo(self.collectionView).offset(0);
+        make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
+    }];
+    
+    
     
 }
 
@@ -527,6 +554,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }];
             self.avatarImageView.layer.cornerRadius = 100;
         }
+        
+        [self.historicalOrdersButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            
+            make.height.mas_equalTo(20);
+            make.left.equalTo(self.collectionView).offset(0);
+            make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
+        }];
         
         // 关键点：添加这行代码强制立即布局
         [self.view layoutIfNeeded];
@@ -693,7 +727,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"type":@"udid"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:udid progress:^(NSProgress *progress) {
         
@@ -720,7 +754,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"type":@"idfv"
     };
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
                                                    udid:idfv progress:^(NSProgress *progress) {
         
@@ -763,6 +797,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         // 跳转到浏览器安装描述文件（携带IDFV和Token）
         [self installProfile];
     }
+}
+
+- (void)handleHistoricalOrdersButton:(UIButton *)sender {
+    VipPurchaseHistoryViewController *vc = [VipPurchaseHistoryViewController new];
+    [self presentPanModal:vc];
 }
 
 - (BOOL)canAccessUDID {
@@ -949,7 +988,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 6. 发送请求（使用表单提交而非JSON，避免base64转义问题）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php", localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php", localURL]
                                              parameters:params
                                                    udid:self.userInfo.udid
                                                progress:^(NSProgress *progress) {
@@ -1016,7 +1055,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     newDic[@"action"] = @"updateProfile";
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:newDic
                                                    udid:self.userInfo.udid progress:^(NSProgress *progress) {
         
@@ -1106,12 +1145,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
+    [self animationUI];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self animationUI];
+    
     
 }
 
@@ -1132,53 +1171,73 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
 }
 
-/// 从远程加载套餐数据
+/// 从远程加载vip.json套餐数据（重构版）
 - (void)loadVIPPackagesFromRemote {
-    // 格式化日期为时间戳或ISO格式
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"yyyyMMddHHmmss"];
-    NSString *timestamp = [formatter stringFromDate:[NSDate date]];
-    
-    NSString *remoteDataURL = [NSString stringWithFormat:@"%@/vip.json?time=%@",localURL,timestamp];
-    
+    // 1. 构建请求URL（加时间戳防缓存）
+    NSString *timestamp = [NSString stringWithFormat:@"%lld", (long long)[NSDate date].timeIntervalSince1970];
+    NSString *remoteURL = [NSString stringWithFormat:@"%@/vip.json?time=%@", localURL, timestamp];
+    NSLog(@"请求vip.json地址：%@", remoteURL);
+
     [SVProgressHUD showWithStatus:@"加载套餐中..."];
-    
-    NSDictionary *dictionary = @{
-        @"action":@"loadVIPPackages"
-    };
-   
+
+    // 2. 发送GET请求（vip.json是静态文件，用GET更合理）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET
-                                              urlString:remoteDataURL
-                                             parameters:dictionary
-                                                   udid:[NewProfileViewController sharedInstance].userInfo.udid
+                                              urlString:remoteURL
+                                             parameters:nil // 无额外参数
+                                                   udid:self.userInfo.udid
                                                progress:^(NSProgress *progress) {
-        
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
-            
-            if (jsonResult &&
-                [jsonResult[@"status"] isEqualToString:@"success"] &&
-                [jsonResult[@"data"] isKindOfClass:[NSArray class]]) {
-                
-                NSArray *packagesArray = jsonResult[@"data"];
-                [self updateWithDictionaryArray:packagesArray];
-                
-                // 缓存到本地
-                NSData *cacheData = [NSJSONSerialization dataWithJSONObject:packagesArray options:0 error:nil];
-                if (cacheData) {
-                    [[NSUserDefaults standardUserDefaults] setObject:cacheData forKey:@"VIPPackagesCache"];
-                    [[NSUserDefaults standardUserDefaults] synchronize];
-                }
-            } else {
-                [SVProgressHUD showErrorWithStatus:@"加载套餐失败"];
-                [SVProgressHUD dismissWithDelay:2];
+
+            // 3. 严格解析JSON结构（status=success + data=数组）
+            if (!jsonResult) {
+                [SVProgressHUD showErrorWithStatus:@"套餐数据格式错误"];
+                return;
             }
+
+            NSString *status = jsonResult[@"status"];
+            NSArray *packagesArray = jsonResult[@"data"];
+            if (![status isEqualToString:@"success"] || ![packagesArray isKindOfClass:[NSArray class]]) {
+                [SVProgressHUD showErrorWithStatus:@"套餐数据解析失败"];
+                NSLog(@"vip.json解析失败，原始数据：%@", stringResult);
+                return;
+            }
+
+            // 4. 清空旧数据，解析新套餐
+            [self.dataSource removeAllObjects];
+            for (NSDictionary *packageDict in packagesArray) {
+                VIPPackage *package = [VIPPackage yy_modelWithDictionary:packageDict];
+                if (package && package.packageId.length > 0) { // 过滤无效套餐
+                    [self.dataSource addObject:package];
+                }
+            }
+
+            // 5. 刷新表格 + 缓存到本地
+            [self refreshTable];
+            [self handleNoMoreData];
+            [self cacheVIPPackagesToLocal:packagesArray];
+
+            NSLog(@"成功加载%ld个套餐", self.dataSource.count);
         });
     } failure:^(NSError *error) {
-        [SVProgressHUD showErrorWithStatus:@"加载套餐失败"];
-        [SVProgressHUD dismissWithDelay:2];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
+            [SVProgressHUD showErrorWithStatus:@"加载套餐失败（请检查网络）"];
+            // 失败时加载本地缓存
+            [self loadLocalPackages];
+        });
     }];
+}
+
+/// 缓存套餐到本地（重构版：直接缓存JSON数组，避免模型转义丢失字段）
+- (void)cacheVIPPackagesToLocal:(NSArray *)packagesArray {
+    NSData *cacheData = [NSJSONSerialization dataWithJSONObject:packagesArray options:0 error:nil];
+    if (cacheData) {
+        [[NSUserDefaults standardUserDefaults] setObject:cacheData forKey:@"VIPPackagesCache"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        NSLog(@"套餐已缓存到本地");
+    }
 }
 
 /// 用字典数组更新数据
@@ -1250,6 +1309,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - 购买VIP相关
 - (void)didSelectVIPPackage:(VIPPackage *)package {
     if (self.isBuyIng) {
+        NSLog(@"didSelectVIPPackage操作频繁-稍后重试");
         [SVProgressHUD showInfoWithStatus:@"操作频繁-稍后重试"];
         [SVProgressHUD dismissWithDelay:1 completion:^{
             self.isBuyIng = NO;
@@ -1257,7 +1317,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         return;
     }
     
-    self.isBuyIng = YES;
+    
     NSString *udid = self.userInfo.udid;
     if (udid.length == 0) {
         [SVProgressHUD showInfoWithStatus:@"请先安装描述文件登录"];
@@ -1285,31 +1345,55 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }];
 }
 
+/// 处理套餐购买请求（重构版：参数与vip.json对齐）
 - (void)handlePurchaseWithPackage:(VIPPackage *)package {
+    if (self.isBuyIng) {
+        NSLog(@"handlePurchaseWithPackage操作频繁-稍后重试");
+        [SVProgressHUD showInfoWithStatus:@"操作频繁-稍后重试"];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            self.isBuyIng = NO;
+        }];
+        return;
+    }
+
+    // 1. 基础校验
+    NSLog(@"基础校验 self.isBuyIng = YES");
+    self.isBuyIng = YES;
+    NSString *udid = self.userInfo.udid;
+    if (udid.length == 0) {
+        [SVProgressHUD showInfoWithStatus:@"请先安装描述文件登录"];
+        [SVProgressHUD dismissWithDelay:2 completion:^{
+            self.isBuyIng = NO;
+        }];
+        return;
+    }
+
+    // 2. 构建购买参数（严格对应PHP接收格式：data包含vipLevel和VIPPackage）
+    NSDictionary *packageJSON = [package yy_modelToJSONObject]; // 模型转JSON（与vip.json字段一致）
+    NSDictionary *requestData = @{
+        @"vipLevel": @(package.level),          // 套餐等级
+        @"VIPPackage": packageJSON,              // 完整套餐信息（与vip.json对齐）
+        @"udid": udid,
+        @"token": self.localLongTermToken ?: @"", // 长效Token（之前已实现）
+    };
+
     
+    NSLog(@"购买请求parameters:%@",requestData);
+
+    // 4. 显示加载弹窗
     self.loadingAlert = [UIAlertController alertControllerWithTitle:@"处理中"
-                                                            message:@"正在处理购买请求..."
+                                                            message:[NSString stringWithFormat:@"正在购买「%@」...", package.title]
                                                      preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:self.loadingAlert animated:YES completion:^{
-        NSDictionary *parameters = @{
-            
-            @"udid": self.userInfo.udid,
-            @"vipLevel": @(package.level),
-            @"VIPPackage": [package yy_modelToJSONObject]
-        };
-        
-        NSString *url = [NSString stringWithFormat:@"%@/purchase_vip.php", localURL];
-        
+        // 5. 发送购买请求（POST + JSON格式）
+        NSString *purchaseURL = [NSString stringWithFormat:@"%@/purchase_vip.php", localURL];
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                  urlString:url
-                                                 parameters:parameters
-                                                       udid:self.userInfo.udid
+                                                  urlString:purchaseURL
+                                                 parameters:requestData
+                                                       udid:udid
                                                    progress:^(NSProgress *progress) {
-            
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                NSLog(@"请求购买返回jsonResult:%@",jsonResult);
-                NSLog(@"请求购买返回stringResult:%@",stringResult);
                 [self handlePurchaseSuccessWithResponse:jsonResult package:package];
             });
         } failure:^(NSError *error) {
@@ -1320,43 +1404,124 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }];
 }
 
+
+#pragma mark - 处理购买成功响应（修改版）
 - (void)handlePurchaseSuccessWithResponse:(id)responseObject package:(VIPPackage *)package {
+    NSLog(@"handlePurchaseSuccessWithResponse:%@",responseObject);
     self.isBuyIng = NO;
     [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
-    NSLog(@"购买结果返回:%@",responseObject);
-    if ([responseObject isKindOfClass:[NSDictionary class]]) {
-        NSInteger code = [responseObject[@"code"] intValue];
-        NSString *message = responseObject[@"msg"];
-        if (code ==200) {
-            // 提取核心数据
-            NSDictionary *dataDict = responseObject[@"data"];
-            NSDictionary *userInfoDict = responseObject[@"userInfo"];
-            NSLog(@"购买结果返回dataDict:%@",dataDict);
-            // 更新用户信息
-            if (userInfoDict) {
-                UserModel *updatedUser = [UserModel yy_modelWithDictionary:userInfoDict];
-                if (updatedUser) {
-                    // 使用统一的UI更新方法
-                    [self updateUserInfoWithUserModel:updatedUser];
-                    
-                    // 显示购买成功提示
-                    NSString *message = [NSString stringWithFormat:@"您已成功购买%@！", package.title];
-                    [self showAlertWithTitle:@"购买成功" message:message];
-                }
-            }
-        }else{
+
+    if (![responseObject isKindOfClass:[NSDictionary class]]) {
+        [self showAlertWithTitle:@"购买失败" message:@"返回数据格式错误"];
+        return;
+    }
+    NSLog(@"订单创建返回:%@",responseObject);
+    NSInteger code = [responseObject[@"code"] intValue];
+    NSString *message = responseObject[@"msg"] ?: @"购买结果未知";
+    NSDictionary *data = responseObject[@"data"];
+
+    if (code == 200 && [responseObject[@"status"] isEqualToString:@"pending"]) {
+        // 1. 获取支付链接和订单号
+        NSString *payUrl = data[@"pay_url"];
+        NSString *mchOrderId = data[@"mch_orderid"];
+        
+        if (payUrl.length > 0 && mchOrderId.length > 0) {
+            // 2. 保存订单号用于后续查询
+            [[NSUserDefaults standardUserDefaults] setObject:mchOrderId forKey:@"CurrentVipOrderId"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
             
-            [self showAlertWithTitle:@"购买失败" message:message];
+            // 3. 跳转支付页面
+            [self showPaymentWebView:payUrl];
+        } else {
+            [self showAlertWithTitle:@"支付参数错误" message:@"无法获取支付信息"];
         }
-        
-        
+    } else {
+        [self showAlertWithTitle:@"购买失败" message:message];
     }
 }
+
 
 - (void)handlePurchaseFailureWithError:(NSError *)error {
     self.isBuyIng = NO;
     [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
     [self showAlertWithTitle:@"网络错误" message:@"购买失败，请检查网络连接"];
+}
+
+#pragma mark - 显示支付网页
+- (void)showPaymentWebView:(NSString *)urlString {
+    WKWebView *webView = [[WKWebView alloc] initWithFrame:self.view.bounds];
+    webView.navigationDelegate = self;
+    [self.view addSubview:webView];
+    
+    // 添加关闭按钮
+    UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
+    [closeBtn addTarget:self action:@selector(closePaymentWebView:) forControlEvents:UIControlEventTouchUpInside];
+    closeBtn.frame = CGRectMake(20, 40, 60, 30);
+    [webView addSubview:closeBtn];
+    
+    NSURL *url = [NSURL URLWithString:urlString];
+    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+}
+
+#pragma mark - 关闭支付页面
+- (void)closePaymentWebView:(UIButton *)btn {
+    [btn.superview removeFromSuperview];
+    // 关闭后查询订单状态
+    [self queryPaymentStatus];
+}
+
+#pragma mark - 查询支付状态
+- (void)queryPaymentStatus {
+    NSString *mchOrderId = [[NSUserDefaults standardUserDefaults] stringForKey:@"CurrentVipOrderId"];
+    if (!mchOrderId) {
+        return;
+    }
+
+    NSDictionary *params = @{
+        @"action": @"queryVipOrder",
+        @"mch_orderid": mchOrderId,
+        @"udid": self.userInfo.udid ?: @""
+    };
+
+    [SVProgressHUD showWithStatus:@"查询支付结果..."];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:[NSString stringWithFormat:@"%@/sdk/Ysm-SDK-php/query_vip_order.php", localURL]
+                                             parameters:params
+                                                   udid:self.userInfo.udid
+                                               progress:nil
+                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
+            if ([jsonResult[@"code"] integerValue] == 200 && [jsonResult[@"status"] isEqualToString:@"success"]) {
+                [self showAlertWithTitle:@"支付成功" message:@"您已成功购买VIP服务"];
+                [self loadUserInfo]; // 刷新用户信息
+            } else {
+                NSString *msg = jsonResult[@"msg"] ?: @"支付未完成，请稍后查询";
+                [self showAlertWithTitle:@"查询结果" message:msg];
+            }
+        });
+       
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
+            [self showAlertWithTitle:@"查询失败" message:@"无法获取支付状态，请稍后重试"];
+        });
+        
+    }];
+}
+
+#pragma mark - WKNavigationDelegate
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    NSURL *url = navigationAction.request.URL;
+    if ([url.scheme isEqualToString:@"trollapps"]) {
+        // 从支付页面跳转回来
+        [webView removeFromSuperview];
+        [self queryPaymentStatus];
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
 
 /**

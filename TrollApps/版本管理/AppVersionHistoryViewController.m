@@ -13,6 +13,8 @@
 #import "AppVersionHistoryModel.h"
 #import "AppVersionHistoryCell.h"
 #import <Masonry/Masonry.h>
+#import "FileInstallManager.h"
+
 
 @interface AppVersionHistoryViewController ()<TemplateSectionControllerDelegate>
 @property (nonatomic, strong) NSString * keyword;//搜索关键字
@@ -21,6 +23,7 @@
 @property (nonatomic, strong) UIButton *downloadButton ;      // 下载按钮
 //UI
 @property (nonatomic, strong) UILabel * titleLabel;
+
 @end
 
 @implementation AppVersionHistoryViewController
@@ -144,6 +147,7 @@
     _downloadButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.7];
     _downloadButton.layer.cornerRadius = 15;
     _downloadButton.layer.masksToBounds = YES;
+    [_downloadButton addTarget:self action:@selector(download:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_downloadButton];
     
     
@@ -176,7 +180,7 @@
     [super updateViewConstraints];
     
     //调整视图高度后 表格根据视图高度更新约束
-    [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.width.equalTo(self.view);
         make.top.equalTo(self.downloadButton.mas_bottom).offset(20);
         make.centerX.equalTo(self.view);
@@ -186,42 +190,79 @@
     
 }
 
-
+- (void)download:(UIButton*)button{
+    AppVersionHistoryModel *model = (AppVersionHistoryModel*)self.dataSource.firstObject;
+    NSURL * URL = [NSURL URLWithString:model.download_url];
+    if(!URL){
+        [SVProgressHUD showErrorWithStatus:@"连接不合法"];
+        [SVProgressHUD dismissWithDelay:1];
+        return;
+    }
+    [[FileInstallManager sharedManager] installFileWithURL:URL completion:^(BOOL success, NSError * _Nullable error) {
+        
+    }];
+    
+}
 
 - (void)updateLatestAppVersionUI:(AppVersionHistoryModel*)appVersionHistoryModel {
-    // 1. 读取服务端最新版本号
-    NSInteger latestVersionCode = appVersionHistoryModel.version_code;
-    NSString *latestVersionName = appVersionHistoryModel.version_name;
-    NSLog(@"服务器版本latestVersionCode：%ld  latestVersionName:%@",latestVersionCode,latestVersionName);
-    // 2. 读取本地Info.plist中的版本信息
-    // 版本号（对应服务端的version_code，通常是数字）
+    // 1. 读取服务端版本信息
+    NSInteger latestVersionCode = appVersionHistoryModel.version_code; // 服务器版本号（整数）
+    NSString *latestVersionName = appVersionHistoryModel.version_name; // 服务器版本名称（如"1.2.0"）
+    NSLog(@"服务器版本 - code:%ld, name:%@", latestVersionCode, latestVersionName);
+    
+    // 2. 读取本地版本信息（从Info.plist）
     NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-    NSInteger localVersionCode = [localVersionCodeStr integerValue];
+    NSInteger localVersionCode = [localVersionCodeStr integerValue]; // 本地版本号（整数）
+    NSString *localVersionName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]; // 本地版本名称（如"1.1.0"）
+    NSLog(@"本地版本 - code:%ld, name:%@", localVersionCode, localVersionName);
     
-    // 版本名称（对应服务端的version_name，如"1.0.2"）
-    NSString *localVersionName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    // 3. 版本号判断：服务器版本号 > 本地版本号（修复原逻辑的!=问题）
+    BOOL isCodeNeedUpdate = (latestVersionCode > localVersionCode);
     
-    NSLog(@"本地版本localVersionCode：%ld  localVersionName:%@",localVersionCode,localVersionName);
-    // 3. 对比版本，判断是否需要更新
-    BOOL needUpdate = (latestVersionCode != localVersionCode);
+    // 4. 版本名称判断：服务器版本名称 > 本地版本名称（使用新增工具方法）
+    BOOL isNameNeedUpdate = [[self class] versionName:localVersionName isLessThan:latestVersionName];
     
-    // 4. 更新按钮UI
+    // 5. 最终需要更新的条件：版本号和版本名称均满足更新（确保两者同步）
+    BOOL needUpdate = isCodeNeedUpdate || isNameNeedUpdate;
+    
+    // 6. 更新按钮UI
     if (needUpdate) {
-        // 显示"下载新版:v1.0.2"
-        self.titleLabel.text=@"发现新版";
-        [self.downloadButton setTitle:[NSString stringWithFormat:@"下载新版:%@", latestVersionName]
-                              forState:UIControlStateNormal];
-        // 允许点击
+        self.titleLabel.text = @"发现新版";
+        [self.downloadButton setTitle:[NSString stringWithFormat:@"当前:%@ 下载新版:%@", localVersionName,latestVersionName] forState:UIControlStateNormal];
         self.downloadButton.enabled = YES;
         self.downloadButton.backgroundColor = [UIColor systemBlueColor];
     } else {
-        // 显示"已是最新版(v1.0.1)"
-        [self.downloadButton setTitle:[NSString stringWithFormat:@"已是最新版(%@)", localVersionName]
-                              forState:UIControlStateNormal];
-        // 禁用点击
+        [self.downloadButton setTitle:[NSString stringWithFormat:@"已是最新版(%@)", localVersionName] forState:UIControlStateNormal];
         self.downloadButton.enabled = NO;
         self.downloadButton.backgroundColor = [UIColor lightGrayColor];
     }
+}
+
+// 比较两个版本名称（如"1.0.2"和"1.1.0"），返回YES表示version1 < version2（需要更新）
++ (BOOL)versionName:(NSString *)version1 isLessThan:(NSString *)version2 {
+    if (!version1 || !version2) return NO; // 空值不判定为需要更新
+    
+    // 按"."拆分版本号为数组（如"1.2.3" → @[@"1", @"2", @"3"]）
+    NSArray<NSString *> *v1Components = [version1 componentsSeparatedByString:@"."];
+    NSArray<NSString *> *v2Components = [version2 componentsSeparatedByString:@"."];
+    
+    // 取最长的数组长度，短数组缺失部分按0处理
+    NSInteger maxCount = MAX(v1Components.count, v2Components.count);
+    for (NSInteger i = 0; i < maxCount; i++) {
+        // 解析当前段的数字（超出数组范围则为0）
+        NSInteger v1 = (i < v1Components.count) ? [v1Components[i] integerValue] : 0;
+        NSInteger v2 = (i < v2Components.count) ? [v2Components[i] integerValue] : 0;
+        
+        // 逐段比较
+        if (v1 < v2) {
+            return YES; // version1当前段更小，整体版本更低
+        } else if (v1 > v2) {
+            return NO; // version1当前段更大，整体版本更高
+        }
+        // 相等则继续比较下一段
+    }
+    
+    return NO; // 所有段都相等，版本相同
 }
 
 /**
@@ -257,6 +298,13 @@
     
     // 默认返回 YES，允许拖拽
     return YES;
+}
+
+// 显示后
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
+    [self updateViewConstraints];
 }
 
 @end

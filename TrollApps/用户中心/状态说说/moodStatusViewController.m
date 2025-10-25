@@ -172,7 +172,7 @@
         return;
     }
     // 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -327,7 +327,7 @@
     }
     
     // 4. 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 5. 发送删除请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST

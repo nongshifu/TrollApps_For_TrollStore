@@ -625,7 +625,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
     }]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"商店搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"AppStore" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         self.appSaearchViewController = [AppSearchViewController new];
         self.appSaearchViewController.delegate = self;
@@ -1284,7 +1284,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
-                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                    [SVProgressHUD dismissWithDelay:2 completion:^{
                         [controller dismiss];
                     }];
                    
@@ -1311,7 +1311,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }];
         }
         [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
-        [SVProgressHUD dismissWithDelay:1 completion:^{
+        [SVProgressHUD dismissWithDelay:2 completion:^{
             [controller dismiss];
         }];
         
@@ -1350,7 +1350,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                    [SVProgressHUD dismissWithDelay:2 completion:^{
                         [controller dismiss];
                     }];
                     
@@ -2035,7 +2035,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"请求版本附件目录:%@",params[@"save_path"]);
     //发送POST
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/app_api.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/app/app_api.php",localURL]
                                              parameters:params udid:self.app_info.udid
                                                progress:^(NSProgress *progress) {
         NSLog(@"完成比例: %.2f%%", progress.fractionCompleted * 100);
@@ -2221,11 +2221,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 
                 break;
         }
+        [SVProgressHUD dismissWithDelay:2];
     }
     
     
-    [SVProgressHUD showWithStatus:mesage];
-    [SVProgressHUD dismissWithDelay:2];
+    [SVProgressHUD showProgress:self.progressView.progress status:mesage];
+
+
 }
 
 #pragma mark - 辅助函数

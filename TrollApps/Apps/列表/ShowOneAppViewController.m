@@ -221,7 +221,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"app_id":@(self.appInfo.app_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app_action.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:dic
@@ -332,7 +332,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         @"page": @(currentPage)
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/app_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     NSLog(@"请求URL:%@ 参数:%@", url, dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -552,7 +552,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/app_action.php",localURL]
+                                              urlString:[NSString stringWithFormat:@"%@/app/app_action.php",localURL]
                                              parameters:params
                                                    udid:udid
                                                progress:^(NSProgress *progress) {

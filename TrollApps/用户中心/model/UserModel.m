@@ -140,7 +140,7 @@
         [SVProgressHUD dismissWithDelay:4];
         return;
     }
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php",localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:url
                                              parameters:dic
@@ -186,7 +186,7 @@
         @"type": type, // type 为 @"user_id" 或 @"udid"
         @"queryValue": queryValue
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user_api.php", localURL];
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :@"";
     if(udid.length<5){
         [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];

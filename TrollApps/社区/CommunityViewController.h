@@ -8,9 +8,26 @@
 #import <RongIMKit/RongIMKit.h>
 #import <UIKit/UIKit.h>
 #import "config.h"
+#import "ToolMessage.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
+
 @interface CommunityViewController : RCConversationListViewController
+/*!
+ 数据模型
+ */
+@property (nonatomic, strong) id shareModel;
+/*!
+ 是否为分享状态
+ */
+@property (nonatomic, assign) BOOL isShare;
+
+
+/*!
+ 消息的类型
+ */
+@property (nonatomic, assign) MessageForType messageForType;
 
 @end
 
