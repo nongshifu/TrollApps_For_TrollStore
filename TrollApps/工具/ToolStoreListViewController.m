@@ -204,10 +204,15 @@ typedef NS_ENUM(NSInteger, SortType) {
     
     self.title = self.isMyTool ? @"我的发布":@"热门工具";
     if(self.isMyTool){
+        
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"person.2"] status:@"已经切换为我的发布"];
         self.searchController.searchBar.placeholder = @"搜索我发布的Web工具";
     }else{
+
         self.searchController.searchBar.placeholder = @"全站搜索你要的Web工具";
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"scribble"] status:@"已经切换全站为内容"];
     }
+    [SVProgressHUD dismissWithDelay:1];
     
 }
 

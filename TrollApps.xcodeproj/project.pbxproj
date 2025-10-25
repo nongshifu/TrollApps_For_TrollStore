@@ -747,8 +747,8 @@
 			isa = PBXGroup;
 			children = (
 				C2871FE12E2542C300ABC6AE /* UploadFileItem.h */,
-				C2871FE22E2542C300ABC6AE /* UploadManager.h */,
 				C2871FE32E2542C300ABC6AE /* UploadFileItem.m */,
+				C2871FE22E2542C300ABC6AE /* UploadManager.h */,
 				C2871FE42E2542C300ABC6AE /* UploadManager.m */,
 			);
 			path = "上传管理";

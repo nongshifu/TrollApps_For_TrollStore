@@ -6,30 +6,28 @@
 #import "EmptyView.h"
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"
-
-
-
+#import <SVProgressHUD/SVProgressHUD.h>
 
 @interface DownloadManagerViewController ()<UITableViewDataSource, UITableViewDelegate, UIDocumentInteractionControllerDelegate>
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSMutableArray *fileList;          // 原始文件列表
 @property (nonatomic, strong) NSMutableArray *filteredFileList;  // 过滤后的文件列表
-@property (nonatomic, strong) NSString *downloadDir;             // 统一下载目录
+
 @property (nonatomic, strong) UILabel *titleLabel;               // 主标题
 @property (nonatomic, strong) UILabel *subtitleLabel;            // 副标题
 @property (nonatomic, strong) UIScrollView *filterScrollView;    // 筛选器滚动视图
 @property (nonatomic, strong) NSMutableArray <UIButton *>*filterButtons;     // 筛选按钮数组
 @property (nonatomic, strong) UIView *headerView;                // 顶部视图
 
-
 @property (nonatomic, strong) UIView *bottomToolBar;           // 底部操作栏
 @property (nonatomic, strong) UIButton *selectAllBtn;          // 全选按钮
 @property (nonatomic, strong) UIButton *deselectAllBtn;        // 全取消按钮
 @property (nonatomic, strong) UIButton *deleteBtn;             // 删除按钮
 @property (nonatomic, strong) UIButton *cancelBtn;             // 取消按钮
-@property (nonatomic, strong) UIButton *clearButton;           // 清除按钮
+@property (nonatomic, strong) UIButton *directoryBtn;          // 目录选择按钮（替换原clearButton）
 
-@property (nonatomic, strong) NSMutableArray *selectedFilePaths; // 选中文件路径
+
+
 /**
  空视图
  */
@@ -41,13 +39,10 @@
 @implementation DownloadManagerViewController
 
 + (instancetype)sharedInstance {
-    
     static DownloadManagerViewController *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[self alloc] init];
-        // 在这里进行初始化设置（如果需要的话）
-        
     });
     return sharedInstance;
 }
@@ -58,19 +53,22 @@
     // 初始化筛选类型
     self.currentFilterType = FilterTypeAll; // 默认显示全部
     
-    // 获取统一下载目录
-    self.downloadDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Downloads"];
+    // 获取默认下载目录（Downloads）
+   
+    if (!self.downloadDir) {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = paths.firstObject;
+        self.downloadDir = [documentsPath stringByAppendingPathComponent:@"Downloads"];
+    }
     
     // 初始化UI
     [self setupHeaderView];
-    
     [self setupTableView];
     
     // 加载文件列表
     [self loadFileList];
     
-    // 初始化选中数组
-    self.selectedFilePaths = [NSMutableArray array]; // 初始化集合
+    
     
     // 初始化长按手势（进入多选模式）
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(tableViewLongPressed:)];
@@ -86,9 +84,12 @@
     [super viewWillAppear:animated];
     [self loadFileList]; // 每次显示时刷新列表
     [self buttonTappedIndex:self.currentFilterType];
+    // 更新副标题：显示当前目录
+    NSString *currentDirName = [self.downloadDir lastPathComponent];
+    self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（管理所有文件）", currentDirName];
 }
 
-#pragma mark - 初始化顶部视图
+#pragma mark - 初始化顶部视图（核心修改：目录选择按钮）
 - (void)setupHeaderView {
     // 创建顶部视图
     self.headerView = [[UIView alloc] init];
@@ -101,18 +102,24 @@
     self.titleLabel.font = [UIFont boldSystemFontOfSize:24];
     [self.headerView addSubview:self.titleLabel];
     
-    // 副标题
+    // 副标题（显示当前目录）
     self.subtitleLabel = [[UILabel alloc] init];
-    self.subtitleLabel.text = @"管理所有已下载的文件";
+    NSString *currentDirName = [self.downloadDir lastPathComponent];
+    self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（管理所有文件）", currentDirName];
     self.subtitleLabel.font = [UIFont systemFontOfSize:14];
     self.subtitleLabel.textColor = [UIColor grayColor];
     [self.headerView addSubview:self.subtitleLabel];
     
-    //清除按钮
-    self.clearButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.clearButton setImage:[UIImage systemImageNamed:@"trash"] forState:UIControlStateNormal];
-    [self.clearButton addTarget:self action:@selector(clear:) forControlEvents:UIControlEventTouchUpInside];
-    [self.headerView addSubview:self.clearButton];
+    // 目录选择按钮（替换原删除按钮）
+    self.directoryBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.directoryBtn setImage:[UIImage systemImageNamed:@"folder"] forState:UIControlStateNormal];
+//    [self.directoryBtn setTitle:@"切换目录" forState:UIControlStateNormal];
+    self.directoryBtn.titleLabel.font = [UIFont systemFontOfSize:12];
+    // 调整图标和文字间距
+    self.directoryBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 4);
+    self.directoryBtn.titleEdgeInsets = UIEdgeInsetsMake(0, 4, 0, 0);
+    [self.directoryBtn addTarget:self action:@selector(showDirectoryPicker:) forControlEvents:UIControlEventTouchUpInside];
+    [self.headerView addSubview:self.directoryBtn];
     
     // 初始化筛选按钮数组
     self.filterButtons = [NSMutableArray array];
@@ -126,8 +133,68 @@
     [self setupFilterButtons];
 }
 
-#pragma mark - 初始化底部操作栏
+#pragma mark - 核心：目录选择弹窗（新方法）
+- (void)showDirectoryPicker:(UIButton *)sender {
+    // 1. 获取沙盒关键目录路径
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsPath = paths.firstObject;
+    // 定义可选择的目录列表（名称+路径，可扩展）
+    NSArray *selectableDirs = @[
+        @{@"name": @"Downloads（默认）", @"path": [documentsPath stringByAppendingPathComponent:@"Downloads"]},
+        @{@"name": @"Inbox（导入文件）", @"path": [documentsPath stringByAppendingPathComponent:@"Inbox"]},
+        @{@"name": @"Upload（上传缓存）", @"path": [documentsPath stringByAppendingPathComponent:@"upload_temp"]}
+       
+    ];
+    
+    // 2. 创建目录选择弹窗
+    UIAlertController *dirPicker = [UIAlertController alertControllerWithTitle:@"选择文件目录"
+                                                                       message:@"请选择要查看的沙盒目录"
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    // 3. 为每个目录添加选择项
+    for (NSDictionary *dirDict in selectableDirs) {
+        NSString *dirName = dirDict[@"name"];
+        NSString *dirPath = dirDict[@"path"];
+        
+        UIAlertAction *dirAction = [UIAlertAction actionWithTitle:dirName
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+            // 4. 校验目录有效性（必须是存在的文件夹）
+            NSFileManager *fileManager = [NSFileManager defaultManager];
+            BOOL isDirectory = NO;
+            if (![fileManager fileExistsAtPath:dirPath isDirectory:&isDirectory] || !isDirectory) {
+                [self showAlertWithTitle:@"目录无效"
+                                 message:[NSString stringWithFormat:@"「%@」目录不存在或不是文件夹", dirName]];
+                return;
+            }
+            
+            // 5. 更新当前目录并刷新列表
+            self.downloadDir = dirPath;
+            // 更新副标题显示当前目录
+            self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（管理所有文件）", dirName];
+            // 重新加载新目录的文件
+            [self loadFileList];
+        }];
+        [dirPicker addAction:dirAction];
+    }
+    
+    // 6. 添加取消按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [dirPicker addAction:cancelAction];
+    
+    // 7. 适配iPad（避免弹窗位置异常）
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        dirPicker.popoverPresentationController.sourceView = sender;
+        dirPicker.popoverPresentationController.sourceRect = sender.bounds;
+    }
+    
+    // 显示弹窗
+    [self presentViewController:dirPicker animated:YES completion:nil];
+}
 
+#pragma mark - 初始化底部操作栏（不变）
 - (void)setupBottomToolBar {
     // 底部工具栏
     self.bottomToolBar = [[UIView alloc] init];
@@ -171,8 +238,7 @@
     [self.bottomToolBar addSubview:self.cancelBtn];
 }
 
-#pragma mark - 初始化筛选按钮
-
+#pragma mark - 初始化筛选按钮（不变）
 - (void)setupFilterButtons {
     // 计算筛选按钮的总宽度
     CGFloat totalWidth = 0;
@@ -197,9 +263,7 @@
     CGSize titleSize = [@"下载中" sizeWithAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14]}];
     CGFloat buttonWidth = titleSize.width + buttonPadding * 2;
     
-    // 修正：第一个按钮的x坐标从0开始，通过totalWidth累积间隔，确保后续按钮间隔一致
     downloadingButton.frame = CGRectMake(totalWidth, 0, buttonWidth, buttonHeight);
-    // 累积宽度：按钮宽度 + 间隔（为下一个按钮预留间隔）
     totalWidth += buttonWidth + buttonSpacing;
     [self.filterButtons addObject:downloadingButton];
     
@@ -217,12 +281,11 @@
     titleSize = [@"全部" sizeWithAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14]}];
     buttonWidth = titleSize.width + buttonPadding * 2;
     
-    // 此时totalWidth已包含"下载中"按钮的宽度 + 间隔，直接作为"全部"按钮的x坐标
     allButton.frame = CGRectMake(totalWidth, 0, buttonWidth, buttonHeight);
-    totalWidth += buttonWidth + buttonSpacing; // 继续累积宽度 + 间隔
+    totalWidth += buttonWidth + buttonSpacing;
     [self.filterButtons addObject:allButton];
     
-    // 遍历所有文件类型并创建对应按钮（原有逻辑正确，保持不变）
+    // 遍历所有文件类型并创建对应按钮
     for (int i = 0; i < FileTypeOther; i++) {
         FileType fileType = (FileType)i;
         NSString *typeName = [NewAppFileModel chineseDescriptionForFileType:fileType];
@@ -243,15 +306,12 @@
         
         [self.filterButtons addObject:button];
         totalWidth += buttonWidth + buttonSpacing;
-        
     }
-    // 修正滚动视图内容大小（确保右侧预留间隔）
+    // 修正滚动视图内容大小
     self.filterScrollView.contentSize = CGSizeMake(totalWidth - buttonSpacing, buttonHeight);
 }
 
-
-#pragma mark - 筛选按钮点击事件
-
+#pragma mark - 筛选按钮点击事件（不变）
 - (void)filterButtonTapped:(UIButton *)sender {
     [self buttonTappedIndex:sender.tag];
 }
@@ -274,7 +334,62 @@
     [self.filterScrollView scrollRectToVisible:self.filterButtons[index].frame animated:YES];
 }
 
-#pragma mark - 初始化表格
+#pragma mark - 外部调用：手动切换目录
+- (void)switchToDirectory:(NSString *)directoryPath {
+    // 1. 空值校验
+    if (!directoryPath || directoryPath.length == 0) {
+        [self showAlertWithTitle:@"目录无效" message:@"请传入有效的目录路径"];
+        return;
+    }
+    
+    // 2. 校验路径是否存在、是否为文件夹
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isDirectory = NO;
+    BOOL isExist = [fileManager fileExistsAtPath:directoryPath isDirectory:&isDirectory];
+    
+    if (!isExist) {
+        [self showAlertWithTitle:@"目录不存在" message:[NSString stringWithFormat:@"路径：%@ 不存在", directoryPath]];
+        return;
+    }
+    if (!isDirectory) {
+        [self showAlertWithTitle:@"不是文件夹" message:[NSString stringWithFormat:@"路径：%@ 是文件，不是文件夹", directoryPath]];
+        return;
+    }
+    
+    // 3. 更新目录并刷新数据（与内部切换逻辑一致）
+    self.downloadDir = directoryPath;
+    // 更新副标题显示当前目录（提取目录名，避免路径过长）
+    NSString *currentDirName = [directoryPath lastPathComponent];
+    self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（管理所有文件）", currentDirName];
+    // 重新加载新目录的文件列表
+    [self loadFileList];
+}
+
+#pragma mark - 外部切换目录的代码（例如在按钮点击事件中）
+- (void)externalSwitchDirBtnClicked {
+    // 示例1：切换到沙盒的Inbox目录
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsPath = paths.firstObject;
+    NSString *targetDir = [documentsPath stringByAppendingPathComponent:@"Inbox"];
+    
+    // 调用单例的切换方法
+    [[DownloadManagerViewController sharedInstance] switchToDirectory:targetDir];
+    
+    // （可选）跳转到下载管理页面
+    [self.navigationController pushViewController:[DownloadManagerViewController sharedInstance] animated:YES];
+}
+
+#pragma mark - 直接设置downloadDir属性（需在viewDidLoad前设置，否则可能被默认值覆盖）
+- (void)setDirBeforeLoad {
+    DownloadManagerViewController *dmVC = [DownloadManagerViewController sharedInstance];
+    // 设置自定义目录（必须是沙盒内可访问路径，iOS限制）
+    dmVC.downloadDir = @"/var/mobile/Containers/Data/Application/xxx/Documents/CustomDir";
+    // 手动触发加载（如果已初始化）
+    [dmVC loadFileList];
+}
+
+
+#pragma mark - 初始化表格（不变）
 - (void)setupTableView {
     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
     self.tableView.dataSource = self;
@@ -306,10 +421,9 @@
             [self handleTaskStatusChanged];
         });
     }];
-
 }
 
-// 处理任务状态变化（新增方法）
+// 处理任务状态变化（不变）
 - (void)handleTaskStatusChanged {
     // 获取所有下载任务
     NSArray<DownloadTaskModel *> *allTasks = [[FileInstallManager sharedManager] allDownloadTasks];
@@ -323,7 +437,6 @@
         }
     }
     
-    
     // 如果有已完成的任务，刷新列表（清除已完成任务并重新加载）
     if (hasCompletedTask) {
         [self cleanCompletedTasksAndRefresh];
@@ -335,7 +448,7 @@
     }
 }
 
-// 清除已完成任务并刷新列表（新增方法）
+// 清除已完成任务并刷新列表（不变）
 - (void)cleanCompletedTasksAndRefresh {
     // 1. 移除已完成的任务（从FileInstallManager的任务列表中）
     NSArray<DownloadTaskModel *> *allTasks = [[FileInstallManager sharedManager] allDownloadTasks];
@@ -347,7 +460,7 @@
         }
     }
     
-    // 从下载管理器中移除已完成任务（需要FileInstallManager提供删除方法，见步骤2）
+    // 从下载管理器中移除已完成任务（需要FileInstallManager提供删除方法）
     for (DownloadTaskModel *task in completedTasks) {
         [[FileInstallManager sharedManager] removeTask:task];
     }
@@ -356,8 +469,7 @@
     [self loadFileList];
 }
 
-#pragma mark - 刷新控件配置
-// 更新空视图状态
+#pragma mark - 刷新控件配置（不变）
 - (void)updateEmptyViewVisibility {
     // 自定义空视图内容
     [_emptyView configureWithImage:[UIImage systemImageNamed:@"list.bullet.rectangle"]
@@ -371,15 +483,14 @@
     [_emptyView updateConstraints];
 }
 
-#pragma mark - 设置约束
+#pragma mark - 设置约束（核心修改：目录按钮约束）
 - (void)setupViewConstraints {
-    CGFloat statusBarHeight = 0;
-    CGFloat navigationBarHeight = 0;
+   
     CGFloat headerHeight = 135; // 顶部视图高度
     
     // 设置顶部视图约束
     [self.headerView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.view).offset(statusBarHeight + navigationBarHeight);
+        make.top.equalTo(self.view).offset(0);
         make.left.right.equalTo(self.view);
         make.height.equalTo(@(headerHeight));
     }];
@@ -393,13 +504,15 @@
     [self.subtitleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.titleLabel.mas_bottom).offset(8);
         make.left.equalTo(self.headerView).offset(16);
+        make.right.lessThanOrEqualTo(self.directoryBtn.mas_left).offset(-8); // 避免和目录按钮重叠
     }];
     
-    // 设置顶部右侧删除按钮
-    [self.clearButton mas_makeConstraints:^(MASConstraintMaker *make) {
+    // 目录选择按钮约束（替换原clearButton约束）
+    [self.directoryBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.headerView).offset(16);
         make.right.equalTo(self.headerView).offset(-16);
-        make.width.height.equalTo(@20);
+        make.width.greaterThanOrEqualTo(@30); // 最小宽度：容纳"切换目录"文字+图标
+        make.height.equalTo(@30); // 固定高度，美观
     }];
     
     // 设置筛选滚动视图约束
@@ -485,14 +598,15 @@
     self.emptyView.alpha = self.fileList.count == 0;
 }
 
-#pragma mark - 加载文件列表
+#pragma mark - 加载文件列表（不变，基于self.downloadDir动态读取）
 - (void)loadFileList {
-    NSLog(@"加载文件列表");
+    NSLog(@"加载文件列表，当前目录：%@", self.downloadDir);
     NSError *error;
     // 获取目录下所有文件
     NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:self.downloadDir error:&error];
     if (error) {
         NSLog(@"获取文件列表失败: %@", error.localizedDescription);
+        [self showAlertWithTitle:@"读取失败" message:[NSString stringWithFormat:@"无法读取目录：%@", error.localizedDescription]];
         return;
     }
     
@@ -511,7 +625,7 @@
         return [attr2[NSFileModificationDate] compare:attr1[NSFileModificationDate]];
     }];
     
-    // 应用当前筛选条件（关键：重新筛选，确保已完成任务被移除）
+    // 应用当前筛选条件
     [self filterFiles];
     
     // 刷新表格
@@ -523,7 +637,7 @@
     self.emptyView.alpha = self.filteredFileList.count == 0;
 }
 
-#pragma mark - 筛选文件
+#pragma mark - 筛选文件（不变）
 - (void)filterFiles {
     NSArray<DownloadTaskModel *> *allTasks = [[FileInstallManager sharedManager] allDownloadTasks];
     
@@ -535,17 +649,17 @@
     if (self.currentFilterType == FilterTypeDownloading) {
         // 下载中：仅显示未完成的任务
         self.filteredFileList = [activeTasks mutableCopy];
-        self.subtitleLabel.text = [NSString stringWithFormat:@"下载中 (%lu个任务)", (unsigned long)activeTasks.count];
+        self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（下载中 %lu个任务）", [self.downloadDir lastPathComponent], (unsigned long)activeTasks.count];
     }
     else if (self.currentFilterType == FilterTypeAll) {
         // 全部：未完成任务 + 本地文件
         self.filteredFileList = [NSMutableArray array];
         [self.filteredFileList addObjectsFromArray:activeTasks]; // 仅添加未完成任务
         [self.filteredFileList addObjectsFromArray:self.fileList]; // 添加本地文件
-        self.subtitleLabel.text = [NSString stringWithFormat:@"全部 (%lu个项目)", (unsigned long)self.filteredFileList.count];
+        self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（全部 %lu个项目）", [self.downloadDir lastPathComponent], (unsigned long)self.filteredFileList.count];
     }
     else {
-        // 按文件类型筛选（原有逻辑不变）
+        // 按文件类型筛选
         FileType fileType = (FileType)(self.currentFilterType - FilterTypeFileTypes);
         self.filteredFileList = [NSMutableArray array];
         
@@ -558,13 +672,13 @@
         
         NSString *filterTitle = [NewAppFileModel chineseDescriptionForFileType:fileType];
         filterTitle = [self shortNameForFileTypeName:filterTitle];
-        self.subtitleLabel.text = [NSString stringWithFormat:@"%@ (%lu个文件)", filterTitle, (unsigned long)self.filteredFileList.count];
+        self.subtitleLabel.text = [NSString stringWithFormat:@"当前目录：%@（%@ %lu个文件）", [self.downloadDir lastPathComponent], filterTitle, (unsigned long)self.filteredFileList.count];
     }
     
     [self.tableView reloadData];
 }
 
-#pragma mark - 长按表格进入多选模式
+#pragma mark - 长按表格进入多选模式（不变）
 - (void)tableViewLongPressed:(UILongPressGestureRecognizer *)gesture {
     if (gesture.state != UIGestureRecognizerStateBegan) return;
     if (self.tableView.isEditing) return;
@@ -587,15 +701,12 @@
     // 选中长按的单元格
     [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
     
-    // 将选中路径添加到集合
-    NSString *filePath = self.filteredFileList[indexPath.row];
-    [self.selectedFilePaths addObject:filePath];
     
     // 调整底部约束
     [self.tableView updateConstraints];
 }
 
-#pragma mark - UITableView数据源
+#pragma mark - UITableView数据源（不变）
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return self.filteredFileList.count;
 }
@@ -610,7 +721,7 @@
     }
     // 若元素是文件路径（NSString），则使用文件单元格
     else if ([item isKindOfClass:[NSString class]]) {
-        NSInteger fileIndex = indexPath.row; // 直接使用当前索引（无需偏移计算）
+        NSInteger fileIndex = indexPath.row; // 直接使用当前索引（筛选后列表已区分任务和文件）
         return [self cellForDownloadedFile:tableView atIndexPath:indexPath fileIndex:fileIndex];
     }
     // 异常情况处理
@@ -619,10 +730,9 @@
     }
 }
 
-// 配置下载任务单元格
+// 配置下载任务单元格（不变）
 - (UITableViewCell *)cellForDownloadTask:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath task:(DownloadTaskModel *)task {
     static NSString *taskCellId = @"DownloadTaskCell";
-    // 强制使用支持副标题的样式
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:taskCellId];
     
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -634,6 +744,7 @@
     progressView.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.2]; // 半透明绿色
     progressView.autoresizingMask = UIViewAutoresizingFlexibleHeight; // 高度自适应
     [cell.contentView insertSubview:progressView atIndex:0]; // 放在最底层，不遮挡文字
+    
     // 主标题显示文件名
     cell.textLabel.text = [NewAppFileModel fileNameFromPathString:task.fileName shouldDecodeChinese:YES];
     cell.textLabel.font = [UIFont systemFontOfSize:16];
@@ -687,14 +798,13 @@
     cell.detailTextLabel.textColor = [UIColor secondaryLabelColor]; // 确保文本可见
     
     // 更新进度覆盖层宽度（从左到右覆盖）
-    
     CGFloat progressWidth = [UIScreen mainScreen].bounds.size.width * task.progress;
     progressView.frame = CGRectMake(0, 0, progressWidth, cell.contentView.bounds.size.height);
     
     return cell;
 }
 
-// 配置已完成文件单元格
+// 配置已完成文件单元格（不变）
 - (UITableViewCell *)cellForDownloadedFile:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath fileIndex:(NSInteger)fileIndex {
     static NSString *fileCellId = @"FileCell";
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:fileCellId];
@@ -735,23 +845,26 @@
         }
     }
     
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@",
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@ • %@",
                                 [self fileTypeDescription:filePath],
+                                fileSizeStr,
                                 [formatter stringFromDate:modificationDate]];
-    
-    // 编辑模式下显示勾选状态
+
+    // 在编辑模式下使用系统的多选样式
     if (self.tableView.isEditing) {
-        cell.accessoryType = [self.selectedFilePaths containsObject:filePath] ?
-                             UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        cell.accessoryType = UITableViewCellAccessoryNone; // 隐藏 disclosure indicator
+        cell.editingAccessoryType = UITableViewCellAccessoryNone;
+        cell.selectionStyle = UITableViewCellSelectionStyleDefault;
+    } else {
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        cell.selectionStyle = UITableViewCellSelectionStyleDefault;
     }
-    
+
     return cell;
 }
 
-#pragma mark - UITableViewDelegate
+#pragma mark - UITableViewDelegate（不变）
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
     // 判断是下载任务还是已完成文件
     if (self.currentFilterType == FilterTypeDownloading ||
         (self.currentFilterType == FilterTypeAll && indexPath.row < [[FileInstallManager sharedManager] allDownloadTasks].count)) {
@@ -764,32 +877,20 @@
         [self showTaskActionSheet:task];
     } else {
         // 已完成文件操作
-        NSInteger fileIndex = self.currentFilterType == FilterTypeAll ?
-            indexPath.row - [[FileInstallManager sharedManager] allDownloadTasks].count :
-            indexPath.row;
-        
-        NSString *filePath = self.filteredFileList[fileIndex];
-        
         if (self.tableView.isEditing) {
-            // 多选模式下处理选择
-            BOOL isSelected = [self.selectedFilePaths containsObject:filePath];
-            if (isSelected) {
-                [self.selectedFilePaths removeObject:filePath];
-            } else {
-                [self.selectedFilePaths addObject:filePath];
-            }
-            
-            // 更新单元格勾选状态
-            UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-            cell.accessoryType = isSelected ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+            // 编辑模式下，只需要让系统管理选中状态，不需要额外刷新
+            // 系统会自动处理选中状态的视觉反馈
         } else {
             // 普通模式下显示文件操作菜单
+            NSInteger fileIndex = indexPath.row;
+            NSString *filePath = self.filteredFileList[fileIndex];
             [self showFileActionSheetForPath:filePath];
         }
     }
 }
 
-// 任务操作菜单
+
+// 任务操作菜单（不变）
 - (void)showTaskActionSheet:(DownloadTaskModel *)task {
     UIAlertController *sheet = [UIAlertController alertControllerWithTitle:task.fileName message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
@@ -810,8 +911,6 @@
                 [[FileInstallManager sharedManager] removeTask:task];
                 [self loadFileList];
             });
-            
-            
         }]];
     }
     
@@ -829,7 +928,7 @@
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
-// 左滑删除功能
+// 左滑删除功能（不变）
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
     // 只有已完成的文件支持删除
     if (self.currentFilterType == FilterTypeDownloading ||
@@ -842,10 +941,7 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        NSInteger fileIndex = self.currentFilterType == FilterTypeAll ?
-            indexPath.row - [[FileInstallManager sharedManager] allDownloadTasks].count :
-            indexPath.row;
-        
+        NSInteger fileIndex = indexPath.row;
         NSString *filePath = self.filteredFileList[fileIndex];
         
         // 删除文件
@@ -867,7 +963,7 @@
     }
 }
 
-#pragma mark - 文件操作菜单
+#pragma mark - 文件操作菜单（不变）
 - (void)showFileActionSheetForPath:(NSString *)filePath {
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"文件操作"
                                                                            message:nil
@@ -895,7 +991,7 @@
     [self presentViewController:actionSheet animated:YES completion:nil];
 }
 
-#pragma mark - 文件操作实现
+#pragma mark - 文件操作实现（不变）
 - (void)installFileAtPath:(NSString *)filePath {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSURL *fileURL = [NSURL fileURLWithPath:filePath];
@@ -908,7 +1004,6 @@
             }];
         }
     });
-    
 }
 
 - (void)openFileInAppAtPath:(NSString *)filePath {
@@ -950,118 +1045,126 @@
     [self presentViewController:activityVC animated:YES completion:nil];
 }
 
-#pragma mark - UIDocumentInteractionControllerDelegate
+#pragma mark - UIDocumentInteractionControllerDelegate（不变）
 - (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller {
     return self;
 }
 
-#pragma mark - UITableViewDelegate
+#pragma mark - UITableViewDelegate（不变）
 - (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // 允许编辑模式下选中单元格
     return indexPath;
 }
 
-#pragma mark - 全选
+#pragma mark - 全选（不变）
+
 - (void)selectAllFiles {
-    [self.selectedFilePaths removeAllObjects];
-    
-    // 只选择文件，不选择下载任务
-    if (self.currentFilterType == FilterTypeAll) {
-        NSArray<DownloadTaskModel *> *downloadTasks = [[FileInstallManager sharedManager] allDownloadTasks];
-        NSRange fileRange = NSMakeRange(downloadTasks.count, self.filteredFileList.count - downloadTasks.count);
-        NSArray *files = [self.filteredFileList subarrayWithRange:fileRange];
-        [self.selectedFilePaths addObjectsFromArray:files];
-    } else if (self.currentFilterType != FilterTypeDownloading) {
-        [self.selectedFilePaths addObjectsFromArray:self.filteredFileList];
+    // 1. 先取消所有已选中的行（避免重复选中）
+    NSArray<NSIndexPath *> *selectedIndexPaths = self.tableView.indexPathsForSelectedRows;
+    if (selectedIndexPaths.count > 0) {
+        for (NSIndexPath *ip in selectedIndexPaths) {
+            [self.tableView deselectRowAtIndexPath:ip animated:NO];
+        }
     }
     
-    [self.tableView reloadData]; // 刷新所有单元格的勾选状态
+    // 2. 获取活跃任务数量（用于跳过任务行，只选中文件行）
+    NSArray<DownloadTaskModel *> *activeTasks = [[FileInstallManager sharedManager] allDownloadTasks];
+    NSInteger activeTasksCount = activeTasks.count;
+    
+    // 3. 遍历筛选列表，只选中“文件行”（跳过前面的任务行）
+    NSMutableArray<NSIndexPath *> *fileIndexPaths = [NSMutableArray array];
+    for (NSInteger i = 0; i < self.filteredFileList.count; i++) {
+        // 关键：跳过前N行任务（仅处理文件行）
+        if (i < activeTasksCount && self.currentFilterType == FilterTypeAll) {
+            continue;
+        }
+        
+        id item = self.filteredFileList[i];
+        // 只选中本地文件（NSString类型）
+        if ([item isKindOfClass:[NSString class]]) {
+            NSIndexPath *ip = [NSIndexPath indexPathForRow:i inSection:0];
+            [fileIndexPaths addObject:ip];
+            // 选中行（animated:NO避免频繁动画）
+            [self.tableView selectRowAtIndexPath:ip animated:NO scrollPosition:UITableViewScrollPositionNone];
+        }
+    }
+    
+    // 4. 无文件可选中时提示（优化用户体验）
+    if (fileIndexPaths.count == 0) {
+        [self showAlertWithTitle:@"提示" message:@"当前列表中没有可选中的文件"];
+    }
+    
+    // 注：移除原有的reloadData，避免覆盖选中状态
 }
 
-#pragma mark - 全取消
+
+
+#pragma mark - 全取消（不变）
+// 全取消
 - (void)deselectAllFiles {
-    [self.selectedFilePaths removeAllObjects];
-    [self.tableView reloadData]; // 刷新所有单元格的勾选状态
+    // 遍历所有选中的行，逐个取消
+    NSArray<NSIndexPath *> *selectedIndexPaths = self.tableView.indexPathsForSelectedRows;
+    if (selectedIndexPaths.count > 0) {
+        for (NSIndexPath *ip in selectedIndexPaths) {
+            [self.tableView deselectRowAtIndexPath:ip animated:NO]; // 正确的单数方法
+        }
+    }
+    
+    [self.tableView reloadData]; // 刷新UI隐藏勾选状态
 }
 
-#pragma mark - 删除选中文件
+#pragma mark - 删除选中文件（不变）
 - (void)deleteSelectedFiles {
-    if (self.selectedFilePaths.count == 0) {
+    NSArray<NSIndexPath *> *selectedIndexPaths = self.tableView.indexPathsForSelectedRows;
+    if (!selectedIndexPaths || selectedIndexPaths.count == 0) {
         [self showAlertWithTitle:@"提示" message:@"请先选择要删除的文件"];
         return;
     }
     
+    // 收集选中的文件路径
+    NSMutableArray<NSString *> *selectedPaths = [NSMutableArray array];
+    for (NSIndexPath *ip in selectedIndexPaths) {
+        id item = self.filteredFileList[ip.row];
+        if ([item isKindOfClass:[NSString class]]) { // 确保是文件
+            [selectedPaths addObject:item];
+        }
+    }
+    
+    // 显示删除确认
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认删除"
-                                                                   message:[NSString stringWithFormat:@"是否删除选中的%lu个文件？", (unsigned long)self.selectedFilePaths.count]
-                                                            preferredStyle:UIAlertControllerStyleAlert];
+                                                                    message:[NSString stringWithFormat:@"是否删除选中的%lu个文件？", (unsigned long)selectedPaths.count]
+                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     [alert addAction:[UIAlertAction actionWithTitle:@"删除" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         // 执行删除
-        for (NSString *filePath in self.selectedFilePaths) {
+        for (NSString *filePath in selectedPaths) {
             [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
             [self.fileList removeObject:filePath];
         }
         
         // 更新列表
-        [self.filteredFileList removeObjectsInArray:self.selectedFilePaths];
-        [self.selectedFilePaths removeAllObjects];
+        [self.filteredFileList removeObjectsInArray:selectedPaths];
         [self.tableView reloadData];
-        [self filterFiles]; // 更新副标题计数
+        [self filterFiles];
     }]];
     [self presentViewController:alert animated:YES completion:nil];
 }
 
-#pragma mark - 取消编辑模式
+#pragma mark - 取消编辑模式（不变）
 - (void)cancelEditMode {
     [self.tableView setEditing:NO animated:YES];
     self.bottomToolBar.hidden = YES;
-    [self.selectedFilePaths removeAllObjects];
     
     // 恢复表格底部约束
     [self.tableView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
+        make.bottom.equalTo(self.view.mas_top).offset(self.view.bounds.size.height);
     }];
     
     // 刷新所有单元格（隐藏勾选图标）
     [self.tableView reloadData];
 }
 
-- (void)clear:(UIButton*)button {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除下载" message:@"清空所有下载的文件" preferredStyle:UIAlertControllerStyleActionSheet];
-    // 添加取消按钮
-    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        
-        
-    }];
-    [alert addAction:cancelAction];
-    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"删除全部" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-        // 清理沙盒缓存
-        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject]
-                                      stringByAppendingPathComponent:@"Downloads"];
-        
-        NSArray *files = [[NSFileManager defaultManager] subpathsAtPath:downloadPath];
-        for (int i = 0; i<files.count; i++) {
-            NSString *file = files[i];
-        
-            NSString *filePath = [downloadPath stringByAppendingPathComponent:file];
-            NSError *error;
-            [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
-            if (error) {
-                NSLog(@"清理文件 %@ 失败: %@", filePath, error);
-            }
-            [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"共(%ld)正在删除第%d个文件\n%@",files.count,i,file]];
-            if(i==files.count-1){
-                [SVProgressHUD showSuccessWithStatus:@"删除完毕"];
-                [SVProgressHUD dismissWithDelay:2];
-            }
-            
-        }
-    }];
-    [alert addAction:confirmAction];
-    [self presentViewController:alert animated:YES completion:nil];
-}
-
-#pragma mark - 显示提示弹窗
+#pragma mark - 显示提示弹窗（不变）
 - (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
@@ -1098,7 +1201,7 @@
     [viewController presentViewController:alertController animated:YES completion:nil];
 }
 
-#pragma mark - 辅助方法
+#pragma mark - 辅助方法（不变）
 // 获取文件类型描述
 - (NSString *)fileTypeDescription:(NSString *)filePath {
     FileType type = [NewAppFileModel fileTypeForFileName:[filePath lastPathComponent]];
@@ -1118,7 +1221,7 @@
     return fullName;
 }
 
-//侧滑手势
+//侧滑手势（不变）
 - (BOOL)allowScreenEdgeInteractive{
     return NO;
 }

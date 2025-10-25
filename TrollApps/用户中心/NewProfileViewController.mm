@@ -519,7 +519,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.historicalOrdersButton mas_makeConstraints:^(MASConstraintMaker *make) {
         
         make.height.mas_equalTo(20);
-        make.left.equalTo(self.collectionView).offset(0);
+        make.right.equalTo(self.collectionView).offset(0);
         make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
     }];
     
@@ -558,7 +558,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self.historicalOrdersButton mas_makeConstraints:^(MASConstraintMaker *make) {
             
             make.height.mas_equalTo(20);
-            make.left.equalTo(self.collectionView).offset(0);
+            make.right.equalTo(self.collectionView).offset(0);
             make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
         }];
         
@@ -1175,7 +1175,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)loadVIPPackagesFromRemote {
     // 1. 构建请求URL（加时间戳防缓存）
     NSString *timestamp = [NSString stringWithFormat:@"%lld", (long long)[NSDate date].timeIntervalSince1970];
-    NSString *remoteURL = [NSString stringWithFormat:@"%@/vip.json?time=%@", localURL, timestamp];
+    NSString *remoteURL = [NSString stringWithFormat:@"%@/vip/vip.json?time=%@", localURL, timestamp];
     NSLog(@"请求vip.json地址：%@", remoteURL);
 
     [SVProgressHUD showWithStatus:@"加载套餐中..."];
@@ -1386,7 +1386,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                                      preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:self.loadingAlert animated:YES completion:^{
         // 5. 发送购买请求（POST + JSON格式）
-        NSString *purchaseURL = [NSString stringWithFormat:@"%@/purchase_vip.php", localURL];
+        NSString *purchaseURL = [NSString stringWithFormat:@"%@/vip/purchase_vip.php", localURL];
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                                   urlString:purchaseURL
                                                  parameters:requestData

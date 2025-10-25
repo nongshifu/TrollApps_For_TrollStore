@@ -644,67 +644,66 @@
         
         // 添加确定按钮
         UIAlertAction *okAction2 = [UIAlertAction actionWithTitle:@"删除本地聊天记录" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-            [[RCCoreClient sharedCoreClient] clearMessages:model.conversationType targetId:userId completion:^(BOOL ret) {
-                if (ret) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self refreshConversationTableViewIfNeeded];
-                        // 删除成功
-                        [SVProgressHUD showSuccessWithStatus:@"删除完成"];
-                        [SVProgressHUD dismissWithDelay:0.5 completion:^{
-                            
-                        }];
-                    });
-                    
-                } else {
-                    // 删除失败
-                }
-            }];
-            
-        }];
-        // 添加确定按钮
-        UIAlertAction *okAction3 = [UIAlertAction actionWithTitle:@"删除本地+云端聊天记录" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-            [[RCIMClient sharedRCIMClient]
-                clearHistoryMessages:model.conversationType
-                targetId:userId
-                recordTime:0
-                clearRemote:YES
-                success:^{
+            [[RCCoreClient sharedCoreClient] clearHistoryMessages:model.conversationType
+                                                         targetId:userId
+                                                       recordTime:0
+                                                      clearRemote:NO
+                                                          success:^{
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self refreshConversationTableViewIfNeeded];
                     // 删除成功
                     [SVProgressHUD showSuccessWithStatus:@"删除完成"];
                     [SVProgressHUD dismissWithDelay:0.5 completion:^{
-                       
+                        
                     }];
                 });
                 
-            }error:^(RCErrorCode status) {}];
+            } error:^(RCErrorCode status) {
+                
+            }];
+            
+           
             
         }];
         // 添加确定按钮
-        UIAlertAction *okAction4 = [UIAlertAction actionWithTitle:@"删除/本地/云端/会话窗" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-            [[RCIMClient sharedRCIMClient]
-             clearHistoryMessages:model.conversationType
-             targetId:userId
-             recordTime:0
-             clearRemote:YES
-             success:^{
-                BOOL success = [[RCIMClient sharedRCIMClient] removeConversation:model.conversationType
-                                                                        targetId:userId];
-                if(success){
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self.conversationListDataSource removeObject:model];
-                        [self refreshConversationTableViewIfNeeded];
-                        [SVProgressHUD showSuccessWithStatus:@"删除完成"];
-                        [SVProgressHUD dismissWithDelay:0.5 completion:^{
-                            
-                        }];
-                    });
-                }
+        UIAlertAction *okAction3 = [UIAlertAction actionWithTitle:@"删除本地+云端聊天记录" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            //删除本地和云端历史记录
+            [[RCCoreClient sharedCoreClient] clearHistoryMessages:model.conversationType
+                                                         targetId:userId
+                                                       recordTime:0
+                                                      clearRemote:YES
+                                                          success:^{
                 
-            }error:^(RCErrorCode status) {}];
-            
-           
+            } error:^(RCErrorCode status) {
+                
+            }];
+        }];
+        // 添加确定按钮
+        UIAlertAction *okAction4 = [UIAlertAction actionWithTitle:@"删除/本地/云端/会话窗" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            //删除本地和云端历史记录
+            [[RCCoreClient sharedCoreClient] clearHistoryMessages:model.conversationType
+                                                         targetId:userId
+                                                       recordTime:0
+                                                      clearRemote:YES
+                                                          success:^{
+                
+            } error:^(RCErrorCode status) {
+                
+            }];
+            //删除会话
+            [[RCCoreClient sharedCoreClient] removeConversation:model.conversationType targetId:userId isDeleteRemote:NO success:^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.conversationListDataSource removeObject:model];
+                    [SVProgressHUD showSuccessWithStatus:@"删除完成"];
+                    [SVProgressHUD dismissWithDelay:0.5 completion:^{
+                        
+                    }];
+                    [self refreshConversationTableViewIfNeeded];
+                });
+                
+            } error:^(RCErrorCode errorCode) {
+                
+            }];
             
         }];
         

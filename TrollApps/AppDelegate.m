@@ -10,6 +10,8 @@
 #import "UserModel.h"
 #import "ToolMessage.h"
 #import "ToolMessageCell.h"
+#import "DownloadManagerViewController.h"
+
 @interface AppDelegate ()
 
 @end
@@ -19,6 +21,16 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    // 检查启动参数中是否有文件URL（如通过文件导入启动）
+    NSURL *launchURL = launchOptions[UIApplicationLaunchOptionsURLKey];
+    if (launchURL) {
+        NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
+        if ([launchURL.path hasPrefix:inboxDir]) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self showDownloadManagerWithDir:inboxDir];
+            });
+        }
+    }
     
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.tabBarController = [[MyTabBarController alloc] init];
@@ -123,6 +135,7 @@
     [[RCIM sharedRCIM] registerMessageType:[ToolMessage class]];
 
 }
+
 - (void)getUserInfoWithUserId:(NSString *)userId completion:(void(^)(RCUserInfo *userInfo))completion {
     //开发者调自己的服务器接口，根据 userID 异步请求用户信息
     NSLog(@"读取用户信息：%@",userId);
@@ -148,6 +161,7 @@
     }];
     
 }
+
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
@@ -218,4 +232,38 @@
     }];
 
 }
+
+// 1. 处理通过URL唤醒应用（文件导入常用回调）
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+    NSLog(@"openURL 被调用:%@",url.path);
+    // 校验URL是否指向Inbox目录（确保是目标目录的文件）
+    NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
+    if ([url.path containsString:@"/Documents/Inbox/"]) {
+        // 延迟0.5秒（确保应用完全唤醒），再弹出控制器
+        NSLog(@"再弹出控制器");
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self showDownloadManagerWithDir:inboxDir];
+        });
+    }
+    return YES;
+}
+
+
+// 3. 通用方法：弹出DownloadManagerViewController并切换目录
+- (void)showDownloadManagerWithDir:(NSString *)dirPath {
+    DownloadManagerViewController *dmVC = [DownloadManagerViewController sharedInstance];
+    [dmVC switchToDirectory:dirPath];
+    
+    // 获取当前顶层控制器（适配导航栏/标签栏结构）
+    UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+    while (topVC.presentedViewController) {
+        topVC = topVC.presentedViewController;
+    }
+    
+    // 避免重复弹窗
+    if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
+        [topVC presentViewController:dmVC animated:YES completion:nil];
+    }
+}
+
 @end
