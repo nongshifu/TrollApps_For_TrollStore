@@ -1055,6 +1055,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", pattern];
     return [predicate evaluateWithObject:bundleID];
 }
+
 // 简单验证版本号格式 X.Y.Z
 - (BOOL)validateVersionFormat:(NSString *)version {
     // 简单验证版本号格式 X.Y.Z
@@ -1672,10 +1673,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.app_info.app_type = [NewAppFileModel fileTypeForFileName:appInfo.mainFileUrl];
         
 
-        NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
-        NSString *publishDate = [TimeTool stringFromDate:[NSDate date]];
-        self.app_info.save_path = [NSString stringWithFormat:@"%@/%ld", publishDate, userId];
-        
         
     }
     
@@ -2010,11 +2007,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     
     // 4. 构建服务器附件保存路径 类型/年/月/日/用户ID
-    
-    NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
-    NSString *publishDate = [TimeTool stringFromDate:[NSDate date]];
-    self.app_info.save_path = [NSString stringWithFormat:@"%@/%ld", publishDate, userId];
-    
+    if(!self.app_info.save_path){
+            NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
+            NSString *publishDate = [TimeTool stringFromDate:[NSDate date]];
+            self.app_info.save_path = [NSString stringWithFormat:@"%@/%ld", publishDate, userId];
+    }
+
     //转为字典
     NSDictionary *app_info = [self.app_info yy_modelToJSONObject];
     

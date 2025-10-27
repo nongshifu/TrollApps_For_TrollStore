@@ -2,36 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeIconFiles</key>
-			<array>
-				<string>doc_iconfz_64</string>
-				<string>doc_iconfz_22</string>
-				<string>doc_iconfz_44</string>
-				<string>doc_iconfz_320</string>
-			</array>
-			<key>CFBundleTypeName</key>
-			<string>Common Files</string>
-			<key>LSHandlerRank</key>
-			<string>Default</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.content</string>
-				<string>public.data</string>
-				<string>public.archive</string>
-				<string>public.item</string>
-				<string>public.database</string>
-				<string>public.calendar-event</string>
-				<string>public.message</string>
-				<string>public.contact</string>
-				<string>public.executable</string>
-				<string>com.apple.resolvable</string>
-				<string>org.debian.deb-archive</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -45,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>10.0.0</string>
+	<string>10.0.1</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -58,7 +28,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>10</string>
+	<string>11</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
