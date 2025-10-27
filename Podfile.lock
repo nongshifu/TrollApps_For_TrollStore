@@ -76,6 +76,7 @@ PODS:
   - SDWebImage (5.21.1):
     - SDWebImage/Core (= 5.21.1)
   - SDWebImage/Core (5.21.1)
+  - SSZipArchive (2.4.3)
   - SVProgressHUD (2.3.1):
     - SVProgressHUD/Core (= 2.3.1)
   - SVProgressHUD/Core (2.3.1)
@@ -100,6 +101,7 @@ DEPENDENCIES:
   - MJRefresh
   - RongCloudIM/IMKit
   - SDWebImage (~> 5.0)
+  - SSZipArchive
   - SVProgressHUD
   - YYCache
   - YYModel
@@ -120,6 +122,7 @@ SPEC REPOS:
     - MJRefresh
     - RongCloudIM
     - SDWebImage
+    - SSZipArchive
     - SVProgressHUD
     - YYCache
     - YYModel
@@ -139,12 +142,13 @@ SPEC CHECKSUMS:
   MJRefresh: ff9e531227924c84ce459338414550a05d2aea78
   RongCloudIM: d160c74810166663e8fa05a352a68cb2a9787c3f
   SDWebImage: f29024626962457f3470184232766516dee8dfea
+  SSZipArchive: fe6a26b2a54d5a0890f2567b5cc6de5caa600aef
   SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
   YYCache: 8105b6638f5e849296c71f331ff83891a4942952
   YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: b67e1cb8a85a4fb29b1459dab77b67369447a7d9
+PODFILE CHECKSUM: bdbd97c65554dcf52e868a8b72d030a170b160a8
 
 COCOAPODS: 1.16.2

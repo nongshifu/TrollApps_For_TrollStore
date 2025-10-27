@@ -738,6 +738,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 [jsonResult[@"status"] isEqualToString:@"success"]) {
                 self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
                 [self updateUserInfoWithUserModel:self.userInfo];
+            }else{
+                [self registerUser:udid  nickname:@"萌新用户"];
             }
         });
     } failure:^(NSError *error) {
@@ -774,8 +776,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 NSLog(@"请求idfv用户数据:%@",self.userInfo);
                 [self updateUserInfoWithUserModel:self.userInfo];
             }else{
-                [SVProgressHUD showErrorWithStatus:msg];
-                [SVProgressHUD dismissWithDelay:2];
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序" preferredStyle:UIAlertControllerStyleAlert];
+                // 添加取消按钮
+                UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                    
+                    
+                }];
+                [alert addAction:cancelAction];
+                UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self registerUser:idfv nickname:@"游客用户"];
+                }];
+                [alert addAction:confirmAction];
+                [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
             }
         });
     } failure:^(NSError *error) {
@@ -785,6 +797,37 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [SVProgressHUD dismissWithDelay:2];
 
         });
+    }];
+}
+
+- (void)registerUser:(NSString*)udid nickname:(NSString*)nickname{
+    
+    NSDictionary *dic = @{
+        @"action":@"register",
+        @"nickname":nickname,
+        @"password" :udid,
+        @"udid":udid,
+        @"type":@"udid"
+    };
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                             parameters:dic
+                                                   udid:udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"请求udid用户数据:%@",stringResult);
+            NSInteger code = [jsonResult[@"code"] intValue];
+            if (jsonResult && code == 200) {
+                self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"userInfo"]];
+                [self updateUserInfoWithUserModel:self.userInfo];
+            }else{
+                [SVProgressHUD showErrorWithStatus:@"注册失败"];
+            }
+        });
+    } failure:^(NSError *error) {
+        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
+        [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
     }];
 }
 

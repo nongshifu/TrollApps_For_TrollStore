@@ -16,7 +16,7 @@ target 'TrollApps' do
   pod 'LGSideMenuController','2.3.0' #半屏控制器
   pod 'YYCache'
   pod 'JXCategoryView'
-  
+  pod 'SSZipArchive'
 
   
   pod 'IGListKit', '~> 5.0.0'#表格
