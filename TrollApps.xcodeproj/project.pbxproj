@@ -97,7 +97,6 @@
 		C28721222E281E9600ABC6AE /* PidModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = C28721112E281E9600ABC6AE /* PidModel.mm */; };
 		C28721232E281E9600ABC6AE /* Root.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721132E281E9600ABC6AE /* Root.m */; };
 		C287212B2E28254C00ABC6AE /* RunInBackground.mm in Sources */ = {isa = PBXBuildFile; fileRef = C28721282E28254C00ABC6AE /* RunInBackground.mm */; };
-		C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C287212C2E28262400ABC6AE /* RootSign.entitlements */; };
 		C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */; };
 		C28721382E2A942E00ABC6AE /* PrivacyPolicyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28721372E2A942E00ABC6AE /* PrivacyPolicyViewController.m */; };
 		C287213B2E2B520800ABC6AE /* loadData.mm in Sources */ = {isa = PBXBuildFile; fileRef = C287213A2E2B520800ABC6AE /* loadData.mm */; };
@@ -153,6 +152,7 @@
 		C287229B2E33755C00ABC6AE /* BottomSheetTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229A2E33755C00ABC6AE /* BottomSheetTransition.m */; };
 		C287229E2E3375D700ABC6AE /* BottomSheetPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */; };
 		C28722A22E34B61C00ABC6AE /* QRCodeGeneratorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C28722A12E34B61C00ABC6AE /* QRCodeGeneratorViewController.m */; };
+		C2BD04342ED098FD0008D28F /* FindFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2BD04332ED098FD0008D28F /* FindFriendsViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -341,7 +341,6 @@
 		C28721282E28254C00ABC6AE /* RunInBackground.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RunInBackground.mm; sourceTree = "<group>"; };
 		C28721292E28254C00ABC6AE /* RunInBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RunInBackground.h; sourceTree = "<group>"; };
 		C287212A2E28254C00ABC6AE /* blank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blank.h; sourceTree = "<group>"; };
-		C287212C2E28262400ABC6AE /* RootSign.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = RootSign.entitlements; sourceTree = "<group>"; };
 		C28721312E2A557A00ABC6AE /* DownloadManagerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadManagerViewController.h; sourceTree = "<group>"; };
 		C28721322E2A557A00ABC6AE /* DownloadManagerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadManagerViewController.m; sourceTree = "<group>"; };
 		C28721342E2A899000ABC6AE /* Root.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Root.entitlements; sourceTree = "<group>"; };
@@ -436,6 +435,8 @@
 		C287229D2E3375D700ABC6AE /* BottomSheetPresentationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BottomSheetPresentationController.m; sourceTree = "<group>"; };
 		C28722A02E34B61C00ABC6AE /* QRCodeGeneratorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QRCodeGeneratorViewController.h; sourceTree = "<group>"; };
 		C28722A12E34B61C00ABC6AE /* QRCodeGeneratorViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QRCodeGeneratorViewController.m; sourceTree = "<group>"; };
+		C2BD04322ED098FD0008D28F /* FindFriendsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FindFriendsViewController.h; sourceTree = "<group>"; };
+		C2BD04332ED098FD0008D28F /* FindFriendsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FindFriendsViewController.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -499,7 +500,6 @@
 				C28720712E25432100ABC6AE /* config.h */,
 				4F639DF82272E94C00776206 /* Assets.xcassets */,
 				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
-				C287212C2E28262400ABC6AE /* RootSign.entitlements */,
 				C28721342E2A899000ABC6AE /* Root.entitlements */,
 				C28720CE2E27D87900ABC6AE /* Podfile */,
 				4F639DFD2272E94C00776206 /* Info.plist */,
@@ -651,6 +651,8 @@
 				C2871FC12E2542C300ABC6AE /* CommunityViewController.m */,
 				C2871FC22E2542C300ABC6AE /* HelpViewController.h */,
 				C2871FC42E2542C300ABC6AE /* HelpViewController.m */,
+				C2BD04322ED098FD0008D28F /* FindFriendsViewController.h */,
+				C2BD04332ED098FD0008D28F /* FindFriendsViewController.m */,
 			);
 			path = "社区";
 			sourceTree = "<group>";
@@ -1368,7 +1370,6 @@
 				C28722732E3267B100ABC6AE /* libintl.8.dylib in Resources */,
 				C28722682E3267B100ABC6AE /* libiosexec.1.dylib in Resources */,
 				C28722742E3267B100ABC6AE /* ct_bypass in Resources */,
-				C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */,
 				C287226B2E3267B100ABC6AE /* optool in Resources */,
 				C28722672E3267B100ABC6AE /* ldid in Resources */,
 				C28722702E3267B100ABC6AE /* CydiaSubstrate.framework.zip in Resources */,
@@ -1459,7 +1460,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\n# 1. ldid 工具路径（如果已在环境变量中可省略，否则填绝对路径）\nLDID_PATH=\"ldid\"\n# 2. 权限文件 RootSign.entitlements 路径（相对于项目根目录或绝对路径）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"\n# 3. IPA 输出目录（默认为桌面，可自定义）\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\n# 4. IPA 文件名（默认为项目名+时间戳）\nIPA_NAME=\"${PROJECT_NAME}.ipa\"\n\n# ==============================================\n# 自动获取 Xcode 编译产物路径（无需修改）\n# ==============================================\n# 编译后的 .app 路径\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\n# .app 内的可执行文件路径（与 PRODUCT_NAME 同名）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 检查必要文件是否存在\n# ==============================================\n# 检查 .app 是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：编译产物 .app 不存在，路径：${APP_PATH}\"\n    exit 1\nfi\n\n# 检查可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在，路径：${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# 检查 ldid 是否可用\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then\n    echo \"❌ 错误：未找到 ldid 工具，请检查路径是否正确\"\n    exit 1\nfi\n\n# 检查权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：RootSign.entitlements 不存在，路径：${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 使用 ldid 签名可执行文件\n# ==============================================\necho \"📝 开始使用 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\n# 检查签名是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ 签名失败！请检查 entitlements 文件格式或 ldid 权限\"\n    exit 1\nfi\necho \"✅ 签名成功！\"\n\n# ==============================================\n# 打包 IPA（IPA 要求应用必须放在 Payload 目录下）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的 .app 到 Payload 目录\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\n# 压缩为 IPA\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r \"${IPA_FULL_PATH}\" .\n\n# 检查打包是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ IPA 打包失败！\"\n    exit 1\nfi\n\n# 清理临时文件\nrm -rf \"${TMP_IPA_DIR}\"\n\necho \"✅ IPA 打包完成！路径：${IPA_FULL_PATH}\"\n";
+			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\n# 1. ldid 工具路径（如果已在环境变量中可省略，否则填绝对路径）\nLDID_PATH=\"ldid\"\n# 2. 权限文件 RootSign.entitlements 路径（相对于项目根目录或绝对路径）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/Root.entitlements\"\n# 3. IPA 输出目录（默认为桌面，可自定义）\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\n# 4. IPA 文件名（默认为项目名+时间戳）\nIPA_NAME=\"${PROJECT_NAME}.ipa\"\n\n# ==============================================\n# 自动获取 Xcode 编译产物路径（无需修改）\n# ==============================================\n# 编译后的 .app 路径\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\n# .app 内的可执行文件路径（与 PRODUCT_NAME 同名）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 检查必要文件是否存在\n# ==============================================\n# 检查 .app 是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：编译产物 .app 不存在，路径：${APP_PATH}\"\n    exit 1\nfi\n\n# 检查可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在，路径：${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# 检查 ldid 是否可用\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then\n    echo \"❌ 错误：未找到 ldid 工具，请检查路径是否正确\"\n    exit 1\nfi\n\n# 检查权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：RootSign.entitlements 不存在，路径：${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 使用 ldid 签名可执行文件\n# ==============================================\necho \"📝 开始使用 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\n# 检查签名是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ 签名失败！请检查 entitlements 文件格式或 ldid 权限\"\n    exit 1\nfi\necho \"✅ 签名成功！\"\n\n# ==============================================\n# 打包 IPA（IPA 要求应用必须放在 Payload 目录下）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的 .app 到 Payload 目录\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\n# 压缩为 IPA\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r \"${IPA_FULL_PATH}\" .\n\n# 检查打包是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ IPA 打包失败！\"\n    exit 1\nfi\n\n# 清理临时文件\nrm -rf \"${TMP_IPA_DIR}\"\n\necho \"✅ IPA 打包完成！路径：${IPA_FULL_PATH}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1517,6 +1518,7 @@
 				C2592F072EA6DBC30089E268 /* CustomMoodStatusNavView.m in Sources */,
 				C28721332E2A557A00ABC6AE /* DownloadManagerViewController.m in Sources */,
 				C28722A22E34B61C00ABC6AE /* QRCodeGeneratorViewController.m in Sources */,
+				C2BD04342ED098FD0008D28F /* FindFriendsViewController.m in Sources */,
 				C28721A22E30AE6F00ABC6AE /* ContactHelper.m in Sources */,
 				C28720632E2542C300ABC6AE /* TokenGenerator.m in Sources */,
 				C287228F2E33612700ABC6AE /* AppVersionHistoryModel.m in Sources */,

@@ -30,5 +30,6 @@ target 'TrollApps' do
   pod 'HXPhotoPickerObjC/SDWebImage'
   pod 'HXPhotoPickerObjC/SDWebImage_AF'
   pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
+  pod 'AliyunOSSiOS' # 阿里网盘
 
 end

@@ -20,7 +20,7 @@
     [super viewDidLoad];
     self.navigationBarHidden = YES;
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor redColor];
+
 }
 #pragma mark - overridden to update panModal
 

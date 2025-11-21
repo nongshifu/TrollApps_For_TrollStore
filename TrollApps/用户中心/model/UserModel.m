@@ -49,6 +49,8 @@
     if (self.gender != other.gender) return NO;
     if (self.isFollow != other.isFollow) return NO;
     if (self.isShowFollows != other.isShowFollows) return NO;
+    if (self.is_online != other.is_online) return NO;
+    
     
     if (self.vip_level != other.vip_level) return NO;
     if (self.downloads_number != other.downloads_number) return NO;

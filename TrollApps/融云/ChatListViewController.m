@@ -34,6 +34,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 @property (nonatomic, strong) MiniButtonView *miniButtonView;
 
 @property (nonatomic, strong) NSMutableArray *searchTitles;
+
+///导航的渐变视图
+@property (nonatomic, strong) UIView * gradientNavigationView;
 @end
 
 @implementation ChatListViewController
@@ -439,7 +442,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self.navigationController setNavigationBarHidden:NO];
    
     self.tabBarController.tabBar.hidden = NO;
-    //如果没登录 就清空数据源 刷新表格
     
     //链接超时 重连
     
@@ -487,6 +489,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }
         });
     }];
+    //如果没登录 就清空数据源 刷新表格
+    [self topBackageView];
     
 }
 
@@ -540,6 +544,30 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
 }
 
+
+- (void)topBackageView{
+    NSLog(@"11111111111111");
+    //先判断下系统
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
+        appearance.backgroundImage = [UIImage new];;
+        appearance.shadowImage = [UIImage new];
+        appearance.shadowColor = nil;
+        
+        self.navigationController.navigationBar.standardAppearance = appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
+        self.navigationController.navigationBar.compactAppearance = appearance;
+        
+    }else{
+        //顶部背景图
+        [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+        //清除分割线
+        [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    }
+
+
+}
+
 - (BOOL)isDarkMode {
     return self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
 }
@@ -547,7 +575,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
     
-    
+    [self topBackageView];
     [self setBackgroundUI];
 }
 

@@ -17,7 +17,8 @@
 #import "loadData.h"
 #import "ArrowheadMenu.h"
 #import "QRCodeScannerViewController.h"
-
+#import "FindFriendsViewController.h"
+#import "NewToolViewController.h"
 
 #define TITLES_SAVE_KEY @"TITLES_SAVE_KEY"
 
@@ -79,11 +80,11 @@
     //注册消息接收代理
     [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
     
-    self.edgesForExtendedLayout = UIRectEdgeBottom | UIRectEdgeLeft | UIRectEdgeRight | UIRectEdgeTop;
+//    self.edgesForExtendedLayout = UIRectEdgeBottom | UIRectEdgeLeft | UIRectEdgeRight ;
+    self.edgesForExtendedLayout = UIRectEdgeNone;
     
     self.view.backgroundColor = [UIColor clearColor];
     
-    [self.view addColorBallsWithCount:20 ballradius:200 minDuration:30 maxDuration:50 UIBlurEffectStyle:UIBlurEffectStyleRegular UIBlurEffectAlpha:1 ballalpha:0.5];
     self.conversationListTableView.backgroundColor =[UIColor clearColor];
     
     //导航搜索
@@ -179,12 +180,12 @@
     NSLog(@"statusBarHeight:%f  navBarHeight:%f",navBarHeight,topOffset);
     
     [self.conversationListTableView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.view).offset(topOffset); // 顶部偏移量
+        make.top.equalTo(self.view).offset(0); // 顶部偏移量
         make.left.right.equalTo(self.view);
         make.bottom.equalTo(self.view);
     }];
     [self.miniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.bottom.equalTo(self.conversationListTableView.mas_top).offset(5); // 顶部偏移量
+        make.bottom.equalTo(self.conversationListTableView.mas_top).offset(0); // 顶部偏移量
         make.width.mas_equalTo(kWidth - 80);
         make.height.mas_equalTo(40);
         make.centerX.equalTo(self.view).offset(-20);
@@ -196,6 +197,21 @@
 //更新约束
 -(void)updateViewConstraints{
     [super updateViewConstraints];
+    
+    
+    CGFloat newtopOffset = self.miniButtonView.hidden ? 0 : 40;
+    
+    [self.conversationListTableView mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.view).offset(newtopOffset); // 顶部偏移量
+        make.left.right.equalTo(self.view);
+        make.bottom.equalTo(self.view);
+    }];
+    [self.miniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.conversationListTableView.mas_top).offset(0); // 顶部偏移量
+        make.width.mas_equalTo(kWidth - 80);
+        make.height.mas_equalTo(30);
+        make.centerX.equalTo(self.view).offset(-20);
+    }];
     
 }
 
@@ -242,8 +258,8 @@
 - (void)camera:(UIBarButtonItem *)item {
     
     
-    NSArray *title = @[@"我的名片", @"扫一扫"];
-    NSArray *icon = @[@"person.crop.square", @"qrcode", @"qrcode.viewfinder"];
+    NSArray *title = @[@"我的名片", @"扫一扫", @"发现好友"];
+    NSArray *icon = @[@"person.crop.square", @"qrcode", @"magnifyingglass"];
     CGSize menuUnitSize = CGSizeMake(130, 50);
     CGFloat distanceFromTriggerSwitch = 10;
     UIFont * font = [UIFont boldSystemFontOfSize:15];
@@ -283,8 +299,12 @@
         // 初始化扫码器
         QRCodeScannerViewController *scannerVC = [[QRCodeScannerViewController alloc] init];
         [self.navigationController pushViewController:scannerVC animated:YES];
+    }else if(tag == 2){
+        FindFriendsViewController *vc = [FindFriendsViewController new];
+        [self.navigationController pushViewController:vc animated:YES];
     }
 }
+
 #pragma mark - UISearchBarDelegate（补充状态监听）
 // 1. 搜索框开始编辑（用户点击搜索框，进入编辑状态）→ 显示历史搜索视图
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
@@ -292,12 +312,13 @@
     self.miniButtonView.hidden = NO;
     [self.miniButtonView updateButtonsWithStrings:self.searchTitles icons:nil];
     // 刷新约束（确保视图位置正确）
-    [self.view layoutIfNeeded];
+    [self updateViewConstraints];
 }
 
 // 2. 搜索框结束编辑（用户收起键盘、点击页面其他区域）→ 隐藏历史搜索视图
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
     self.miniButtonView.hidden = NO;
+    [self updateViewConstraints];
 }
 
 // 3. 点击搜索框“取消”按钮 → 隐藏历史搜索视图（原有逻辑基础上补充）
@@ -314,12 +335,14 @@
         self.conversationListDataSource = [NSMutableArray arrayWithArray:self.backupsArray];
         [self refreshConversationTableViewIfNeeded];
     }
+    [self updateViewConstraints];
 }
 
 // 4. 点击搜索按钮（键盘Done键），执行搜索
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     [searchBar resignFirstResponder];
     [self performSearchWithText:searchBar.text]; // 调用完善后的搜索方法
+    
 }
 
 #pragma mark - UISearchResultsUpdating 代理（搜索防抖）
@@ -348,6 +371,7 @@
 
 - (void)performSearchWithText:(NSString *)text {
     self.keyword = text;
+    [self updateViewConstraints];
     [SVProgressHUD showWithStatus:@"搜索中"];
     // 2. 备份原始数据（避免多次搜索篡改原始数据）
     if (self.backupsArray.count == 0) {
@@ -378,6 +402,8 @@
         
         [self updateViewConstraints];
     }
+    
+    
     
     
     // 3. 清空上次搜索结果
@@ -428,6 +454,7 @@
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
     self.tabBarController.tabBar.hidden = NO;
     self.miniButtonView.hidden = YES;
+    [self setTopView];
     [self setBackgroundUI];
     [self setupNavigationBarWithSearch];
     
@@ -444,6 +471,10 @@
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
     self.searchController.searchResultsUpdater = self;
     self.searchController.searchBar.delegate = self;
+    // 1. 获取AppDelegate实例
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    // 2. 读取未读消息
+    [appDelegate getTotalUnreadCount];
     
     
 }
@@ -466,12 +497,62 @@
    
 }
 
+- (void)setTopView{
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [[UINavigationBarAppearance alloc] init];
+        
+        // 1. 设置背景色为透明
+        appearance.backgroundColor = [UIColor clearColor];
+        
+        // 2. 确保背景图片为空
+        appearance.backgroundImage = [UIImage new];
+        
+        // 3. 移除阴影
+        appearance.shadowImage = [UIImage new];
+        // 或者通过 shadowColor 设置为 clearColor
+        appearance.shadowColor = [UIColor clearColor];
+        
+        // 4. 确保导航栏不使用毛玻璃效果
+        appearance.backgroundEffect = nil;
+        
+        // （可选）配置标题和按钮颜色
+        appearance.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor labelColor]};
+        appearance.buttonAppearance.normal.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor labelColor]};
+        
+        // 应用 appearance
+        UINavigationBar *navBar = self.navigationController.navigationBar;
+        navBar.standardAppearance = appearance;
+        navBar.scrollEdgeAppearance = appearance; // 滚动时也应用同样的外观
+        navBar.shadowImage = [UIImage new];
+        
+    } else {
+        
+        // 1. 获取当前导航栏
+        UINavigationBar *navBar = self.navigationController.navigationBar;
+        
+        // 2. 设置背景色为透明
+        navBar.barTintColor = [UIColor clearColor];
+        
+        // 3. 设置背景图片为空图片
+        [navBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+        
+        // 4. 设置阴影图片为空图片（移除底部的灰线）
+        navBar.shadowImage = [UIImage new];
+        
+    }
+    
+    // 4. 强制刷新导航栏布局（解决高度计算异常）
+    [self.navigationController.navigationBar layoutIfNeeded];
+    
+   
+}
+
 - (void)setBackgroundUI {
     
     // 在其他类中
     AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
     UIWindow *rootWindow = appDelegate.window;
-    
+    self.view.backgroundColor = [UIColor clearColor];
 
     // 设置背景颜色和透明度
     
@@ -480,16 +561,16 @@
     // 添加浮动小球
     if (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
         NSLog(@"切换到暗色模式");
-        self.view.backgroundColor = [UIColor systemBackgroundColor];
-        [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
-        [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.99 ballalpha:0.5];
+       
+        [rootWindow setRandomGradientBackgroundWithColorCount:3 alpha:0.05];
+        [rootWindow addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleDark UIBlurEffectAlpha:0.90 ballalpha:0.5];
     
         
     } else {
         NSLog(@"切换到亮色模式");
-        self.view.backgroundColor = [UIColor systemBackgroundColor];
-        [self.view setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
-        [self.view addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.99 ballalpha:0.3];
+       
+        [rootWindow setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+        [rootWindow addColorBallsWithCount:15 ballradius:200 minDuration:50 maxDuration:150 UIBlurEffectStyle:UIBlurEffectStyleLight UIBlurEffectAlpha:0.90 ballalpha:0.3];
     
     }
     
@@ -504,7 +585,7 @@
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
    
-    
+    [self setTopView];
     [self setBackgroundUI];
 }
 
@@ -892,6 +973,7 @@
     
     
 }
+
 - (void)openChat:(RCConversationModel *)model{
     // 1. 初始化聊天页，保留原有参数配置
     TTCHATViewController *conversationVC = [[TTCHATViewController alloc] initWithConversationType:model.conversationType
@@ -906,6 +988,7 @@
    
     [self.navigationController pushViewController:conversationVC animated:YES];
 }
+
 //点击头像
 - (void)didTapCellPortrait:(RCConversationModel *)model{
     // 1. 互动消息会话
@@ -944,4 +1027,5 @@
         
     }];
 }
+
 @end

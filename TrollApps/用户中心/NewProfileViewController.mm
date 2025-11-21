@@ -584,7 +584,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 2. 更新头像
     if (userModel.avatar.length > 0) {
-        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+        NSString *avaStr = [NSString stringWithFormat:@"%@",userModel.avatar];
+        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@?time=%ld",userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+        if (![avaStr containsString:@"http"]) {
+            avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+            
+        }
+        
         NSLog(@"avatarURL:%@",avatarURL);
         // 加载图片，使用刷新缓存选项
         [self.avatarImageView sd_setImageWithURL:avatarURL

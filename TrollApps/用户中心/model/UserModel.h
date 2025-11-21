@@ -40,17 +40,18 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 @property (nonatomic, strong) NSDate *login_time;
 @property (nonatomic, strong) NSDate *register_time;
 @property (nonatomic, strong) NSDate *last_purchase_time;
-@property (nonatomic, assign) NSInteger vip_level;
-@property (nonatomic, assign) NSInteger downloads_number;
-@property (nonatomic, assign) NSInteger like_count;
-@property (nonatomic, assign) NSInteger reply_count;
-@property (nonatomic, assign) NSInteger app_count;
+@property (nonatomic, assign) NSInteger vip_level;//vip等级
+@property (nonatomic, assign) NSInteger downloads_number;//下载次数
+@property (nonatomic, assign) NSInteger like_count;//点赞数量
+@property (nonatomic, assign) NSInteger reply_count;//评论数量
+@property (nonatomic, assign) NSInteger app_count;//APP数量
 @property (nonatomic, assign) NSInteger role;
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
 @property (nonatomic, assign) NSInteger follower_count;//粉丝量
 @property (nonatomic, assign) NSInteger following_count;//关注量
 @property (nonatomic, assign) BOOL isFollow;//是否已经关注
 @property (nonatomic, assign) BOOL isShowFollows;//是否显示收藏列表 关注列表等隐私内容
+@property (nonatomic, assign) BOOL is_online;//是否在线
 /**
  判断VIP是否到期
  @param vipDateString VIP到期日期字符串（格式：yyyy-MM-dd HH:mm:ss）

@@ -53,6 +53,7 @@
 #import <SDWebImage/SDWebImageManager.h>
 #import "JXCategoryView.h"
 #import <RongIMKit/RongIMKit.h>
+#import <AliyunOSSiOS/OSSService.h>//阿里网盘
 //IM组件
 #import <RongIMKit/RongIMKit.h>
 #import <RongIMLib/RongIMLib.h>

@@ -33,6 +33,7 @@
  */
 @property (nonatomic, strong) EmptyView *emptyView;
 @property (nonatomic, strong) UIDocumentInteractionController *documentController; // 文件分享控制器
+
 @end
 
 
@@ -1006,48 +1007,122 @@
     });
 }
 
+// 修改 openFileInAppAtPath: 方法，添加额外持有逻辑
 - (void)openFileInAppAtPath:(NSString *)filePath {
-    NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-    
-    // 检查文件是否存在
-    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        [self showAlertWithTitle:@"文件不存在" message:@"该文件可能已被删除"];
+    // 1. 校验文件路径并编码特殊字符
+    NSString *encodedPath = [filePath stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLPathAllowedCharacterSet]];
+    if (!encodedPath) {
+        [self showAlertWithTitle:@"路径无效" message:@"文件路径包含无法解析的字符"];
         return;
     }
-    
-    // 创建文件交互控制器
-    self.documentController = [UIDocumentInteractionController interactionControllerWithURL:fileURL];
-    self.documentController.delegate = self;
-    
-    // 尝试在其他应用中打开
-    BOOL canOpen = [self.documentController presentOpenInMenuFromRect:CGRectZero inView:self.view animated:YES];
-    if (!canOpen) {
-        [self showAlertWithTitle:@"无法打开" message:@"没有找到支持打开此文件的应用"];
+    NSURL *fileURL = [NSURL fileURLWithPath:encodedPath];
+    if (!fileURL) {
+        [self showAlertWithTitle:@"URL无效" message:@"无法创建文件URL"];
+        return;
     }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // 2. 再次检查文件存在性（巨魔环境下可能存在缓存不一致）
+        if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+            [self showAlertWithTitle:@"文件不存在" message:@"该文件可能已被删除"];
+            return;
+        }
+
+        // 3. 强制释放旧控制器，避免多实例冲突
+        if (self.documentController) {
+            self.documentController = nil;
+        }
+
+        // 4. 创建控制器并强引用
+        self.documentController = [UIDocumentInteractionController interactionControllerWithURL:fileURL];
+        self.documentController.delegate = self;
+
+        // 5. 关键：使用明确的弹出位置（避免 CGRectZero 在巨魔环境下失效）
+        CGRect presentRect = CGRectMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2, 100, 100); // 视图中心的小矩形
+        BOOL canOpen = [self.documentController presentOpenInMenuFromRect:presentRect
+                                                                  inView:self.view
+                                                                animated:YES];
+
+        if (!canOpen) {
+            [self showAlertWithTitle:@"无法打开" message:@"没有找到支持打开此文件的应用"];
+            // 释放控制器（未弹出成功时）
+            self.documentController = nil;
+        } else {
+            // 弹出成功后，延迟释放（确保交互完成）
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                if (self.documentController) {
+                    self.documentController = nil;
+                }
+            });
+        }
+    });
 }
 
 - (void)shareFileAtPath:(NSString *)filePath {
-    NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-    
-    // 检查文件是否存在
-    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        [self showAlertWithTitle:@"文件不存在" message:@"该文件可能已被删除"];
-        return;
-    }
-    
-    // 创建分享活动控制器
-    UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[fileURL] applicationActivities:nil];
-    
-    // 排除不想要的活动类型
-    activityVC.excludedActivityTypes = @[UIActivityTypePrint, UIActivityTypeAssignToContact];
-    
-    // 显示分享菜单
-    [self presentViewController:activityVC animated:YES completion:nil];
+    NSLog(@"打印文件URL:%@",filePath);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // 1. 检查文件是否存在且可访问
+        NSFileManager *fm = [NSFileManager defaultManager];
+        if (![fm fileExistsAtPath:filePath]) {
+            [self showAlertWithTitle:@"分享失败" message:@"文件不存在"];
+            return;
+        }
+        if (![fm isReadableFileAtPath:filePath]) {
+            [self showAlertWithTitle:@"分享失败" message:@"没有文件读取权限"];
+            return;
+        }
+        
+        // 2. 检查路径是否在应用沙盒内（关键！）
+        NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+        if (![filePath hasPrefix:documentsPath]) {
+            [self showAlertWithTitle:@"分享失败" message:@"只能分享应用沙盒内的文件"];
+            return;
+        }
+        
+        // 3. 创建文件URL（确保是fileURL）
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        if (!fileURL) {
+            [self showAlertWithTitle:@"分享失败" message:@"文件路径无效"];
+            return;
+        }
+        
+        // 4. 初始化分享控制器
+        UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[fileURL] applicationActivities:nil];
+        activityVC.excludedActivityTypes = @[UIActivityTypePrint, UIActivityTypeAssignToContact];
+        
+        // 5. iPad适配（确保弹窗源头有效）
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+            // 优先使用触发分享的单元格/按钮作为源头（更精准）
+            // 若无法获取，用当前视图中心作为源头
+            activityVC.popoverPresentationController.sourceView = self.view;
+            activityVC.popoverPresentationController.sourceRect = CGRectMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2, 1, 1);
+            activityVC.popoverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionDown; // 无箭头更安全
+        }
+        
+        // 6. 尝试显示分享菜单（捕获可能的异常）
+        @try {
+            [self presentViewController:activityVC animated:YES completion:nil];
+        } @catch (NSException *exception) {
+            NSLog(@"分享弹窗显示失败：%@", exception.reason);
+            [self showAlertWithTitle:@"分享失败" message:@"无法打开分享菜单，请重试"];
+        }
+    });
 }
 
-#pragma mark - UIDocumentInteractionControllerDelegate（不变）
+
+#pragma mark - UIDocumentInteractionControllerDelegate
+// 必须实现：指定预览控制器的父视图控制器
 - (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller {
-    return self;
+    return self; // 明确返回当前控制器
+}
+
+// 可选：指定弹出菜单的源视图（增强兼容性）
+- (UIView *)documentInteractionControllerViewForPreview:(UIDocumentInteractionController *)controller {
+    return self.view;
+}
+
+- (CGRect)documentInteractionControllerRectForPreview:(UIDocumentInteractionController *)controller {
+    return CGRectMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2, 100, 100); // 与弹出位置一致
 }
 
 #pragma mark - UITableViewDelegate（不变）
