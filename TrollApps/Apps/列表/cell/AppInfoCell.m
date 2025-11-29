@@ -78,6 +78,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.contentView.layer.cornerRadius = 15;
     
     
+    
     // 应用图标
     self.appIconImageView = [[UIImageView alloc] init];
     self.appIconImageView.layer.cornerRadius = 15.0;
@@ -113,6 +114,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appTypeButton.contentEdgeInsets = edge;
     self.appTypeButton.backgroundColor = [[UIColor systemGreenColor] colorWithAlphaComponent:0.6];
     self.appTypeButton.layer.cornerRadius = 3;
+    self.appTypeButton.tag = 100;
+    [self.appTypeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+            
     
     //版本
     self.appVersionButton = [[UIButton alloc] init];
@@ -121,6 +125,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appVersionButton.contentEdgeInsets = edge;
     self.appVersionButton.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.6];
     self.appVersionButton.layer.cornerRadius = 3;
+    self.appVersionButton.tag = 101;
+    [self.appVersionButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     //版本更新时间
     self.appUpdateTimeButton = [[UIButton alloc] init];
@@ -129,6 +135,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.appUpdateTimeButton.contentEdgeInsets = edge;
     self.appUpdateTimeButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.6];
     self.appUpdateTimeButton.layer.cornerRadius = 3;
+    self.appUpdateTimeButton.tag = 102;
+    [self.appUpdateTimeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     // 标签堆栈视图
     self.tagMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 130, 20)];
@@ -1024,6 +1032,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         vc.messageForType = MessageForTypeApp;
         // 1. 创建导航控制器，将vc作为根控制器（核心：让vc拥有导航栏）
         UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        navVC.view.backgroundColor = [UIColor systemBackgroundColor];
+        [navVC.view addColorBallsWithCount:10 ballradius:150 minDuration:30 maxDuration:50 UIBlurEffectStyle:UIBlurEffectStyleProminent UIBlurEffectAlpha:0.9 ballalpha:0.7];
         // 2. 设置底部模态弹出样式（iOS 13+ 推荐，底部滑入）
         navVC.modalPresentationStyle = UIModalPresentationFullScreen; // 或 UIModalPresentationPageSheet
         // 3. 弹出导航控制器（而非直接弹出vc）
@@ -1032,6 +1042,16 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [alert addAction:confirmAction4];
     
     [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)buttonClicked:(UIButton*)button{
+    NSLog(@"点击了按钮tag:%ld",button.tag);
+
+    ShowOneAppViewController *vc = [ShowOneAppViewController new];
+    vc.app_id = self.appInfoModel.app_id;
+    UIViewController *topVc = [self getTopViewController];
+    if([topVc isKindOfClass:[ShowOneAppViewController class]])return;
+    [topVc presentPanModal:vc];
 }
 
 - (void)presentShareControllerWithItems:(NSMutableArray *)shareItems appIcon:(UIImage *)appIcon {

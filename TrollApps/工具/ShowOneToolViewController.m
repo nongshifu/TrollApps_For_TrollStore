@@ -395,7 +395,7 @@
                             [self.dataSource  addObject:comment];
                         }
                     }
-                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"message" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
+                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
                     
                     if(self.dataSource.count > 2){
                         id model = [self.dataSource objectAtIndex:1];
@@ -577,6 +577,13 @@
                 self.commentInputView.textPromptLabel.alpha = 1;
                 // 刷新评论列表（重新加载第一页）
                 [self loadDataWithPage:1];
+                NSString *messageText = [NSString stringWithFormat:@"我评论了你的工具：\n%@",commentContent];
+                [SendMessage sendRCIMTextMessageToUDID:self.webToolModel.udid messageText:messageText success:^{
+                    
+                } error:^(NSString * _Nonnull errorMsg) {
+                    
+                }];
+
             } else {
                 [SVProgressHUD showErrorWithStatus:msg];
             }
@@ -652,7 +659,7 @@
                 [BubbleTipManager showBubbleTipWithText:@"点击联系作者"
                                              targetView:tipBarCell.iconImageView
                                                 superVC:self
-                                           dismissDelay:3.0
+                                           dismissDelay:1.5
                                          arrowDirection:UIPopoverArrowDirectionDown];
                 
                 // 5. 标记为已显示，避免重复弹出

@@ -196,13 +196,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.nicknameLabel.text = userInfo.nickname ?: @"匿名用户"; // 默认显示匿名
         
         // 加载头像（这里用占位图示例，实际项目中可使用SDWebImage加载网络图片）
-        if (userInfo.avatar.length > 0) {
-            NSString *url = [NSString stringWithFormat:@"%@/%@",localURL,userInfo.avatar];
-            NSLog(@"评论用户数据url:%@",url);
-             [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
-        } else {
-            self.avatarImageView.image = [UIImage systemImageNamed:@"person.circle.fill"]; // 系统默认头像
-        }
+        [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:userInfo.avatar] placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
+        
         if(userInfo.user_id == [NewProfileViewController sharedInstance].userInfo.user_id){
             self.nicknameLabel.text = @"(我)";
         }

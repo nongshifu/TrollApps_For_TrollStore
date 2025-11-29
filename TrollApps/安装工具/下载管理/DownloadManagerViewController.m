@@ -6,6 +6,8 @@
 #import "EmptyView.h"
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"
+#import "SandboxFileBrowserVC.h"
+
 #import <SVProgressHUD/SVProgressHUD.h>
 
 @interface DownloadManagerViewController ()<UITableViewDataSource, UITableViewDelegate, UIDocumentInteractionControllerDelegate>
@@ -24,7 +26,7 @@
 @property (nonatomic, strong) UIButton *deselectAllBtn;        // 全取消按钮
 @property (nonatomic, strong) UIButton *deleteBtn;             // 删除按钮
 @property (nonatomic, strong) UIButton *cancelBtn;             // 取消按钮
-@property (nonatomic, strong) UIButton *directoryBtn;          // 目录选择按钮（替换原clearButton）
+@property (nonatomic, strong) UIButton *directoryBtn;          // 目录选择按钮
 
 
 
@@ -114,14 +116,13 @@
     // 目录选择按钮（替换原删除按钮）
     self.directoryBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.directoryBtn setImage:[UIImage systemImageNamed:@"folder"] forState:UIControlStateNormal];
-//    [self.directoryBtn setTitle:@"切换目录" forState:UIControlStateNormal];
     self.directoryBtn.titleLabel.font = [UIFont systemFontOfSize:12];
     // 调整图标和文字间距
     self.directoryBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 4);
     self.directoryBtn.titleEdgeInsets = UIEdgeInsetsMake(0, 4, 0, 0);
     [self.directoryBtn addTarget:self action:@selector(showDirectoryPicker:) forControlEvents:UIControlEventTouchUpInside];
     [self.headerView addSubview:self.directoryBtn];
-    
+   
     // 初始化筛选按钮数组
     self.filterButtons = [NSMutableArray array];
     
@@ -335,6 +336,7 @@
     [self.filterScrollView scrollRectToVisible:self.filterButtons[index].frame animated:YES];
 }
 
+
 #pragma mark - 外部调用：手动切换目录
 - (void)switchToDirectory:(NSString *)directoryPath {
     // 1. 空值校验
@@ -515,6 +517,7 @@
         make.width.greaterThanOrEqualTo(@30); // 最小宽度：容纳"切换目录"文字+图标
         make.height.equalTo(@30); // 固定高度，美观
     }];
+   
     
     // 设置筛选滚动视图约束
     [self.filterScrollView mas_makeConstraints:^(MASConstraintMaker *make) {

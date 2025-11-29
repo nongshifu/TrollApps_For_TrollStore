@@ -380,12 +380,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)scrollToTop:(UITapGestureRecognizer *)gesture {
+    [TemplateListController triggerVibration];
     [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0]
                                atScrollPosition:UICollectionViewScrollPositionTop
                                        animated:YES];
 }
 
 - (void)meessageButtonTap:(UITapGestureRecognizer *)gesture {
+    
     UIImageView * view = (UIImageView *)gesture.view;
     //点击了消息按钮
     if ([self.templateListDelegate respondsToSelector:@selector(messageButtonDidTap:)]) {
@@ -400,4 +402,5 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self.templateListDelegate leftButtonDidTap:view];
     }
 }
+
 @end

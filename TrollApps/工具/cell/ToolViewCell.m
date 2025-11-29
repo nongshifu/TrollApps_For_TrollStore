@@ -18,6 +18,7 @@
 #import "QRCodeGeneratorViewController.h"
 #import "CommunityViewController.h"
 #import "ToolMessage.h"
+#import "ShowOneToolViewController.h"
 @interface ToolViewCell ()<MiniButtonViewDelegate>
 
 // 左侧头像

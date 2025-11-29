@@ -12,7 +12,8 @@
 #import "ToolMessageCell.h"
 #import "DownloadManagerViewController.h"
 #import "NewProfileViewController.h"
-
+#import "ShowOneAppViewController.h"
+#import "UserProfileViewController.h"
 
 @interface AppDelegate ()
 
@@ -238,13 +239,13 @@
 
 }
 
-// 1. 处理通过URL唤醒应用（文件导入常用回调）
+
 // 1. 处理通过URL唤醒应用（文件导入+URL参数传递回调）
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     NSLog(@"openURL 被调用:%@", url.absoluteString);
     
     // 分支1：处理 URL 参数传递（如 udid、user_id 等，格式：TrollApps://?udid=xxx&user_id=xxx）
-    if ([url.query containsString:@"getUdid"] && url.query) {
+    if ([url.absoluteString containsString:@"getUdid"] && url.query) {
         // 解析 URL 查询参数（udid、user_id、token、status）
         NSDictionary *queryParams = [self parseURLQueryString:url.query];
         NSString *udid = queryParams[@"udid"];
@@ -275,6 +276,39 @@
         });
     }
     // 分支3：其他 URL 类型（忽略或提示）
+    else if ([url.absoluteString containsString:@"openOneApp"] && url.query) {
+        // 解析 URL 查询参数（udid、user_id、token、status）
+        NSDictionary *queryParams = [self parseURLQueryString:url.query];
+        NSString *appId = queryParams[@"appId"];
+        NSLog(@"解析到 appId：%@", appId);
+        // 判断 udid 是否存在且有效
+        if (appId && [appId integerValue] > 0) {
+            NSInteger app_id = [appId integerValue];
+            NSLog(@"解析到有效 appId：%ld", app_id);
+            ShowOneAppViewController *vc = [ShowOneAppViewController new];
+            vc.app_id = app_id;
+            [[vc.view getTopViewController] presentPanModal:vc];
+        } else {
+            NSLog(@"URL 中未包含有效 appId");
+        }
+    }
+    // 分支4：其他 URL 类型（忽略或提示）
+    else if ([url.absoluteString containsString:@"openOneUser"] && url.query) {
+        // 解析 URL 查询参数（udid、user_id、token、status）
+        NSDictionary *queryParams = [self parseURLQueryString:url.query];
+        NSString *user_udid = queryParams[@"user_udid"];
+        
+        // 判断 udid 是否存在且有效
+        if (user_udid && user_udid.length > 0) {
+            
+            NSLog(@"解析到有效 user_udid：%@", user_udid);
+            UserProfileViewController *vc = [UserProfileViewController new];
+            vc.user_udid = user_udid;
+            [[vc.view getTopViewController] presentPanModal:vc];
+        } else {
+            NSLog(@"URL 中未包含有效 appId");
+        }
+    }
     else {
         NSLog(@"未识别的 URL 类型：%@", url.absoluteString);
     }

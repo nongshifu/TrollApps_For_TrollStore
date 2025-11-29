@@ -29,6 +29,7 @@
 
 /// 显示联系作者的操作菜单
 - (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo baseViewController:(nullable UIViewController *)baseVC title:(NSString*)title{
+    [DemoBaseViewController triggerVibration];
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];

@@ -121,7 +121,7 @@
     UIPopoverPresentationController *popoverVC = contentVC.popoverPresentationController;
     popoverVC.sourceView = targetView; // 气泡箭头指向的目标视图
     // 优化：箭头精准指向目标视图中心（而非整个bounds）
-    popoverVC.sourceRect = CGRectMake(targetView.bounds.size.width/2, targetView.bounds.size.height/2, 1, 1);
+    popoverVC.sourceRect = CGRectMake(targetView.bounds.size.width/2, 0, 1, 1);
     popoverVC.permittedArrowDirections = arrowDirection; // 自定义箭头方向
     popoverVC.backgroundColor = [UIColor systemBackgroundColor]; // 气泡背景色（与内容视图一致）
     popoverVC.delegate = (id<UIPopoverPresentationControllerDelegate>)superVC;

@@ -117,7 +117,6 @@
 		C2E44CB52EDAD35E00110348 /* UploadFileItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BF52EDAD35D00110348 /* UploadFileItem.m */; };
 		C2E44CB62EDAD35E00110348 /* UploadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BF62EDAD35D00110348 /* UploadManager.m */; };
 		C2E44CB72EDAD35E00110348 /* AppListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BF82EDAD35D00110348 /* AppListViewController.m */; };
-		C2E44CB82EDAD35E00110348 /* AppFileCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BFB2EDAD35D00110348 /* AppFileCell.m */; };
 		C2E44CB92EDAD35E00110348 /* TipBarCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BFC2EDAD35D00110348 /* TipBarCell.m */; };
 		C2E44CBA2EDAD35E00110348 /* AppInfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C002EDAD35D00110348 /* AppInfoCell.m */; };
 		C2E44CBB2EDAD35E00110348 /* ShowOneAppViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C022EDAD35D00110348 /* ShowOneAppViewController.m */; };
@@ -152,6 +151,9 @@
 		C2E44CD82EDAD35F00110348 /* AppVersionHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */; };
 		C2E44CD92EDAD35F00110348 /* AppVersionHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */; };
 		C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CDF2EDAE3F200110348 /* SendMessage.m */; };
+		C2E44CEA2EDAFB8C00110348 /* FileModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CE92EDAFB8C00110348 /* FileModel.m */; };
+		C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEC2EDAFCA200110348 /* FileUtils.m */; };
+		C2E44CF02EDAFCCD00110348 /* SandboxFileBrowserVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -371,11 +373,9 @@
 		C2E44BF62EDAD35D00110348 /* UploadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UploadManager.m; sourceTree = "<group>"; };
 		C2E44BF82EDAD35D00110348 /* AppListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppListViewController.m; sourceTree = "<group>"; };
 		C2E44BF92EDAD35D00110348 /* ShowOneAppViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShowOneAppViewController.h; sourceTree = "<group>"; };
-		C2E44BFB2EDAD35D00110348 /* AppFileCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppFileCell.m; sourceTree = "<group>"; };
 		C2E44BFC2EDAD35D00110348 /* TipBarCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TipBarCell.m; sourceTree = "<group>"; };
 		C2E44BFD2EDAD35D00110348 /* AppInfoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppInfoCell.h; sourceTree = "<group>"; };
 		C2E44BFE2EDAD35D00110348 /* TipBarCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TipBarCell.h; sourceTree = "<group>"; };
-		C2E44BFF2EDAD35D00110348 /* AppFileCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppFileCell.h; sourceTree = "<group>"; };
 		C2E44C002EDAD35D00110348 /* AppInfoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppInfoCell.m; sourceTree = "<group>"; };
 		C2E44C012EDAD35D00110348 /* AppListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppListViewController.h; sourceTree = "<group>"; };
 		C2E44C022EDAD35D00110348 /* ShowOneAppViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShowOneAppViewController.m; sourceTree = "<group>"; };
@@ -441,6 +441,12 @@
 		C2E44CDA2EDAD3E100110348 /* Root.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Root.entitlements; sourceTree = "<group>"; };
 		C2E44CDE2EDAE3F200110348 /* SendMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SendMessage.h; sourceTree = "<group>"; };
 		C2E44CDF2EDAE3F200110348 /* SendMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SendMessage.m; sourceTree = "<group>"; };
+		C2E44CE82EDAFB8C00110348 /* FileModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileModel.h; sourceTree = "<group>"; };
+		C2E44CE92EDAFB8C00110348 /* FileModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileModel.m; sourceTree = "<group>"; };
+		C2E44CEB2EDAFCA200110348 /* FileUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileUtils.h; sourceTree = "<group>"; };
+		C2E44CEC2EDAFCA200110348 /* FileUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileUtils.m; sourceTree = "<group>"; };
+		C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFileBrowserVC.h; sourceTree = "<group>"; };
+		C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SandboxFileBrowserVC.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -539,18 +545,18 @@
 		C2E44B012EDAD35C00110348 /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B022EDAD35C00110348 /* vip */,
-				C2E44B0F2EDAD35C00110348 /* NewProfileViewController.h */,
-				C2E44B102EDAD35C00110348 /* 右侧菜单 */,
-				C2E44B132EDAD35C00110348 /* NewProfileViewController.mm */,
-				C2E44B142EDAD35C00110348 /* 我的收藏 */,
-				C2E44B192EDAD35C00110348 /* cell */,
-				C2E44B1C2EDAD35C00110348 /* 列表 */,
-				C2E44B212EDAD35C00110348 /* 状态说说 */,
-				C2E44B2C2EDAD35C00110348 /* 名片二维码 */,
-				C2E44B312EDAD35C00110348 /* model */,
 				C2E44B342EDAD35C00110348 /* 编辑资料 */,
+				C2E44B1C2EDAD35C00110348 /* 列表 */,
+				C2E44B2C2EDAD35C00110348 /* 名片二维码 */,
+				C2E44B142EDAD35C00110348 /* 我的收藏 */,
 				C2E44B372EDAD35C00110348 /* 隐私政策 */,
+				C2E44B102EDAD35C00110348 /* 右侧菜单 */,
+				C2E44B212EDAD35C00110348 /* 状态说说 */,
+				C2E44B192EDAD35C00110348 /* cell */,
+				C2E44B312EDAD35C00110348 /* model */,
+				C2E44B0F2EDAD35C00110348 /* NewProfileViewController.h */,
+				C2E44B132EDAD35C00110348 /* NewProfileViewController.mm */,
+				C2E44B022EDAD35C00110348 /* vip */,
 			);
 			path = "用户中心";
 			sourceTree = "<group>";
@@ -705,20 +711,20 @@
 		C2E44B412EDAD35C00110348 /* 工具 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B422EDAD35C00110348 /* NewToolViewController.m */,
+				C2E44B542EDAD35C00110348 /* 网页管理器 */,
+				C2E44B502EDAD35C00110348 /* 左右页面 */,
+				C2E44B492EDAD35C00110348 /* cell */,
 				C2E44B432EDAD35C00110348 /* HTMLCodeEditorView.h */,
+				C2E44B472EDAD35C00110348 /* HTMLCodeEditorView.m */,
+				C2E44B4C2EDAD35C00110348 /* model */,
+				C2E44B482EDAD35C00110348 /* NewToolViewController.h */,
+				C2E44B422EDAD35C00110348 /* NewToolViewController.m */,
+				C2E44B4F2EDAD35C00110348 /* ShowOneToolViewController.h */,
 				C2E44B442EDAD35C00110348 /* ShowOneToolViewController.m */,
 				C2E44B452EDAD35C00110348 /* ToolStoreListViewController.h */,
-				C2E44B462EDAD35C00110348 /* ToolTagsView.m */,
-				C2E44B472EDAD35C00110348 /* HTMLCodeEditorView.m */,
-				C2E44B482EDAD35C00110348 /* NewToolViewController.h */,
-				C2E44B492EDAD35C00110348 /* cell */,
-				C2E44B4C2EDAD35C00110348 /* model */,
-				C2E44B4F2EDAD35C00110348 /* ShowOneToolViewController.h */,
-				C2E44B502EDAD35C00110348 /* 左右页面 */,
-				C2E44B532EDAD35C00110348 /* ToolTagsView.h */,
-				C2E44B542EDAD35C00110348 /* 网页管理器 */,
 				C2E44B5B2EDAD35C00110348 /* ToolStoreListViewController.m */,
+				C2E44B532EDAD35C00110348 /* ToolTagsView.h */,
+				C2E44B462EDAD35C00110348 /* ToolTagsView.m */,
 			);
 			path = "工具";
 			sourceTree = "<group>";
@@ -784,10 +790,10 @@
 		C2E44B622EDAD35C00110348 /* 评论 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B632EDAD35C00110348 /* CommentModel.h */,
 				C2E44B642EDAD35C00110348 /* AppCommentCell.h */,
-				C2E44B652EDAD35C00110348 /* CommentModel.m */,
 				C2E44B662EDAD35C00110348 /* AppCommentCell.m */,
+				C2E44B632EDAD35C00110348 /* CommentModel.h */,
+				C2E44B652EDAD35C00110348 /* CommentModel.m */,
 			);
 			path = "评论";
 			sourceTree = "<group>";
@@ -852,16 +858,16 @@
 		C2E44B802EDAD35D00110348 /* 视图控制器模版ViewController */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B812EDAD35D00110348 /* BaseBottomSheetVC.m */,
-				C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */,
-				C2E44B832EDAD35D00110348 /* BottomSheetPresentationController.h */,
-				C2E44B842EDAD35D00110348 /* BottomSheetTransition.h */,
-				C2E44B852EDAD35D00110348 /* DemoBaseNavigationController.h */,
 				C2E44B862EDAD35D00110348 /* BaseBottomSheetVC.h */,
-				C2E44B872EDAD35D00110348 /* BottomSheetTransition.m */,
+				C2E44B812EDAD35D00110348 /* BaseBottomSheetVC.m */,
+				C2E44B832EDAD35D00110348 /* BottomSheetPresentationController.h */,
 				C2E44B882EDAD35D00110348 /* BottomSheetPresentationController.m */,
-				C2E44B892EDAD35D00110348 /* DemoBaseViewController.h */,
+				C2E44B842EDAD35D00110348 /* BottomSheetTransition.h */,
+				C2E44B872EDAD35D00110348 /* BottomSheetTransition.m */,
+				C2E44B852EDAD35D00110348 /* DemoBaseNavigationController.h */,
 				C2E44B8A2EDAD35D00110348 /* DemoBaseNavigationController.m */,
+				C2E44B892EDAD35D00110348 /* DemoBaseViewController.h */,
+				C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */,
 			);
 			path = "视图控制器模版ViewController";
 			sourceTree = "<group>";
@@ -869,10 +875,10 @@
 		C2E44B8C2EDAD35D00110348 /* 安装工具 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44CE12EDAECD600110348 /* 文件浏览器 */,
 				C2E44B8D2EDAD35D00110348 /* install_dylib */,
 				C2E44BB12EDAD35D00110348 /* Jailbreak */,
 				C2E44BBB2EDAD35D00110348 /* 下载管理 */,
-				C2E44BC42EDAD35D00110348 /* TrollFools */,
 			);
 			path = "安装工具";
 			sourceTree = "<group>";
@@ -980,23 +986,16 @@
 		C2E44BBB2EDAD35D00110348 /* 下载管理 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BBC2EDAD35D00110348 /* DownloadProgressView.m */,
 				C2E44BBD2EDAD35D00110348 /* DownloadManagerViewController.h */,
-				C2E44BBE2EDAD35D00110348 /* DownloadTaskModel.m */,
-				C2E44BBF2EDAD35D00110348 /* FileInstallManager.h */,
 				C2E44BC02EDAD35D00110348 /* DownloadManagerViewController.m */,
 				C2E44BC12EDAD35D00110348 /* DownloadProgressView.h */,
+				C2E44BBC2EDAD35D00110348 /* DownloadProgressView.m */,
 				C2E44BC22EDAD35D00110348 /* DownloadTaskModel.h */,
+				C2E44BBE2EDAD35D00110348 /* DownloadTaskModel.m */,
+				C2E44BBF2EDAD35D00110348 /* FileInstallManager.h */,
 				C2E44BC32EDAD35D00110348 /* FileInstallManager.m */,
 			);
 			path = "下载管理";
-			sourceTree = "<group>";
-		};
-		C2E44BC42EDAD35D00110348 /* TrollFools */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = TrollFools;
 			sourceTree = "<group>";
 		};
 		C2E44BC52EDAD35D00110348 /* 表格控制器模板TemplateListController */ = {
@@ -1019,11 +1018,11 @@
 		C2E44BD02EDAD35D00110348 /* 社区 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44BD42EDAD35D00110348 /* CommunityViewController.h */,
 				C2E44BD12EDAD35D00110348 /* CommunityViewController.m */,
+				C2E44BD52EDAD35D00110348 /* FindFriendsViewController.h */,
 				C2E44BD22EDAD35D00110348 /* FindFriendsViewController.m */,
 				C2E44BD32EDAD35D00110348 /* HelpViewController.h */,
-				C2E44BD42EDAD35D00110348 /* CommunityViewController.h */,
-				C2E44BD52EDAD35D00110348 /* FindFriendsViewController.h */,
 				C2E44BD62EDAD35D00110348 /* HelpViewController.m */,
 			);
 			path = "社区";
@@ -1140,12 +1139,10 @@
 		C2E44BFA2EDAD35D00110348 /* cell */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BFB2EDAD35D00110348 /* AppFileCell.m */,
-				C2E44BFC2EDAD35D00110348 /* TipBarCell.m */,
 				C2E44BFD2EDAD35D00110348 /* AppInfoCell.h */,
-				C2E44BFE2EDAD35D00110348 /* TipBarCell.h */,
-				C2E44BFF2EDAD35D00110348 /* AppFileCell.h */,
 				C2E44C002EDAD35D00110348 /* AppInfoCell.m */,
+				C2E44BFE2EDAD35D00110348 /* TipBarCell.h */,
+				C2E44BFC2EDAD35D00110348 /* TipBarCell.m */,
 			);
 			path = cell;
 			sourceTree = "<group>";
@@ -1162,18 +1159,18 @@
 		C2E44C072EDAD35D00110348 /* model */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44C082EDAD35D00110348 /* NewAppFileModel.m */,
 				C2E44C092EDAD35D00110348 /* AppInfoModel.h */,
-				C2E44C0A2EDAD35D00110348 /* Demo9Model.m */,
-				C2E44C0B2EDAD35D00110348 /* AppVersionModel.h */,
-				C2E44C0C2EDAD35D00110348 /* TipBarModel.h */,
-				C2E44C0D2EDAD35D00110348 /* LikeModel.h */,
 				C2E44C0E2EDAD35D00110348 /* AppInfoModel.m */,
-				C2E44C0F2EDAD35D00110348 /* NewAppFileModel.h */,
-				C2E44C102EDAD35D00110348 /* Demo9Model.h */,
-				C2E44C112EDAD35D00110348 /* TipBarModel.m */,
+				C2E44C0B2EDAD35D00110348 /* AppVersionModel.h */,
 				C2E44C122EDAD35D00110348 /* AppVersionModel.m */,
+				C2E44C102EDAD35D00110348 /* Demo9Model.h */,
+				C2E44C0A2EDAD35D00110348 /* Demo9Model.m */,
+				C2E44C0D2EDAD35D00110348 /* LikeModel.h */,
 				C2E44C132EDAD35D00110348 /* LikeModel.m */,
+				C2E44C0F2EDAD35D00110348 /* NewAppFileModel.h */,
+				C2E44C082EDAD35D00110348 /* NewAppFileModel.m */,
+				C2E44C0C2EDAD35D00110348 /* TipBarModel.h */,
+				C2E44C112EDAD35D00110348 /* TipBarModel.m */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -1314,6 +1311,19 @@
 				C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */,
 			);
 			path = "版本管理";
+			sourceTree = "<group>";
+		};
+		C2E44CE12EDAECD600110348 /* 文件浏览器 */ = {
+			isa = PBXGroup;
+			children = (
+				C2E44CE82EDAFB8C00110348 /* FileModel.h */,
+				C2E44CE92EDAFB8C00110348 /* FileModel.m */,
+				C2E44CEB2EDAFCA200110348 /* FileUtils.h */,
+				C2E44CEC2EDAFCA200110348 /* FileUtils.m */,
+				C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */,
+				C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */,
+			);
+			path = "文件浏览器";
 			sourceTree = "<group>";
 		};
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
@@ -1569,6 +1579,7 @@
 				C2E44CA82EDAD35E00110348 /* EmptyView.m in Sources */,
 				C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */,
 				C2E44CBA2EDAD35E00110348 /* AppInfoCell.m in Sources */,
+				C2E44CEA2EDAFB8C00110348 /* FileModel.m in Sources */,
 				C2E44C662EDAD35E00110348 /* RunInBackground.mm in Sources */,
 				C2E44C9B2EDAD35E00110348 /* DylibHistoryController.m in Sources */,
 				C2E44C652EDAD35E00110348 /* PrivacyPolicyViewController.m in Sources */,
@@ -1587,7 +1598,6 @@
 				C2E44CAE2EDAD35E00110348 /* FeedbackViewController.m in Sources */,
 				C2E44C592EDAD35E00110348 /* UserModelCell.m in Sources */,
 				C2E44C772EDAD35E00110348 /* NetworkClient.m in Sources */,
-				C2E44CB82EDAD35E00110348 /* AppFileCell.m in Sources */,
 				C2E44C7F2EDAD35E00110348 /* TTCHATViewController.m in Sources */,
 				C2E44C7D2EDAD35E00110348 /* ToolMessageCell.m in Sources */,
 				C2E44C972EDAD35E00110348 /* CommandExecutor.m in Sources */,
@@ -1610,11 +1620,13 @@
 				C2E44CA32EDAD35E00110348 /* FileInstallManager.m in Sources */,
 				C2E44C5D2EDAD35E00110348 /* PublishMoodViewController.m in Sources */,
 				C2E44C512EDAD35E00110348 /* VIPPackageCell.m in Sources */,
+				C2E44CF02EDAFCCD00110348 /* SandboxFileBrowserVC.m in Sources */,
 				C2E44C5A2EDAD35E00110348 /* UserListViewController.m in Sources */,
 				C2E44C842EDAD35E00110348 /* DemoBaseNavigationController.m in Sources */,
 				C2E44CAF2EDAD35E00110348 /* UploadTask.m in Sources */,
 				C2E44CD62EDAD35F00110348 /* QRCodeGeneratorViewController.m in Sources */,
 				C2E44CB42EDAD35E00110348 /* DocumentPickerViewController.m in Sources */,
+				C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */,
 				C2E44C502EDAD35E00110348 /* VipPurchaseHistoryViewController.m in Sources */,
 				C2E44C752EDAD35E00110348 /* CommentModel.m in Sources */,
 				C2E44C6F2EDAD35E00110348 /* MinWebToolViewCell.m in Sources */,

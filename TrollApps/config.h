@@ -71,7 +71,7 @@
 #import "UIImage+Extensions.h"//uiimage对象拓展
 #import "BaseBottomSheetVC.h"//底部弹出控制器
 #import "SendMessage.h"//发送融云消息
-
+#import "SandboxFileBrowserVC.h"//文件管理
 //第三方
 #import "HXPhotoPicker.h"
 #import "YYModel.h"

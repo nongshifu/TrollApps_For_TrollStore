@@ -11,6 +11,8 @@
 #import "ToolMessage.h"
 #import "ToolMessageCell.h"
 #import "UIView.h"
+#import "ContactHelper.h"
+#import "DemoBaseViewController.h"
 //是否打印
 #define MY_NSLog_ENABLED YES
 
@@ -104,15 +106,6 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)updateViewConstraints {
     [super updateViewConstraints];
     
-    // 1. 判断是否是模态弹出
-    BOOL isModal = [self isModalPresented];
-    if(isModal){
-        self.view.backgroundColor = [UIColor systemBackgroundColor];
-
-        UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStyleDone target:self action:@selector(back)];
-        
-        self.navigationItem.leftBarButtonItem = leftItem;
-    }
     
     [self.headerView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.conversationMessageCollectionView.mas_top).offset(-5); // 顶部偏移量
@@ -144,14 +137,21 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.navigationItem.searchController = self.searchController;
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
     
+    
     // 地区选择按钮（移至右侧）
     UIBarButtonItem *closeItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     closeItem.tintColor = [UIColor labelColor];
     
-    // 判断是否是模态弹出
-    BOOL isPresentedModally = [self isModal];
+    // 地区选择按钮（移至右侧）
+    UIBarButtonItem *chatItem = [[UIBarButtonItem alloc] initWithTitle:@"@ Ta" style:UIBarButtonItemStylePlain target:self action:@selector(contactButtonTap:)];
+    chatItem.tintColor = [UIColor labelColor];
+    
+    // 1. 判断是否是模态弹出
+    BOOL isModal = [self isModalPresented];
+    //设置背景色
+    self.view.backgroundColor = isModal?[UIColor systemBackgroundColor]:[UIColor clearColor];
     // 仅在模态时设置右侧关闭按钮，否则隐藏
-    self.navigationItem.leftBarButtonItem = isPresentedModally ? closeItem : nil;
+    self.navigationItem.rightBarButtonItem = isModal ? closeItem : chatItem;
    
     
 }
@@ -279,6 +279,18 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     return NO;
 }
 
+- (void)contactButtonTap:(UIBarButtonItem*)Item{
+    [SVProgressHUD showWithStatus:nil];
+    [UserModel getUserInfoWithUdid:self.targetId success:^(UserModel * _Nonnull userModel) {
+        
+        [SVProgressHUD dismiss];
+        [[ContactHelper shared] showContactActionSheetWithUserInfo:userModel];
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        [SVProgressHUD dismiss];
+    }];
+    
+    
+}
 
 //最近使用
 - (void)recently {
@@ -566,6 +578,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 4. 强制刷新导航栏布局（解决高度计算异常）
     [self.navigationController.navigationBar layoutIfNeeded];
+    
+    // 5. 判断是否是模态弹出
+    BOOL isModal = [self isModalPresented];
+    //设置背景色
+    self.view.backgroundColor = isModal?[UIColor systemBackgroundColor]:[UIColor clearColor];
     
     
    

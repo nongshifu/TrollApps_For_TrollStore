@@ -196,7 +196,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [self setupAddButton];
     
-    [self  setupSortButton];
+    [self setupSortButton];
     
     [self setupViewConstraints];
     
@@ -413,7 +413,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 //设置底部选项卡按钮
 - (void)setupAddButton {
-    self.bottomButton = [[MiniButtonView alloc] initWithFrame:CGRectMake(10, CGRectGetHeight(self.view.frame)-get_BOTTOM_TAB_BAR_HEIGHT - 10, 300, 30)];
+    self.bottomButton = [[MiniButtonView alloc] initWithFrame:CGRectMake(10, CGRectGetHeight(self.view.frame)-get_BOTTOM_TAB_BAR_HEIGHT - 10, kWidth-20 - 60, 30)];
     self.bottomButton.tag = 1;
     self.bottomButton.buttonBcornerRadius = 5;
     self.bottomButton.titleColor = [UIColor whiteColor];
@@ -422,12 +422,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bottomButton.buttonSpace = 10;
     self.bottomButton.fontSize = 15;
     [self.view addSubview:self.bottomButton];
-    NSArray *titles = @[@"分类", @"收藏", @"下载"];
-    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"icloud.and.arrow.down"];
+    NSArray *titles = @[@"分类", @"收藏", @"文件管理", @"下载"];
+    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"folder.fill.badge.plus", @"icloud.and.arrow.down"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
     [self.bottomButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
-        make.width.mas_equalTo(300);
+        make.width.mas_equalTo(kWidth-20);
         make.left.equalTo(self.view).offset(10);
         make.height.equalTo(@25);
     }];
@@ -566,7 +566,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     [self.bottomButton mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
-        make.width.mas_equalTo(300);
+        make.width.mas_equalTo(kWidth-20 - 60);
         make.left.equalTo(self.view).offset(10);
        
     }];
@@ -817,8 +817,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         NSString *title = self.sortArray[self.currentVC.sortType];
         [self.sortButton setTitle:title forState:UIControlStateNormal];
     }
-    NSArray *titles = @[@"分类", @"收藏", @"下载"];
-    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"icloud.and.arrow.down"];
+    NSArray *titles = @[@"分类", @"收藏", @"文件管理", @"下载"];
+    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"folder.fill.badge.plus", @"icloud.and.arrow.down"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
     if(self.currentVC.dataSource.count==0){
         //读取第一页数据
@@ -846,6 +846,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         
         [self presentPanModal:vc];
 
+    }else if(tag ==2){
+     
+        // 2. 初始化文件浏览器（不需要再包裹导航控制器，利用当前的导航栈）
+        SandboxFileBrowserVC *browser = [SandboxFileBrowserVC browserWithDefaultPath];
+        UINavigationController *nv = [[UINavigationController alloc] initWithRootViewController:browser];
+        // 3. 🔥 关键：导航 push 跳转（替换原来的 present）
+        [self.navigationController presentViewController:nv animated:YES completion:nil];
+        
     }else{
         DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
         [self presentPanModal:vc];

@@ -39,6 +39,7 @@ if (MY_NSLog_ENABLED) { \
 @property (nonatomic, strong) NSMutableArray *searchTitles;//搜索数组
 
 @property (nonatomic, strong) NSMutableArray *search_fields;
+
 @end
 
 @implementation FindFriendsViewController
@@ -257,6 +258,7 @@ if (MY_NSLog_ENABLED) { \
                     NSArray * list = data[@"list"];
                     for (NSDictionary *dic in list) {
                         UserModel *model = [UserModel yy_modelWithDictionary:dic];
+                        NSLog(@"读取用户user_id:%ld nickname:%@",model.user_id,model.nickname);
                         [self.dataSource addObject:model];
                     }
                     [self refreshTable];

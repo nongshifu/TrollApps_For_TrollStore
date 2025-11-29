@@ -37,8 +37,23 @@ NSString *className = NSStringFromClass([self class]); \
 NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
 
-// 宏定义：文件大小限制（例如：50MB，1MB=1024*1024字节）
-#define MAX_FILE_SIZE (200 * 1024 * 1024)
+#pragma mark - 宏定义（统一配置，便于维护）
+// 最大文件大小（建议放在.h或全局常量文件中，这里临时定义）
+#ifndef MAX_FILE_SIZE
+#define MAX_FILE_SIZE (1024 * 1024 * 100) // 100MB，根据实际需求调整
+#endif
+
+// 支持的主文件格式集合（统一管理，便于扩展）
+static NSSet *kAllowedMainFileTypes() {
+    static NSSet *types = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        types = [NSSet setWithObjects:@"ipa", @"tipa", @"zip", @"js", @"html", @"json",
+                 @"deb", @"sh", @"plist", @"dylib", @"framework", @"7z", @"rar",
+                 @"tar", @"gz", @"exe", nil];
+    });
+    return types;
+}
 
 
 @interface PublishAppViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate, UITextFieldDelegate, HXPhotoViewDelegate,AppSearchViewControllerDelegate,UIDocumentPickerDelegate,ImageGridSearchViewControllerDelegate>
@@ -90,6 +105,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 // 上传任务管理
 @property (nonatomic, strong) UploadTask *uploadTask;
 @property (nonatomic, assign) BOOL isUploading;
+
+@property (nonatomic, assign) BOOL selectMainFile; //文件选择器是头像还是上传文件
 
 
 @end
@@ -644,6 +661,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [alert addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self openPhotoLibrary];
     }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"从文件选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self openFileApp];
+    }]];
     
     
     
@@ -659,6 +679,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     // 添加确定按钮
     UIAlertAction *loacal = [UIAlertAction actionWithTitle:@"本地文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        self.selectMainFile = YES;
         //系统导航遮挡问题
         UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
         // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
@@ -776,7 +797,29 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [SVProgressHUD dismissWithDelay:2];
     }
 }
-
+//打开文件选择图片
+- (void)openFileApp {
+    self.selectMainFile = NO;
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
+    NSArray *documentTypes = @[(NSString *)kUTTypeImage]; // 所有图片文件类型
+    
+    
+    // 创建文件选择控制器
+    DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
+    
+    // 设置代理
+    documentPicker.delegate = self;
+    
+    // 允许选择多个文件 (可选)
+    documentPicker.allowsMultipleSelection = NO;
+    // 设置全屏显示
+    documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+    
+    // 显示文件选择器
+    [self presentViewController:documentPicker animated:YES completion:nil];
+}
 //标签点击
 - (void)tagButtonTapped:(UIButton *)sender {
     sender.selected = !sender.selected;
@@ -1540,8 +1583,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     HXPhotoManager *manager = [[HXPhotoManager alloc] init];
     HXPhotoModel *photoModel = [HXPhotoModel photoModelWithImage:image];
-    
-    [[self.view getTopViewController] hx_presentPhotoEditViewControllerWithManager:manager photoModel:photoModel delegate:nil done:^(HXPhotoModel *beforeModel, HXPhotoModel *afterModel, HXPhotoEditViewController *viewController) {
+    UIViewController *topVc = [self.view getTopViewController];
+    manager.configuration.movableCropBox =  YES;
+    manager.configuration.movableCropBoxEditSize = YES;
+    manager.configuration.movableCropBoxCustomRatio = CGPointMake(1, 1);
+    manager.configuration.photoEditCustomRatios = @[@{@"正方形" : @"{1, 1}"}];
+    [topVc hx_presentPhotoEditViewControllerWithManager:manager photoModel:photoModel delegate:nil done:^(HXPhotoModel *beforeModel, HXPhotoModel *afterModel, HXPhotoEditViewController *viewController) {
         // 获取编辑后的图片
         UIImage *editedImage = afterModel.thumbPhoto ?: afterModel.thumbPhoto;
         weakSelf.appIconView.image = editedImage;
@@ -1553,9 +1600,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
             [SVProgressHUD dismissWithDelay:1];
             // 直接 dismiss 当前控制器（ImageGridSearchViewController）
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [weakSelf dismissViewControllerAnimated:YES completion:nil];
-            });
+            if([topVc isKindOfClass:[HXPhotoEditViewController class]]){
+                [topVc dismissViewControllerAnimated:YES completion:nil];
+            }
+            
         }];
     } cancel:^(HXPhotoEditViewController *viewController) {
         [viewController dismissViewControllerAnimated:YES completion:nil];
@@ -2425,85 +2473,191 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 
 
-#pragma mark - 文件上传选择文件代理 UIDocumentPickerDelegate
-// 处理文件选择完成（支持多文件+去重）
+#pragma mark - UIDocumentPickerDelegate（文件选择代理）
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
     [controller dismissViewControllerAnimated:YES completion:nil];
     
+    // 空判断（简化逻辑，统一提示）
     if (urls.count == 0) {
-        [SVProgressHUD showErrorWithStatus:@"未选择文件"];
+        [self showErrorHUDWithMessage:@"未选择任何文件"];
         return;
     }
     
-    // 1. 循环处理每个选中的文件 (这里使用循环方式多选 确实目前只有一个主文件)
-    for (NSURL *selectedFileURL in urls) {
-        // 检查是否有权限访问文件
-        BOOL canAccess = [selectedFileURL startAccessingSecurityScopedResource];
-        if (!canAccess) {
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"无法访问文件: %@", selectedFileURL.lastPathComponent]];
-            //            continue; // 跳过当前文件，处理下一个
-        }
-        
-        // 2. 获取文件基本信息
-        NSString *fileName = [selectedFileURL lastPathComponent];
-        //读取文件名后缀 统一为小写
-        NSString *fileType = [selectedFileURL pathExtension].lowercaseString;
-        
-        NSError *error = nil;
-        NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:selectedFileURL.path error:&error];
-        NSNumber *fileSize = fileAttributes[NSFileSize];
-        
-        // 日志输出当前处理的文件
-        NSLog(@"处理文件: %@, 类型: %@, 大小: %@ bytes", fileName, fileType, fileSize);
-        
-        
-        // 4. 校验文件大小
-        if (fileSize.integerValue > MAX_FILE_SIZE) {
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"文件过大（最大支持%ldMB）: %@",
-                                                (long)(MAX_FILE_SIZE / 1024 / 1024), fileName]];
-            [selectedFileURL stopAccessingSecurityScopedResource];
-            continue;
-        }
-        
-        // 5. 校验文件格式
-        NSSet *allowedFileTypes = [NSSet setWithObjects:@"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh", @"plist", @"dylib", @"framework", @"7z", @"rar", @"tar",@"gz",@"exe",nil];
-        
-        if (![allowedFileTypes containsObject:fileType]) {
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"不支持的格式: .%@（文件: %@）", fileType, fileName]];
-            [selectedFileURL stopAccessingSecurityScopedResource];
-            continue;
-        }
-        
-        // 本地新增附件：添加到列表
-        NSData *fileData = [NSData dataWithContentsOfURL:selectedFileURL options:0 error:&error];
-        if(error){
-            [self showAlertFromViewController:self title:@"错误" message:[NSString stringWithFormat:@"您选择的文件\n%@\n读取数据失败", fileName]];
-            
-            NSLog(@"读取系统文件数据失败: %@", error.localizedDescription);
-            return;
-        }
-        
-        [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"已添加文件: %@ \n大小:%@", fileName,[NewAppFileModel formattedFileSize:fileSize]]];
-        [SVProgressHUD dismissWithDelay:2];
-        
-        //修改按钮
-        [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
-        if(self.appNameField.text.length == 0){
-            self.appNameField.text = fileName;
-        }
-        
-        //赋值主文件URL
-        self.app_info.mainFileUrl = [NSString stringWithFormat:@"%@",selectedFileURL];
-        //赋值主文件data
-        self.app_info.mainFileData = fileData;
-        //标记为本地位激
-        self.app_info.is_cloud = NO;
-        // 释放当前文件的安全访问权限
-        [selectedFileURL stopAccessingSecurityScopedResource];
+    // 单选模式：直接取第一个URL（符合业务逻辑）
+    NSURL *selectedURL = urls.firstObject;
+    if (!selectedURL) {
+        [self showErrorHUDWithMessage:@"未选择有效文件"];
+        return;
     }
+    
+    // 安全访问权限（统一管理，避免重复调用）
+//    BOOL hasSecurityAccess = [selectedURL startAccessingSecurityScopedResource];
+//    if (!hasSecurityAccess) {
+//        [self showErrorHUDWithMessage:@"无法获取文件访问权限"];
+//        return;
+//    }
+    
+    // 按业务类型分支处理（主文件/头像）
+    if (self.selectMainFile) {
+        [self handleMainFileSelectionWithURL:selectedURL];
+    } else {
+        [self handleAvatarImageSelectionWithURL:selectedURL];
+    }
+    
+    // 统一释放权限（放在最后，确保所有分支都能释放）
+    [selectedURL stopAccessingSecurityScopedResource];
 }
 
-#pragma mark - 辅助方法（去重+图标生成）
+// 取消选择回调（补充完整代理方法）
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+    [controller dismissViewControllerAnimated:YES completion:nil];
+    NSLog(@"用户取消文件选择");
+}
 
+#pragma mark - 业务处理：主文件上传（IPA/ZIP等）
+- (void)handleMainFileSelectionWithURL:(NSURL *)fileURL {
+    NSError *error = nil;
+    
+    // 1. 获取文件基本信息（提取辅助方法，减少冗余）
+    NSString *fileName = fileURL.lastPathComponent;
+    NSString *fileType = [fileURL pathExtension].lowercaseString;
+    NSDictionary *fileAttrs = [[NSFileManager defaultManager] attributesOfItemAtPath:fileURL.path error:&error];
+    NSNumber *fileSize = fileAttrs[NSFileSize];
+    
+    // 日志优化：统一格式
+    NSLog(@"[主文件选择] 文件名：%@，格式：.%@，大小：%@ bytes",
+          fileName, fileType, @(fileSize.integerValue));
+    
+    // 2. 校验文件大小（优化提示：显示实际大小和限制）
+    if (fileSize.integerValue > MAX_FILE_SIZE) {
+        NSString *maxSizeStr = [NewAppFileModel formattedFileSize:@(MAX_FILE_SIZE)];
+        NSString *fileSizeStr = [NewAppFileModel formattedFileSize:fileSize];
+        [self showErrorHUDWithMessage:[NSString stringWithFormat:@"文件过大（最大支持%@）\n文件：%@（%@）",
+                                      maxSizeStr, fileName, fileSizeStr]];
+        return;
+    }
+    
+    // 3. 校验文件格式（使用统一配置的集合）
+    if (![kAllowedMainFileTypes() containsObject:fileType]) {
+        [self showErrorHUDWithMessage:[NSString stringWithFormat:@"不支持的文件格式：.%@\n文件：%@",
+                                      fileType, fileName]];
+        return;
+    }
+    
+    // 4. 读取文件数据（优化：大文件使用内存映射，减少内存占用）
+    NSData *fileData = [NSData dataWithContentsOfURL:fileURL
+                                             options:NSDataReadingMappedIfSafe
+                                               error:&error];
+    if (error || !fileData) {
+        NSString *errorMsg = error.localizedDescription ?: @"未知错误";
+        [self showAlertWithTitle:@"读取失败"
+                          message:[NSString stringWithFormat:@"文件：%@\n原因：%@", fileName, errorMsg]];
+        NSLog(@"[主文件读取失败] %@", errorMsg);
+        return;
+    }
+    
+    // 5. 业务数据赋值（优化URL转换：使用absoluteString，避免格式错误）
+    self.app_info.mainFileUrl = fileURL.absoluteString; // 替代stringWithFormat，更安全
+    self.app_info.mainFileData = fileData;
+    self.app_info.is_cloud = NO;
+    
+    // 6. UI更新（优化提示：显示完整信息）
+    NSString *fileSizeStr = [NewAppFileModel formattedFileSize:fileSize];
+    [self.fileUploadButton setTitle:fileName forState:UIControlStateNormal];
+    if (self.appNameField.text.length == 0) {
+        self.appNameField.text = [fileName stringByDeletingPathExtension]; // 移除后缀，更友好
+    }
+    
+    [self showSuccessHUDWithMessage:[NSString stringWithFormat:@"已添加文件：%@\n大小：%@",
+                                    fileName, fileSizeStr]];
+}
+
+#pragma mark - 业务处理：头像图片选择
+- (void)handleAvatarImageSelectionWithURL:(NSURL *)imageURL {
+    UIImage *selectedImage = nil;
+    @try {
+        // 直接读取图片（选择器已限制图片类型，无需额外判断）
+        selectedImage = [self imageFromURL:imageURL];
+    } @catch (NSException *exception) {
+        NSString *errorMsg = [NSString stringWithFormat:@"处理图片失败：%@", exception.reason];
+        [self showErrorHUDWithMessage:errorMsg];
+        NSLog(@"[头像处理异常] %@", errorMsg);
+        return;
+    }
+    
+    // 图片有效性校验
+    if (!selectedImage) {
+        [self showErrorHUDWithMessage:@"图片文件损坏或格式不支持"];
+        return;
+    }
+    
+    // 日志优化：输出图片信息
+    NSLog(@"[头像选择成功] 尺寸：%@，大小：%@ bytes",
+          NSStringFromCGSize(selectedImage.size),
+          @(UIImageJPEGRepresentation(selectedImage, 1.0).length));
+    
+    // 跳转编辑页面
+    [self presentEditViewControllerWithImage:selectedImage];
+}
+
+#pragma mark - 辅助方法：图片读取（兼容HEIC/GIF等格式）
+- (UIImage *)imageFromURL:(NSURL *)url {
+    if (!url) return nil;
+    
+    CGImageSourceRef imageSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (!imageSource) {
+        NSLog(@"[图片读取失败] 无法创建图片源：%@", url.absoluteString);
+        return nil;
+    }
+    
+    // 优化：获取图片属性，确保读取成功
+    CFDictionaryRef imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);
+    if (!imageProperties) {
+        CFRelease(imageSource);
+        NSLog(@"[图片读取失败] 无法获取图片属性：%@", url.absoluteString);
+        return nil;
+    }
+    
+    CGImageRef cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, NULL);
+    UIImage *image = nil;
+    if (cgImage) {
+        // 优化：自动适配屏幕缩放和图片方向
+        image = [UIImage imageWithCGImage:cgImage
+                                     scale:[UIScreen mainScreen].scale
+                               orientation:UIImageOrientationUp];
+        CGImageRelease(cgImage);
+    } else {
+        NSLog(@"[图片读取失败] 无法创建CGImage：%@", url.absoluteString);
+    }
+    
+    // 释放资源（避免内存泄漏）
+    CFRelease(imageProperties);
+    CFRelease(imageSource);
+    return image;
+}
+
+#pragma mark - 辅助方法：UI提示（统一样式，便于维护）
+// 错误提示HUD
+- (void)showErrorHUDWithMessage:(NSString *)message {
+    [SVProgressHUD showErrorWithStatus:message];
+    [SVProgressHUD dismissWithDelay:2.5]; // 延长显示时间，确保用户看清
+}
+
+// 成功提示HUD
+- (void)showSuccessHUDWithMessage:(NSString *)message {
+    [SVProgressHUD showSuccessWithStatus:message];
+    [SVProgressHUD dismissWithDelay:2.0];
+}
+
+// 弹窗提示（统一样式）
+- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定"
+                                              style:UIAlertActionStyleDefault
+                                            handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 @end

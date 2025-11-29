@@ -415,7 +415,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     }
                 }
                 NSString *tipmMessage =  self.appInfo.app_status != 0 ? @"点击左侧图标可联系作者催更\n应用怎么样 点评下吧！" :@"这个应用怎么样？点评下吧！";
-                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"message" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
+                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
                 
                 if(self.dataSource.count >= 2){
                     id model = [self.dataSource objectAtIndex:1];
@@ -582,6 +582,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 self.commentInputView.textPromptLabel.alpha = 1;
                 // 刷新评论列表（重新加载第一页）
                 [self loadDataWithPage:1];
+                NSString *messageText = [NSString stringWithFormat:@"我评论了你的软件：\n%@",commentContent];
+                [SendMessage sendRCIMTextMessageToUDID:self.appInfo.udid messageText:messageText success:^{
+                    
+                } error:^(NSString * _Nonnull errorMsg) {
+                    
+                }];
             } else {
                 [SVProgressHUD showErrorWithStatus:msg];
             }
@@ -657,7 +663,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 [BubbleTipManager showBubbleTipWithText:@"点击联系作者"
                                              targetView:tipBarCell.iconImageView
                                                 superVC:self
-                                           dismissDelay:3.0
+                                           dismissDelay:1.5
                                          arrowDirection:UIPopoverArrowDirectionDown];
                 
                 // 5. 标记为已显示，避免重复弹出

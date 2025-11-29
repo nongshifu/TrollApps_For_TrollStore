@@ -114,7 +114,7 @@
     if ([_tipBarModel.iconURL containsString:@"http"]) {
         // 网络图片，使用 SDWebImage 异步加载
         NSURL *imageURL = [NSURL URLWithString:_tipBarModel.iconURL];
-        [self.iconImageView sd_setImageWithURL:imageURL placeholderImage:nil completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+        [self.iconImageView sd_setImageWithURL:imageURL placeholderImage:[UIImage systemImageNamed:@"message"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
             if (error) {
                 NSLog(@"图片加载失败: %@", error.localizedDescription);
             }
@@ -123,6 +123,7 @@
         // 系统图标
         icon = [UIImage systemImageNamed:_tipBarModel.iconURL];
         if(!icon) icon = [UIImage imageNamed:_tipBarModel.iconURL];
+        if(!icon) icon = [UIImage systemImageNamed:@"message"];
         self.iconImageView.image = icon;
     }
     

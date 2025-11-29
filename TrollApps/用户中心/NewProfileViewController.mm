@@ -571,6 +571,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
  @param userModel 用户信息模型
  */
 - (void)updateUserInfoWithUserModel:(UserModel *)userModel {
+    [DemoBaseViewController triggerVibration];
     NSLog(@"请求idfv用户数据nickname:%@",userModel.nickname);
     if (!userModel) return;
     if(userModel.udid.length>5){
