@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)sharedInstance;
 - (NSString *)getIDFV;
 - (NSString *)getUDID;
-
+- (void)loadUserInfo;
 
 // 保存头像到本地缓存
 - (void)saveAvatarToCache:(UIImage *)avatar;

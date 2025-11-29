@@ -14,7 +14,6 @@ PODS:
   - AFNetworking/Serialization (4.0.1)
   - AFNetworking/UIKit (4.0.1):
     - AFNetworking/NSURLSession
-  - AliyunOSSiOS (2.11.2)
   - BRPickerView (2.9.7):
     - BRPickerView/All (= 2.9.7)
   - BRPickerView/All (2.9.7):
@@ -77,7 +76,6 @@ PODS:
   - SDWebImage (5.21.1):
     - SDWebImage/Core (= 5.21.1)
   - SDWebImage/Core (5.21.1)
-  - SSZipArchive (2.4.3)
   - SVProgressHUD (2.3.1):
     - SVProgressHUD/Core (= 2.3.1)
   - SVProgressHUD/Core (2.3.1)
@@ -90,7 +88,6 @@ PODS:
 
 DEPENDENCIES:
   - AFNetworking
-  - AliyunOSSiOS
   - BRPickerView
   - HWPanModal (~> 0.9.4)
   - HXPhotoPickerObjC
@@ -103,7 +100,6 @@ DEPENDENCIES:
   - MJRefresh
   - RongCloudIM/IMKit
   - SDWebImage (~> 5.0)
-  - SSZipArchive
   - SVProgressHUD
   - YYCache
   - YYModel
@@ -113,7 +109,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AFNetworking
-    - AliyunOSSiOS
     - BRPickerView
     - HWPanModal
     - HXPhotoPickerObjC
@@ -125,7 +120,6 @@ SPEC REPOS:
     - MJRefresh
     - RongCloudIM
     - SDWebImage
-    - SSZipArchive
     - SVProgressHUD
     - YYCache
     - YYModel
@@ -134,7 +128,6 @@ SPEC REPOS:
 
 SPEC CHECKSUMS:
   AFNetworking: 3bd23d814e976cd148d7d44c3ab78017b744cd58
-  AliyunOSSiOS: 6d6b668b82ac0c0ea2313412bcb5530b42ec97ab
   BRPickerView: 6548c8fbe21c0f29e72ab2fae177d196edc83f09
   HWPanModal: b57a6717d3cdcd666bff44f9dd2a5be9f4d6f5d2
   HXPhotoPickerObjC: ca01803a5f8d48a43a8283eec2a632cfb0386b37
@@ -146,13 +139,12 @@ SPEC CHECKSUMS:
   MJRefresh: ff9e531227924c84ce459338414550a05d2aea78
   RongCloudIM: d160c74810166663e8fa05a352a68cb2a9787c3f
   SDWebImage: f29024626962457f3470184232766516dee8dfea
-  SSZipArchive: fe6a26b2a54d5a0890f2567b5cc6de5caa600aef
   SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
   YYCache: 8105b6638f5e849296c71f331ff83891a4942952
   YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: 31481f099360e3ed7500746ff0f460cf5c2b9abd
+PODFILE CHECKSUM: b67e1cb8a85a4fb29b1459dab77b67369447a7d9
 
 COCOAPODS: 1.16.2

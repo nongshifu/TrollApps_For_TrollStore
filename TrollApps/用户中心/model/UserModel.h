@@ -83,6 +83,11 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 + (void)getUserInfoWithUdid:(NSString *)udid
                     success:(UserInfoSuccessBlock)success
                     failure:(UserInfoFailureBlock)failure;
+
+/// 通过 idfv 获取用户信息
++ (void)getUserInfoWithIDFV:(NSString *)idfv
+                    success:(UserInfoSuccessBlock)success
+                    failure:(UserInfoFailureBlock)failure;
 @end
 
 NS_ASSUME_NONNULL_END

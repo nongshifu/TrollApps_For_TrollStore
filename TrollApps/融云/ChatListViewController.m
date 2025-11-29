@@ -455,40 +455,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     //阅后既焚监听器
     [[RCCoreClient sharedCoreClient] setRCMessageDestructDelegate:self];
     // 获取总未读数量，计算左侧按钮的未读数量
+    // 1. 获取AppDelegate实例
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    // 2. 读取未读消息
+    [appDelegate getTotalUnreadCount];
     
-    [[RCCoreClient sharedCoreClient] getTotalUnreadCountWith:^(int unreadCount) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if(unreadCount > 0){
-                // 1. 获取AppDelegate实例
-                AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-                // 2. 获取自定义TabBarController
-                UITabBarController *tabBarController = appDelegate.tabBarController;
-                if (!tabBarController) return; // 防止空指针
-                
-                // 3. 关键：获取要设置红点的Tab（根据你的项目调整索引，例如：0=首页，1=聊天，2=我的）
-                NSInteger targetTabIndex = 3; // 假设「聊天Tab」是索引1，根据实际调整
-                if (tabBarController.tabBar.items.count <= targetTabIndex) return; // 避免数组越界
-                UITabBarItem *chatTabItem = tabBarController.tabBar.items[targetTabIndex];
-                
-                // 4. 设置系统红点（带未读数字，超过99显示“99+”）
-                NSString *badgeText = (unreadCount > 99) ? @"99+" : [NSString stringWithFormat:@"%d", unreadCount];
-                chatTabItem.badgeValue = badgeText;
-                // 可选：自定义徽章颜色（默认红色，可改为其他色）
-                chatTabItem.badgeColor = [UIColor redColor];
-                
-            } else {
-                // 未读数量为0时，清除红点（需对应上面的Tab索引）
-                AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-                UITabBarController *tabBarController = appDelegate.tabBarController;
-                if (!tabBarController) return;
-                
-                NSInteger targetTabIndex = 1; // 和上面的Tab索引保持一致
-                if (tabBarController.tabBar.items.count <= targetTabIndex) return;
-                UITabBarItem *chatTabItem = tabBarController.tabBar.items[targetTabIndex];
-                chatTabItem.badgeValue = nil; // 清除红点
-            }
-        });
-    }];
+    
     //如果没登录 就清空数据源 刷新表格
     [self topBackageView];
     

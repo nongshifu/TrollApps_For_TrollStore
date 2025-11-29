@@ -16,7 +16,7 @@ target 'TrollApps' do
   pod 'LGSideMenuController','2.3.0' #半屏控制器
   pod 'YYCache'
   pod 'JXCategoryView'
-  pod 'SSZipArchive'
+  
 
   
   pod 'IGListKit', '~> 5.0.0'#表格
@@ -30,6 +30,5 @@ target 'TrollApps' do
   pod 'HXPhotoPickerObjC/SDWebImage'
   pod 'HXPhotoPickerObjC/SDWebImage_AF'
   pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
-  pod 'AliyunOSSiOS' # 阿里网盘
 
 end

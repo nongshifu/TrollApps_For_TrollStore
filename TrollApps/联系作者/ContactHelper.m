@@ -7,6 +7,8 @@
 #import "ContactHelper.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "TTCHATViewController.h"
+#import "UserProfileViewController.h"
+
 @implementation ContactHelper
 
 /// 单例初始化
@@ -101,6 +103,16 @@
         }];
         [alertController addAction:udidAction];
     }
+    //查看他主页
+    UIAlertAction *openView = [UIAlertAction actionWithTitle:@"查看Ta主页"
+                                                          style:UIAlertActionStyleDestructive
+                                                        handler:^(UIAlertAction *action) {
+        UserProfileViewController *vc = [UserProfileViewController new];
+        vc.user_udid = userInfo.udid;
+        [[UIView getTopViewController] presentPanModal:vc];
+        
+    }];
+    [alertController addAction:openView];
     
     // 取消按钮
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"

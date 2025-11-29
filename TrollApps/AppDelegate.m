@@ -11,6 +11,8 @@
 #import "ToolMessage.h"
 #import "ToolMessageCell.h"
 #import "DownloadManagerViewController.h"
+#import "NewProfileViewController.h"
+
 
 @interface AppDelegate ()
 
@@ -85,11 +87,12 @@
     /// 消息撤回后可重新编辑的时间，单位是秒，默认值是 300s。
     RCKitConfigCenter.message.reeditDuration = 60;
     //关闭本地通知声音
-    RCKitConfigCenter.message.disableMessageAlertSound = YES;
+    RCKitConfigCenter.message.disableMessageAlertSound = NO;
     //是否禁用本地通知
     RCKitConfigCenter.message.disableMessageNotificaiton = NO;
     //阅后既焚功能
     RCKitConfigCenter.message.enableDestructMessage =YES;
+    
     
     //头像显示默认为矩形，可修改为圆角显示。
     RCKitConfigCenter.ui.globalMessageAvatarStyle = RC_USER_AVATAR_CYCLE;
@@ -203,12 +206,14 @@
     
     [[RCCoreClient sharedCoreClient] getTotalUnreadCountWith:^(int unreadCount) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"读取未读消息:%d",unreadCount);
+            NSInteger targetTabIndex = 3; // 和上面的Tab索引保持一致
             if(unreadCount > 0){
                 
                 if (!self.tabBarController) return; // 防止空指针
                 
                 // 3. 关键：获取要设置红点的Tab（根据你的项目调整索引，例如：0=首页，1=聊天，2=我的）
-                NSInteger targetTabIndex = 3; // 假设「聊天Tab」是索引1，根据实际调整
+                
                 if (self.tabBarController.tabBar.items.count <= targetTabIndex) return; // 避免数组越界
                 UITabBarItem *chatTabItem = self.tabBarController.tabBar.items[targetTabIndex];
                 
@@ -223,7 +228,7 @@
                 
                 if (!self.tabBarController) return;
                 
-                NSInteger targetTabIndex = 1; // 和上面的Tab索引保持一致
+                
                 if (self.tabBarController.tabBar.items.count <= targetTabIndex) return;
                 UITabBarItem *chatTabItem = self.tabBarController.tabBar.items[targetTabIndex];
                 chatTabItem.badgeValue = nil; // 清除红点
@@ -234,18 +239,88 @@
 }
 
 // 1. 处理通过URL唤醒应用（文件导入常用回调）
+// 1. 处理通过URL唤醒应用（文件导入+URL参数传递回调）
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    NSLog(@"openURL 被调用:%@",url.path);
-    // 校验URL是否指向Inbox目录（确保是目标目录的文件）
-    NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
-    if ([url.path containsString:@"/Documents/Inbox/"]) {
+    NSLog(@"openURL 被调用:%@", url.absoluteString);
+    
+    // 分支1：处理 URL 参数传递（如 udid、user_id 等，格式：TrollApps://?udid=xxx&user_id=xxx）
+    if ([url.query containsString:@"getUdid"] && url.query) {
+        // 解析 URL 查询参数（udid、user_id、token、status）
+        NSDictionary *queryParams = [self parseURLQueryString:url.query];
+        NSString *udid = queryParams[@"udid"];
+        
+        // 判断 udid 是否存在且有效
+        if (udid && udid.length > 5) {
+            NSLog(@"解析到有效 udid：%@，开始存储本地", udid);
+            [KeychainTool saveString:udid forKey:TROLLAPPS_SAVE_UDID_KEY];
+            
+            [[NewProfileViewController sharedInstance] loadUserInfo];
+            
+            // 可选：提示用户登录成功
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [SVProgressHUD showSuccessWithStatus:@"登录信息已同步"];
+                [SVProgressHUD dismissWithDelay:1.5];
+            });
+        } else {
+            NSLog(@"URL 中未包含有效 udid");
+        }
+    }
+    // 分支2：原有逻辑 - 处理文件导入（Inbox 目录文件）
+    else if ([url.path containsString:@"/Documents/Inbox/"]) {
+        NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
         // 延迟0.5秒（确保应用完全唤醒），再弹出控制器
-        NSLog(@"再弹出控制器");
+        NSLog(@"解析到文件路径，弹出文件管理控制器");
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self showDownloadManagerWithDir:inboxDir];
         });
     }
+    // 分支3：其他 URL 类型（忽略或提示）
+    else {
+        NSLog(@"未识别的 URL 类型：%@", url.absoluteString);
+    }
+    
     return YES;
+}
+
+#pragma mark - 辅助方法：解析 URL 查询参数（如 ?udid=xxx&user_id=xxx 转为字典）
+- (NSDictionary *)parseURLQueryString:(NSString *)queryString {
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    if (!queryString || queryString.length == 0) return params;
+    
+    // 分割 & 符号（多个参数）
+    NSArray *queryComponents = [queryString componentsSeparatedByString:@"&"];
+    for (NSString *component in queryComponents) {
+        // 分割 = 符号（键值对）
+        NSArray *keyValue = [component componentsSeparatedByString:@"="];
+        if (keyValue.count == 2) {
+            NSString *key = [keyValue[0] stringByRemovingPercentEncoding]; // 处理 URL 编码（如空格、特殊字符）
+            NSString *value = [keyValue[1] stringByRemovingPercentEncoding];
+            if (key && value) {
+                params[key] = value;
+            }
+        }
+    }
+    return params;
+}
+
+#pragma mark - 辅助方法：持久化存储用户信息（根据你项目的模型调整字段）
+- (void)saveUserInfoToLocal:(UserModel *)userInfo {
+    if (!userInfo) return;
+    
+    // 方案1：用 NSUserDefaults 存储（简单高效，适合少量信息）
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (userInfo.udid) [defaults setObject:userInfo.udid forKey:@"kUserUDID"];
+    if (userInfo.user_id > 0) [defaults setInteger:userInfo.user_id forKey:@"kUserID"];
+    if (userInfo.token) [defaults setObject:userInfo.token forKey:@"kUserToken"];
+    [defaults synchronize]; // 强制同步（确保立即存储）
+    
+    // 方案2：如果你的 UserModel 支持归档（yy_model、NSCoding），可存储整个模型（推荐）
+    // 示例（yy_model 归档）：
+    // NSString *userInfoJSON = [userInfo yy_modelToJSONString];
+    // [defaults setObject:userInfoJSON forKey:@"kUserInfo"];
+    // [defaults synchronize];
+    
+    NSLog(@"用户信息已持久化存储：udid=%@, user_id=%ld, token=%@", userInfo.udid, userInfo.user_id, userInfo.token);
 }
 
 

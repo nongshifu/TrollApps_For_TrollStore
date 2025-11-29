@@ -600,55 +600,25 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [SVProgressHUD dismissWithDelay:3];
         return;
     }
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":udid,
-        @"type":@"udid"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求udid用户数据:%@",stringResult);
-            if(!jsonResult && stringResult){
-                [self showAlertFromViewController:self title:@"请求返回错误" message:stringResult];
-                return;
-            }
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSString *message = jsonResult[@"message"];
+    [UserModel getUserInfoWithUdid:self.user_udid success:^(UserModel * _Nonnull userModel) {
+        self.userInfo = userModel;
+        if(self.userInfo.udid.length>5){
+            [self updateWithUserModel:self.userInfo];
             
-            if (code == 200) {
-                NSDictionary *data =jsonResult[@"data"];
-                NSLog(@"读取用户数据字典:%@",data);
-                self.userInfo = [UserModel yy_modelWithDictionary:data];
-                if(self.userInfo.udid.length>5){
-                    [self updateWithUserModel:self.userInfo];
-                    
-                    for (UserListViewController *vc in self.viewControllers) {
-                        vc.user_udid = self.userInfo.udid;
-                        [vc loadDataWithPage:1];
-                        
-                    }
-                    
-                    
-                }
+            for (UserListViewController *vc in self.viewControllers) {
+                vc.user_udid = self.userInfo.udid;
+                [vc loadDataWithPage:1];
                 
-                
-                
-            }else{
-                [self showAlertFromViewController:self title:@"请求返回错误" message:message];
             }
             
-        });
+            
+        }
         
-    } failure:^(NSError *error) {
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
         [self showAlertFromViewController:self title:@"请求返回错误" message:[NSString stringWithFormat:@"%@",error]];
     }];
+    
 }
 
 /// 更新用户模型并刷新UI

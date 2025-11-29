@@ -27,6 +27,8 @@
 
 @property (nonatomic, strong) UIButton *editButton;//编辑软件更新按钮
 @property (nonatomic, strong) UIButton *editAppStatuButton;//删除软件按照
+@property (nonatomic, assign) BOOL hasShownTipBarBubble; // 新增：标记是否已显示气泡提示
+
 
 @end
 
@@ -263,39 +265,10 @@
         [SVProgressHUD dismissWithDelay:3];
         return;
     }
-    
-    NSDictionary *dic = @{
-        @"action": @"getUserInfo",
-        @"type": @"user_id",
-        @"queryValue":self.webToolModel.udid,
-    };
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
-                                             parameters:dic
-                                                   udid:udid
-                                               progress:^(NSProgress *progress) {
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (!jsonResult && stringResult) {
-                [self showAlertFromViewController:self title:@"请求错误" message:stringResult];
-                return;
-            }
-            
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSString *msg = jsonResult[@"msg"];
-            if (code == 200) {
-                UserModel *userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                [[ContactHelper shared] showContactActionSheetWithUserInfo:userInfo];
-            } else {
-                [self showAlertFromViewController:self title:@"错误" message:msg];
-            }
-        });
-    } failure:^(NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self showAlertFromViewController:self title:@"请求错误" message:error.localizedDescription];
-        });
+    [UserModel getUserInfoWithUdid:self.webToolModel.udid success:^(UserModel * _Nonnull userModel) {
+        [[ContactHelper shared] showContactActionSheetWithUserInfo:userModel];
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        [self showAlertFromViewController:self title:@"错误" message:errorMsg];
     }];
 }
 
@@ -382,6 +355,7 @@
                 NSDictionary *tool_info = data[@"tool"];
                 NSLog(@"请求查看成功，tool_info: %@", tool_info);
                 self.webToolModel = [WebToolModel yy_modelWithDictionary:tool_info];
+                self.webToolModel.isShowAll = YES;
                 NSLog(@"请求查看工具成功，返回数据self.webToolModel: %@", self.webToolModel);
                 // 确保应用信息有效
                 if (self.webToolModel && self.webToolModel.tool_name) {
@@ -397,8 +371,9 @@
                     }
                     //显示更新按钮
                     BOOL isUpdateAPP = [self.webToolModel.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid];
-                    self.editButton.alpha = isUpdateAPP;
-                    self.editAppStatuButton.alpha = isUpdateAPP;
+                    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
+                    self.editButton.alpha = isUpdateAPP || isAdmin;
+                    self.editAppStatuButton.alpha = isUpdateAPP || isAdmin;
                     if(isUpdateAPP){
                         NSLog(@"显示更新按钮 准备更新软件:%@",self.webToolModel.tool_name);
                     }
@@ -432,7 +407,13 @@
                         [self.dataSource insertObject:tipBarModel atIndex:1];
                     }
                     
-                    [self refreshTable];
+                   
+                    //刷新
+                    [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
+                        [self updateEmptyViewVisibility];
+                        [self showBubbleOnTipBarIcon];
+                    }];
+                    
                     NSDictionary *pagination = commentsData[@"pagination"];
                     BOOL hasMore = [pagination[@"hasMore"] boolValue];
                     if(!hasMore || comments.count ==0){
@@ -442,7 +423,11 @@
                         self.page +=1;
                     }
                 }else{
-                    [self refreshTable];
+                     //刷新
+                     [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
+                         [self updateEmptyViewVisibility];
+                         [self showBubbleOnTipBarIcon];
+                     }];
                 }
                 
             } else {
@@ -648,6 +633,34 @@
             break;
     }
     
+}
+
+#pragma mark - 气泡提示
+/// 找到 TipBarCell 的 iconImageView 并显示气泡提示
+- (void)showBubbleOnTipBarIcon {
+    // 1. 避免重复显示
+    if (self.hasShownTipBarBubble) return;
+    
+    // 2. 遍历 collectionView 的可见 Cell，找到 TipBarCell
+    for (UICollectionViewCell *cell in self.collectionView.visibleCells) {
+        if ([cell isKindOfClass:[TipBarCell class]]) {
+            TipBarCell *tipBarCell = (TipBarCell *)cell;
+            
+            // 3. 确保 iconImageView 存在且已添加到视图层级
+            if (tipBarCell.iconImageView && tipBarCell.iconImageView.superview) {
+                // 4. 调用气泡工具类，指向 iconImageView，3秒后消失
+                [BubbleTipManager showBubbleTipWithText:@"点击联系作者"
+                                             targetView:tipBarCell.iconImageView
+                                                superVC:self
+                                           dismissDelay:3.0
+                                         arrowDirection:UIPopoverArrowDirectionDown];
+                
+                // 5. 标记为已显示，避免重复弹出
+                self.hasShownTipBarBubble = YES;
+                break; // 找到第一个 TipBarCell 即可，无需继续遍历
+            }
+        }
+    }
 }
 
 

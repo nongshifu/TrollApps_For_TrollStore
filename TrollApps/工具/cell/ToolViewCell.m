@@ -27,11 +27,14 @@
 @property (nonatomic, strong) UILabel *toolNameLabel;      // 工具名称（最多2行）
 @property (nonatomic, strong) UILabel *updateTimeLabel;    // 更新日期
 @property (nonatomic, strong) MiniButtonView *tagsContainerView;   // 标签按钮容器（预留）
-@property (nonatomic, strong) UILabel *descLabel;          // 简介（最多4行）
+@property (nonatomic, strong) UITextView *descTextView;        // 简介（最多4行）
 @property (nonatomic, strong) MiniButtonView *statsContainerView;  // 统计数据容器（预留）
 @property (nonatomic, strong) UIButton *useButton;         // 使用按钮
 
 @property (nonatomic, strong) NSString *commentContent;
+
+// 缓存文本高度（避免重复计算）
+@property (nonatomic, assign) CGFloat descriptionTextHeight;
 @end
 
 @implementation ToolViewCell
@@ -79,13 +82,20 @@
     self.tagsContainerView.buttonBackgroundColorAlpha = 0.5;
     [self.contentView addSubview:self.tagsContainerView];
     
-    // 5. 简介（最多4行）
-    self.descLabel = [[UILabel alloc] init];
-    self.descLabel.font = [UIFont systemFontOfSize:14];
-    self.descLabel.textColor = [UIColor secondaryLabelColor];
-    self.descLabel.numberOfLines = 4; // 最多4行
-    self.descLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    [self.contentView addSubview:self.descLabel];
+   
+    // 5. 简介（替换为UITextView，支持选择功能）
+    self.descTextView = [[UITextView alloc] init];
+    self.descTextView.font = [UIFont systemFontOfSize:14];
+    self.descTextView.textColor = [UIColor secondaryLabelColor];
+    self.descTextView.editable = NO; // 禁止编辑（仅允许选择）
+    self.descTextView.selectable = NO; // 默认不可选择（收起状态）
+    self.descTextView.userInteractionEnabled = YES; // 允许交互（才能触发选择和点击）
+    self.descTextView.backgroundColor = [UIColor clearColor]; // 透明背景，与原样式一致
+    self.descTextView.showsVerticalScrollIndicator = NO; // 隐藏滚动条
+    self.descTextView.showsHorizontalScrollIndicator = NO;
+    self.descTextView.textContainerInset = UIEdgeInsetsZero; // 清除内边距
+    self.descTextView.textContainer.lineFragmentPadding = 0; // 清除文本内边距
+    [self.contentView addSubview:self.descTextView];
     
     // 6. 统计容器（预留，用户后期实现）
     self.statsContainerView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 100, 25)];
@@ -165,7 +175,7 @@
     }];
     
     // 简介：左接contentView左侧，右接contentView右侧（占满宽度），在标签下方
-    [self.descLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.descTextView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(15);
         make.right.equalTo(self.contentView).offset(-15);
         make.top.equalTo(self.tagsContainerView.mas_bottom).offset(10);
@@ -175,7 +185,7 @@
     [self.statsContainerView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(15);
         make.right.equalTo(self.contentView).offset(-15);
-        make.top.equalTo(self.descLabel.mas_bottom).offset(8);
+        make.top.equalTo(self.descTextView.mas_bottom).offset(8);
         make.height.equalTo(@25);
         make.bottom.lessThanOrEqualTo(self.contentView.mas_bottom).offset(-15); // 底部与contentView底部间距15
     }];
@@ -190,7 +200,7 @@
     // 绑定数据到UI
     self.toolNameLabel.text = self.toolModel.tool_name;
     self.updateTimeLabel.text = [NSString stringWithFormat:@"更新于：%@", [TimeTool getTimeDiyWithString:self.toolModel.update_time]];
-    self.descLabel.text = self.toolModel.tool_description;
+    self.descTextView.text = self.toolModel.tool_description;
     
     // 头像占位（实际项目中替换为工具图标URL）
     self.avatarImgView.image = [UIImage systemImageNamed:@"doc.text.fill"]; // 系统占位图
@@ -212,10 +222,23 @@
         
     }];
     
-    [self.descLabel mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.contentView).offset(15);
-        make.right.equalTo(self.contentView).offset(-15);
-        make.top.equalTo(self.tagsContainerView.mas_bottom).offset(10);
+    // 计算文本宽度（和TextView约束宽度一致）
+    CGFloat textWidth = CGRectGetWidth(self.contentView.frame) - 32; // left+right=16+16=32
+    UIFont *font = self.descTextView.font;
+    
+    if (self.toolModel.isShowAll) {
+        // 展开状态：自适应全部内容高度
+        self.descriptionTextHeight = [self calculateTextHeight:self.descTextView.text width:textWidth font:font lineLimit:0];
+        self.descTextView.selectable = YES; // 默认不用允许选中 展开才选择
+    } else {
+        // 折叠状态：限制3行高度
+        self.descriptionTextHeight = [self calculateTextHeight:self.descTextView.text width:textWidth font:font lineLimit:3];
+        self.descTextView.selectable = NO; // 默认不用允许选中 展开才选择
+    }
+    
+    [self.descTextView mas_updateConstraints:^(MASConstraintMaker *make) {
+    
+        make.height.equalTo(@(self.descriptionTextHeight));
     }];
     
     //更新统计信息
@@ -312,6 +335,38 @@
         return [NSString stringWithFormat:@"%.2fW", count / 10000.0];
     }
 }
+
+// 计算文本高度（核心工具方法）
+- (CGFloat)calculateTextHeight:(NSString *)text width:(CGFloat)width font:(UIFont *)font lineLimit:(NSInteger)lineLimit {
+    if (text.length == 0) return 0;
+    
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+    
+    // 计算无限制行数时的高度
+    CGSize unlimitedSize = [text boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX)
+                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                           attributes:@{NSFontAttributeName:font,
+                                                        NSParagraphStyleAttributeName:paragraphStyle}
+                                              context:nil].size;
+    
+    if (lineLimit <= 0) {
+        // 无行数限制：返回实际高度
+        return ceil(unlimitedSize.height);
+    } else {
+        // 有行数限制：计算单行高度，乘以行数
+        CGFloat singleLineHeight = [@"测试" boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX)
+                                                         options:NSStringDrawingUsesLineFragmentOrigin
+                                                      attributes:@{NSFontAttributeName:font}
+                                                         context:nil].size.height;
+        CGFloat limitHeight = singleLineHeight * lineLimit;
+        
+        // 返回「实际高度」和「限制高度」的最小值
+        return MIN(ceil(unlimitedSize.height), ceil(limitHeight));
+    }
+}
+
+
 
 #pragma mark - 布局更新
 

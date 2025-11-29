@@ -48,65 +48,30 @@
 }
 
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
-    
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":udid,
-        @"type":@"udid"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求udid用户数据:%@",stringResult);
-            if (jsonResult &&
-                [jsonResult[@"status"] isEqualToString:@"success"]) {
-                self.userModel = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                
-            }
-        });
-    } failure:^(NSError *error) {
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
+        self.userModel = userModel;
+        if(self.userModel.udid.length>5){
+            [KeychainTool saveString:self.userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
+        }
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
     }];
+    
 }
 
 - (void)fetchUserInfoFromServerWithIDFV:(NSString *)idfv {
-    
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":idfv,
-        @"type":@"idfv"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:idfv progress:^(NSProgress *progress) {
+    [UserModel getUserInfoWithIDFV:[self getIDFV] success:^(UserModel * _Nonnull userModel) {
+        self.userModel = userModel;
+        if(self.userModel.udid.length>5){
+            [KeychainTool saveString:self.userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
+        }
         
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求idfv用户数据:%@",stringResult);
-            if(!jsonResult){
-               
-                return;
-            }
-            NSInteger code = [jsonResult[@"code"] intValue];
-            
-            if (code == 200) {
-                
-                self.userModel = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                NSLog(@"请求idfv用户数据:%@",self.userModel);
-                
-            }
-        });
-    } failure:^(NSError *error) {
-        NSLog(@"从服务器获取IDFV 读取资料失败：%@",error);
-        
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
         
     }];
+    
 }
 
 /// 获取本地存储的UDID

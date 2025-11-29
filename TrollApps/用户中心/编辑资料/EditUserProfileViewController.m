@@ -363,70 +363,52 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         }];
         return;
     }
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":udid,
-        @"type":@"udid"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求udid用户数据:%@",stringResult);
-            if (jsonResult &&
-                [jsonResult[@"status"] isEqualToString:@"success"]) {
-                UserModel *user = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                if(user && user.udid.length>5){
-                    [NewProfileViewController sharedInstance].userInfo = user;
-                    self.userInfo = user;
-                    // 加载头像
-                    if (user.avatar.length > 0) {
-                        // 假设avatar是URL
-                        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,user.avatar,(long)[NSDate date].timeIntervalSince1970]];
-                        [self.avatarImageView sd_setImageWithURL:avatarURL placeholderImage:[UIImage imageNamed:@"default_avatar"]];
-                    } else {
-                        self.avatarImageView.image = [UIImage imageNamed:@"default_avatar"];
-                    }
-                    
-                    
-                    // 设置其他信息
-                    self.nicknameTextField.text = user.nickname;
-                    self.phoneTextField.text = user.phone;
-                    self.emailTextField.text = user.email;
-                    
-                    // 设置社交账号
-                    self.wechatTextField.text = user.wechat ?: @"";
-                    self.qqTextField.text = user.qq ?: @"";
-                    self.tgTextField.text = user.tg ?: @"";
-                    
-                    // 设置性别
-                    self.genderSegmentedControl.selectedSegmentIndex = user.gender;
-                    //隐私
-                    self.genderSegmentedControl.selectedSegmentIndex = user.isShowFollows;
-                    
-                    // 设置个人简介
-                    self.bioTextView.text = user.bio ?: @"";
-                    [self updateBioCountLabel];
-                    
-                    // 设置VIP状态
-                    if ([UserModel isVIPExpiredWithDate:user.vip_expire_date]) {
-                        self.vipLabel.text = @"普通用户";
-                        self.vipLabel.textColor = [UIColor systemGrayColor];
-                    } else {
-                        self.vipLabel.text = [NSString stringWithFormat:@"VIP %ld · 到期日: %@", (long)user.vip_level, [TimeTool getTimeformatDate:user.vip_expire_date]];
-                        self.vipLabel.textColor = [UIColor systemOrangeColor];
-                    }
-                }
-                
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
+        if(userModel && userModel.udid.length>5){
+            [NewProfileViewController sharedInstance].userInfo = userModel;
+            self.userInfo = userModel;
+            // 加载头像
+            if (userModel.avatar.length > 0) {
+                // 假设avatar是URL
+                NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+                [self.avatarImageView sd_setImageWithURL:avatarURL placeholderImage:[UIImage imageNamed:@"default_avatar"]];
+            } else {
+                self.avatarImageView.image = [UIImage imageNamed:@"default_avatar"];
             }
-        });
-    } failure:^(NSError *error) {
-        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
+            
+            
+            // 设置其他信息
+            self.nicknameTextField.text = userModel.nickname;
+            self.phoneTextField.text = userModel.phone;
+            self.emailTextField.text = userModel.email;
+            
+            // 设置社交账号
+            self.wechatTextField.text = userModel.wechat ?: @"";
+            self.qqTextField.text = userModel.qq ?: @"";
+            self.tgTextField.text = userModel.tg ?: @"";
+            
+            // 设置性别
+            self.genderSegmentedControl.selectedSegmentIndex = userModel.gender;
+            //隐私
+            self.genderSegmentedControl.selectedSegmentIndex = userModel.isShowFollows;
+            
+            // 设置个人简介
+            self.bioTextView.text = userModel.bio ?: @"";
+            [self updateBioCountLabel];
+            
+            // 设置VIP状态
+            if ([UserModel isVIPExpiredWithDate:userModel.vip_expire_date]) {
+                self.vipLabel.text = @"普通用户";
+                self.vipLabel.textColor = [UIColor systemGrayColor];
+            } else {
+                self.vipLabel.text = [NSString stringWithFormat:@"VIP %ld · 到期日: %@", (long)userModel.vip_level, [TimeTool getTimeformatDate:userModel.vip_expire_date]];
+                self.vipLabel.textColor = [UIColor systemOrangeColor];
+            }
+        }
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         
     }];
+    
     
 }
 

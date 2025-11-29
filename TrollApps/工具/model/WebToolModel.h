@@ -109,6 +109,8 @@ typedef NS_ENUM(NSInteger, WebToolStatus) {
 
 @property (nonatomic, strong, nullable) NSString * icon_url;//软件图标URL
 
+@property (nonatomic, assign) BOOL isShowAll;
+
 // 获取状态的字符串描述
 - (NSString *)statusDescription;
 

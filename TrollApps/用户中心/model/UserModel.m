@@ -188,8 +188,9 @@
         @"type": type, // type 为 @"user_id" 或 @"udid"
         @"queryValue": queryValue
     };
+    NSLog(@"查询用户数据请求：%@",params);
     NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :@"";
+    NSString *udid = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY] ? [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY] :@"";
     if(udid.length<5){
         [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];
         [SVProgressHUD dismissWithDelay:4];
@@ -203,6 +204,8 @@
                        progress:nil
                         success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"查询用户数据返回jsonResult：%@",jsonResult);
+            NSLog(@"查询用户数据返回stringResult：%@",stringResult);
             if (!jsonResult && stringResult) {
                 NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-2 userInfo:@{NSLocalizedDescriptionKey: stringResult}];
                 if (failure) failure(error, stringResult);
@@ -212,6 +215,7 @@
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString *msg = jsonResult[@"msg"] ?: @"获取用户信息失败";
             if (code == 200) {
+                NSLog(@"查询用户数据返回：%@",jsonResult[@"data"]);
                 UserModel *userModel = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
                 if (success) success(userModel);
             } else {
@@ -238,6 +242,12 @@
                     success:(UserInfoSuccessBlock)success
                     failure:(UserInfoFailureBlock)failure {
     [self getUserInfoWithType:@"udid" queryValue:udid success:success failure:failure];
+}
+#pragma mark - 外部调用接口（通过idfv获取）
++ (void)getUserInfoWithIDFV:(NSString *)idfv
+                    success:(UserInfoSuccessBlock)success
+                    failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithType:@"idfv" queryValue:idfv success:success failure:failure];
 }
 
 @end

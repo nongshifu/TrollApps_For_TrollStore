@@ -211,17 +211,15 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - UDID本地存储
 /// 保存UDID到本地
 - (void)saveUDID:(NSString *)udid {
-    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:udid forKey:[vendorID UUIDString]];
-    [defaults synchronize];
+    [KeychainTool saveString:udid forKey:TROLLAPPS_SAVE_UDID_KEY];
 }
 
 /// 获取本地存储的UDID
 - (NSString *)getUDID {
     // 优先从本地存储获取（通过描述文件获取的UDID）
-    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
-    NSString *savedUDID = [[NSUserDefaults standardUserDefaults] stringForKey:[vendorID UUIDString]];
+   
+    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
+    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
     if (savedUDID.length > 0) {
         return savedUDID;
     }
@@ -575,6 +573,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)updateUserInfoWithUserModel:(UserModel *)userModel {
     NSLog(@"请求idfv用户数据nickname:%@",userModel.nickname);
     if (!userModel) return;
+    if(userModel.udid.length>5){
+        [KeychainTool saveString:userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
+    }
     
     // 保存最新用户模型
     self.userInfo = userModel;
@@ -718,7 +719,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - 数据加载与处理
 - (void)loadUserInfo {
     NSString *udid = [self getUDID];
+    NSLog(@"loadUserInfo_getUDID:%@",udid)
     if (udid.length > 0) {
+        NSLog(@"成功读取到UDID:%@",udid);
         [self fetchUserInfoFromServerWithUDID:udid];
     } else {
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
@@ -726,84 +729,36 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
-
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":udid,
-        @"type":@"udid"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求udid用户数据:%@",stringResult);
-            if (jsonResult &&
-                [jsonResult[@"status"] isEqualToString:@"success"]) {
-                self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                [self updateUserInfoWithUserModel:self.userInfo];
-            }else{
-                [self registerUser:udid  nickname:@"萌新用户"];
-            }
-        });
-    } failure:^(NSError *error) {
-        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
+        self.userInfo = userModel;
+        [self updateUserInfoWithUserModel:self.userInfo];
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
     }];
+
 }
 
 - (void)fetchUserInfoFromServerWithIDFV:(NSString *)idfv {
-    
-    NSDictionary *dic = @{
-        @"action":@"getUserInfo",
-        @"udid":idfv,
-        @"type":@"idfv"
-    };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
-                                             parameters:dic
-                                                   udid:idfv progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+    [UserModel getUserInfoWithIDFV:idfv success:^(UserModel * _Nonnull userModel) {
+        self.userInfo = userModel;
+        [self updateUserInfoWithUserModel:self.userInfo];
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求idfv用户数据:%@",stringResult);
-            if(!jsonResult){
-                [SVProgressHUD showErrorWithStatus:@"读取数据失败"];
-                [SVProgressHUD dismissWithDelay:3];
-                return;
-            }
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSString *msg = jsonResult[@"msg"];
-            if (code == 200) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序" preferredStyle:UIAlertControllerStyleAlert];
+            // 添加取消按钮
+            UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                 
-                self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
-                NSLog(@"请求idfv用户数据:%@",self.userInfo);
-                [self updateUserInfoWithUserModel:self.userInfo];
-            }else{
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序" preferredStyle:UIAlertControllerStyleAlert];
-                // 添加取消按钮
-                UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                    
-                    
-                }];
-                [alert addAction:cancelAction];
-                UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [self registerUser:idfv nickname:@"游客用户"];
-                }];
-                [alert addAction:confirmAction];
-                [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
-            }
-        });
-    } failure:^(NSError *error) {
-        NSLog(@"从服务器获取IDFV 读取资料失败：%@",error);
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [SVProgressHUD showErrorWithStatus:@"读取用户资料失败\n可尝试刷新"];
-            [SVProgressHUD dismissWithDelay:2];
-
+                
+            }];
+            [alert addAction:cancelAction];
+            UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [self registerUser:idfv nickname:@"游客用户"];
+            }];
+            [alert addAction:confirmAction];
+            [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
         });
     }];
+    
 }
 
 - (void)registerUser:(NSString*)udid nickname:(NSString*)nickname{
@@ -832,8 +787,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             }
         });
     } failure:^(NSError *error) {
-        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
-        [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
+        NSLog(@"注册用户失败：%@",error);
+        [SVProgressHUD showErrorWithStatus:@"注册失败"];
+        [SVProgressHUD dismissWithDelay:3];
     }];
 }
 
@@ -1233,11 +1189,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET
                                               urlString:remoteURL
                                              parameters:nil // 无额外参数
-                                                   udid:self.userInfo.udid
+                                                   udid:self.userInfo.udid?self.userInfo.udid:[self getIDFV]
                                                progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
+            NSLog(@"vip.jsonstringResult：%@", stringResult);
 
             // 3. 严格解析JSON结构（status=success + data=数组）
             if (!jsonResult) {

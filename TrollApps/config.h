@@ -26,6 +26,9 @@
 /// 获取底部安全区域高度（包括底部栏，如果有）的宏  注释：这个宏返回设备底部安全区域的高度，主要用于处理 iPhone X 及后续设备的底部手势区域和可能存在的底部栏。确保视图在不同设备上正确布局，不会被底部区域遮挡。
 #define get_BOTTOM_SAFE_AREA_HEIGHT ([[UIApplication sharedApplication] delegate].window.safeAreaInsets.bottom > 0? [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bottom : 0)
 
+
+
+
 //主域名
 #define localURL @"https://niceiphone.com"
 
@@ -53,21 +56,20 @@
 #import <SDWebImage/SDWebImageManager.h>
 #import "JXCategoryView.h"
 #import <RongIMKit/RongIMKit.h>
-#import <AliyunOSSiOS/OSSService.h>//阿里网盘
+
 //IM组件
 #import <RongIMKit/RongIMKit.h>
 #import <RongIMLib/RongIMLib.h>
 //自开发组件
-
-#import "TimeTool.h"
-#import "UIView.h"
-#import "UIColor.h"
-#import "KeychainTool.h"
-#import "TimeTool.h"
-#import "NetworkClient.h"
+#import "BubbleTipManager.h"//气泡提示
+#import "TimeTool.h"//时间辅助函数
+#import "UIView.h"//重新视图
+#import "UIColor.h"//颜色辅助
+#import "KeychainTool.h"//钥匙串
+#import "NetworkClient.h"//网络封装
 #import "ExpandableIconButton.h"//旋转发布按钮
-#import "UIImage+Extensions.h"
-#import "BaseBottomSheetVC.h"
+#import "UIImage+Extensions.h"//uiimage对象拓展
+#import "BaseBottomSheetVC.h"//底部弹出控制器
 
 //第三方
 #import "HXPhotoPicker.h"
@@ -85,6 +87,9 @@ NS_ASSUME_NONNULL_BEGIN
 #define kWidth  [UIScreen mainScreen].bounds.size.width
 ///整个屏幕宽度
 #define kHeight [UIScreen mainScreen].bounds.size.height
+//本地储存udid的KEY
+#define TROLLAPPS_SAVE_UDID_KEY @"TROLLAPPS_SAVE_UDID_KEY"
+
 
 
 

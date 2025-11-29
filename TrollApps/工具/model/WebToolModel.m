@@ -36,16 +36,17 @@
                 && [self.tags isEqualToArray:other.tags]
                 && (self.tool_status == other.tool_status)
     
+                && (self.isShowAll == other.isShowAll)
                 && (self.like_count == other.like_count)
-    && (self.isLike == other.isLike)
+                && (self.isLike == other.isLike)
                 && (self.dislike_count == other.dislike_count)
-    && (self.isDislike == other.isDislike)
+                && (self.isDislike == other.isDislike)
                 && (self.collect_count == other.collect_count)
-    && (self.isCollect == other.isCollect)
+                && (self.isCollect == other.isCollect)
                 && (self.share_count == other.share_count)
-    && (self.isShare == other.isShare)
+                && (self.isShare == other.isShare)
                 && (self.comment_count == other.comment_count)
-    && (self.isComment == other.isComment)
+                && (self.isComment == other.isComment)
                 && (self.view_count == other.view_count)
     
     

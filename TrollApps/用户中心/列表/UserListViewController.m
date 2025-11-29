@@ -285,7 +285,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                     
                 }else{
                     NSLog(@"数据搜索失败出错: %@", message);
-                    [SVProgressHUD showErrorWithStatus:message];
+                    [SVProgressHUD showSuccessWithStatus:message];
                     [SVProgressHUD dismissWithDelay:2 completion:^{
                         return;
                     }];
