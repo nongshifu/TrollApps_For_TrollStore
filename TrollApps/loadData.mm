@@ -41,24 +41,27 @@
 - (void)loadUserInfo {
     NSString *udid = [self getUDID];
     if (udid.length > 0) {
+        if(self.userModel.udid.length>5){
+            [KeychainTool saveString:self.userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
+        }
         [self fetchUserInfoFromServerWithUDID:udid];
     } else {
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
     }
 }
 
+
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
     [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
         self.userModel = userModel;
-        if(self.userModel.udid.length>5){
-            [KeychainTool saveString:self.userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
-        }
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
     }];
     
 }
+
+
 
 - (void)fetchUserInfoFromServerWithIDFV:(NSString *)idfv {
     [UserModel getUserInfoWithIDFV:[self getIDFV] success:^(UserModel * _Nonnull userModel) {
@@ -77,8 +80,9 @@
 /// 获取本地存储的UDID
 - (NSString *)getUDID {
     // 优先从本地存储获取（通过描述文件获取的UDID）
-    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
-    NSString *savedUDID = [[NSUserDefaults standardUserDefaults] stringForKey:[vendorID UUIDString]];
+   
+    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
+    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
     if (savedUDID.length > 0) {
         return savedUDID;
     }

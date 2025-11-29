@@ -151,6 +151,7 @@
 		C2E44CD72EDAD35F00110348 /* AppVersionHistoryCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C492EDAD35E00110348 /* AppVersionHistoryCell.m */; };
 		C2E44CD82EDAD35F00110348 /* AppVersionHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */; };
 		C2E44CD92EDAD35F00110348 /* AppVersionHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */; };
+		C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CDF2EDAE3F200110348 /* SendMessage.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -438,6 +439,8 @@
 		C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryViewController.m; sourceTree = "<group>"; };
 		C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppVersionHistoryModel.m; sourceTree = "<group>"; };
 		C2E44CDA2EDAD3E100110348 /* Root.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Root.entitlements; sourceTree = "<group>"; };
+		C2E44CDE2EDAE3F200110348 /* SendMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SendMessage.h; sourceTree = "<group>"; };
+		C2E44CDF2EDAE3F200110348 /* SendMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SendMessage.m; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -493,21 +496,21 @@
 				C2E44B672EDAD35C00110348 /* AppDelegate.h */,
 				C2E44B002EDAD35C00110348 /* AppDelegate.m */,
 				C2E44BE02EDAD35D00110348 /* Apps */,
+				4F639DF82272E94C00776206 /* Assets.xcassets */,
 				C2E44B5C2EDAD35C00110348 /* CommentInputView */,
+				C28720712E25432100ABC6AE /* config.h */,
+				4F639DFD2272E94C00776206 /* Info.plist */,
+				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
 				C2E44B762EDAD35D00110348 /* loadData.h */,
 				C2E44B8B2EDAD35D00110348 /* loadData.mm */,
+				4F639DFE2272E94C00776206 /* main.m */,
 				C2E44C072EDAD35D00110348 /* model */,
+				C28720CE2E27D87900ABC6AE /* Podfile */,
+				C2E44CDA2EDAD3E100110348 /* Root.entitlements */,
+				C287212C2E28262400ABC6AE /* RootSign.entitlements */,
 				C2E44B3A2EDAD35C00110348 /* runInBg */,
 				4F639DF22272E94500776206 /* ViewController.h */,
 				4F639DF32272E94500776206 /* ViewController.m */,
-				C28720712E25432100ABC6AE /* config.h */,
-				4F639DF82272E94C00776206 /* Assets.xcassets */,
-				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
-				C287212C2E28262400ABC6AE /* RootSign.entitlements */,
-				C2E44CDA2EDAD3E100110348 /* Root.entitlements */,
-				C28720CE2E27D87900ABC6AE /* Podfile */,
-				4F639DFD2272E94C00776206 /* Info.plist */,
-				4F639DFE2272E94C00776206 /* main.m */,
 			);
 			path = TrollApps;
 			sourceTree = "<group>";
@@ -832,14 +835,16 @@
 		C2E44B772EDAD35D00110348 /* 融云 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B782EDAD35D00110348 /* ToolMessage.h */,
+				C2E44B7E2EDAD35D00110348 /* ChatListViewController.h */,
 				C2E44B792EDAD35D00110348 /* ChatListViewController.m */,
-				C2E44B7A2EDAD35D00110348 /* ToolMessageCell.m */,
-				C2E44B7B2EDAD35D00110348 /* TTCHATViewController.h */,
+				C2E44B782EDAD35D00110348 /* ToolMessage.h */,
 				C2E44B7C2EDAD35D00110348 /* ToolMessage.m */,
 				C2E44B7D2EDAD35D00110348 /* ToolMessageCell.h */,
-				C2E44B7E2EDAD35D00110348 /* ChatListViewController.h */,
+				C2E44B7A2EDAD35D00110348 /* ToolMessageCell.m */,
+				C2E44B7B2EDAD35D00110348 /* TTCHATViewController.h */,
 				C2E44B7F2EDAD35D00110348 /* TTCHATViewController.m */,
+				C2E44CDE2EDAE3F200110348 /* SendMessage.h */,
+				C2E44CDF2EDAE3F200110348 /* SendMessage.m */,
 			);
 			path = "融云";
 			sourceTree = "<group>";
@@ -997,16 +1002,16 @@
 		C2E44BC52EDAD35D00110348 /* 表格控制器模板TemplateListController */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BC62EDAD35D00110348 /* TemplateListController.m */,
-				C2E44BC72EDAD35D00110348 /* TemplateSectionController.m */,
-				C2E44BC82EDAD35D00110348 /* EmptyView.h */,
-				C2E44BC92EDAD35D00110348 /* TemplateCell.h */,
-				C2E44BCA2EDAD35D00110348 /* CellHeightCache.m */,
-				C2E44BCB2EDAD35D00110348 /* TemplateListController.h */,
-				C2E44BCC2EDAD35D00110348 /* TemplateSectionController.h */,
-				C2E44BCD2EDAD35D00110348 /* TemplateCell.m */,
-				C2E44BCE2EDAD35D00110348 /* EmptyView.m */,
 				C2E44BCF2EDAD35D00110348 /* CellHeightCache.h */,
+				C2E44BCA2EDAD35D00110348 /* CellHeightCache.m */,
+				C2E44BC82EDAD35D00110348 /* EmptyView.h */,
+				C2E44BCE2EDAD35D00110348 /* EmptyView.m */,
+				C2E44BC92EDAD35D00110348 /* TemplateCell.h */,
+				C2E44BCD2EDAD35D00110348 /* TemplateCell.m */,
+				C2E44BCB2EDAD35D00110348 /* TemplateListController.h */,
+				C2E44BC62EDAD35D00110348 /* TemplateListController.m */,
+				C2E44BCC2EDAD35D00110348 /* TemplateSectionController.h */,
+				C2E44BC72EDAD35D00110348 /* TemplateSectionController.m */,
 			);
 			path = "表格控制器模板TemplateListController";
 			sourceTree = "<group>";
@@ -1056,11 +1061,11 @@
 		C2E44BE02EDAD35D00110348 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BE12EDAD35D00110348 /* AppsViewController.h */,
 				C2E44BE22EDAD35D00110348 /* 发布APP */,
-				C2E44BF72EDAD35D00110348 /* 列表 */,
-				C2E44C032EDAD35D00110348 /* AppsViewController.mm */,
 				C2E44C042EDAD35D00110348 /* 分类管理 */,
+				C2E44BF72EDAD35D00110348 /* 列表 */,
+				C2E44BE12EDAD35D00110348 /* AppsViewController.h */,
+				C2E44C032EDAD35D00110348 /* AppsViewController.mm */,
 			);
 			path = Apps;
 			sourceTree = "<group>";
@@ -1123,10 +1128,10 @@
 		C2E44BF72EDAD35D00110348 /* 列表 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BF82EDAD35D00110348 /* AppListViewController.m */,
-				C2E44BF92EDAD35D00110348 /* ShowOneAppViewController.h */,
-				C2E44BFA2EDAD35D00110348 /* cell */,
 				C2E44C012EDAD35D00110348 /* AppListViewController.h */,
+				C2E44BF82EDAD35D00110348 /* AppListViewController.m */,
+				C2E44BFA2EDAD35D00110348 /* cell */,
+				C2E44BF92EDAD35D00110348 /* ShowOneAppViewController.h */,
 				C2E44C022EDAD35D00110348 /* ShowOneAppViewController.m */,
 			);
 			path = "列表";
@@ -1562,6 +1567,7 @@
 				C2E44CB72EDAD35E00110348 /* AppListViewController.m in Sources */,
 				C2E44CA02EDAD35E00110348 /* DownloadProgressView.m in Sources */,
 				C2E44CA82EDAD35E00110348 /* EmptyView.m in Sources */,
+				C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */,
 				C2E44CBA2EDAD35E00110348 /* AppInfoCell.m in Sources */,
 				C2E44C662EDAD35E00110348 /* RunInBackground.mm in Sources */,
 				C2E44C9B2EDAD35E00110348 /* DylibHistoryController.m in Sources */,

@@ -650,7 +650,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         self.followButtom.selected = YES;
         self.followButtom.backgroundColor = [UIColor systemBlueColor];
     }
-    if([userModel.udid isEqual:self.user_udid]){
+    if([userModel.udid isEqual:[NewProfileViewController sharedInstance].userInfo.udid]){
         self.followButtom.backgroundColor = [UIColor systemGrayColor];
         [self.followButtom setTitle:@"自己" forState:UIControlStateNormal];
         [self.followButtom setTitle:@"自己" forState:UIControlStateSelected];
@@ -782,6 +782,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     return YES;
 }
 
+
+#pragma mark - 关注按钮的点击
+
 //查看粉丝列表
 - (void)followButtomTap:(UIButton *)sender {
  
@@ -791,8 +794,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self requestFollowAction:!isFollow];
 }
 
-#pragma mark - 关注按钮的点击
-
+// 显示关注列表
 - (void)showFollowListButtonTap:(UIButton *)sender {
     if(!self.userInfo.isShowFollows){
         [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"对方设置了隐私-无法查看哦"];
@@ -848,6 +850,13 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 BOOL isFollow = [data[@"isFollow"] boolValue];
                 self.followButtom.selected = isFollow;
                 self.followButtom.backgroundColor = isFollow ? [UIColor systemBlueColor]:[UIColor systemPinkColor];
+                if(isFollow){
+                    [SendMessage sendRCIMTextMessageToUDID:self.user_udid messageText:@"我关注你了" success:^{
+                        
+                    } error:^(NSString * _Nonnull errorMsg) {
+                        
+                    }];
+                }
                 
             }
             [SVProgressHUD showSuccessWithStatus:msg];

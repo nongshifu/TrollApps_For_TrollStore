@@ -449,7 +449,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         controller.view.backgroundColor = [UIColor clearColor];
         [controller.view removeDynamicBackground];
         [self.viewControllers addObject:controller];
-        [controller refreshLoadInitialData];
+        //更新空视图状态
+        [controller updateEmptyViewVisibility];
+        
     }
 }
 
@@ -475,6 +477,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [self addChildViewController:self.pageViewController];
     [self.view addSubview:self.pageViewController.view];
     [self.pageViewController didMoveToParentViewController:self];
+    //读取第一页数据
+    [self.currentVC refreshLoadInitialData];
 }
 
 // 右侧排序按钮
@@ -770,6 +774,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         NSLog(@"currentPageIndex:%ld",self.currentPageIndex);
         
         [self switchTabsWithIndex:self.currentPageIndex];
+        
+        
     }
 }
 
@@ -814,6 +820,10 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSArray *titles = @[@"分类", @"收藏", @"下载"];
     NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"icloud.and.arrow.down"];
     [self.bottomButton updateButtonsWithStrings:titles icons:icons];
+    if(self.currentVC.dataSource.count==0){
+        //读取第一页数据
+        [self.currentVC refreshLoadInitialData];
+    }
     
 }
 

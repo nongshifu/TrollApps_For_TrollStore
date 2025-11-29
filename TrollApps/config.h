@@ -70,6 +70,7 @@
 #import "ExpandableIconButton.h"//旋转发布按钮
 #import "UIImage+Extensions.h"//uiimage对象拓展
 #import "BaseBottomSheetVC.h"//底部弹出控制器
+#import "SendMessage.h"//发送融云消息
 
 //第三方
 #import "HXPhotoPicker.h"
