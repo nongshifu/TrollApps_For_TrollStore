@@ -722,6 +722,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSLog(@"loadUserInfo_getUDID:%@",udid)
     if (udid.length > 0) {
         NSLog(@"成功读取到UDID:%@",udid);
+        [KeychainTool saveString:udid forKey:TROLLAPPS_SAVE_UDID_KEY];
         [self fetchUserInfoFromServerWithUDID:udid];
     } else {
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];

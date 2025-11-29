@@ -1,0 +1,15 @@
+//
+//  TrollApps-Prefix.pch
+//  TrollApps
+//
+//  Created by 十三哥 on 2025/11/29.
+//  Copyright © 2025 iOS_阿玮. All rights reserved.
+//
+
+#ifndef TrollApps_Prefix_pch
+#define TrollApps_Prefix_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#endif /* TrollApps_Prefix_pch */
