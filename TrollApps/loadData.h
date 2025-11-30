@@ -18,7 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) NSMutableArray<NSString *> *tags; // 标签按钮集合
 @property (nonatomic, strong) UserModel *userModel; // 用户
-
+//刷新融云
+- (void)refreshUserInfoCache:(UserModel *)userModel;
 @end
 
 NS_ASSUME_NONNULL_END

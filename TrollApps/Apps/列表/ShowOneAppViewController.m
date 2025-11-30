@@ -17,14 +17,7 @@
 #import "CommentInputView.h"
 #import "CommentModel.h"
 #import "ContactHelper.h"
-//是否打印
-#define MY_NSLog_ENABLED YES
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 @interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论

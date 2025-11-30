@@ -15,6 +15,8 @@
 #import <Masonry/Masonry.h>
 #import "FileInstallManager.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface AppVersionHistoryViewController ()<TemplateSectionControllerDelegate>
 @property (nonatomic, strong) NSString * keyword;//搜索关键字
@@ -49,6 +51,7 @@
         @"keyword":self.keyword?:@"",
         @"action":@"searchVersions",
     };
+    NSLog(@"搜索版本列表请求:%@",dic);
     NSString *url = [NSString stringWithFormat:@"%@/admin/app_version_api.php",localURL];
     //执行搜索
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
@@ -68,8 +71,7 @@
                 NSLog(@"返回字典格式错误:%@",stringResult);
                 [SVProgressHUD showErrorWithStatus:stringResult];
                 [SVProgressHUD dismissWithDelay:3];
-                //调用基类弹出函数
-//                [self showAlertFromViewController:self title:@"返回数据错误" message:stringResult];
+
                 return;
             }
             //数据正常 开始解析
@@ -205,64 +207,64 @@
 }
 
 - (void)updateLatestAppVersionUI:(AppVersionHistoryModel*)appVersionHistoryModel {
-    // 1. 读取服务端版本信息
+    // 1. 读取服务端版本信息（确保非空，避免崩溃）
     NSInteger latestVersionCode = appVersionHistoryModel.version_code; // 服务器版本号（整数）
-    NSString *latestVersionName = appVersionHistoryModel.version_name; // 服务器版本名称（如"1.2.0"）
+    NSString *latestVersionName = appVersionHistoryModel.version_name ?: @""; // 服务器版本名称（如"10.0.5"）
     NSLog(@"服务器版本 - code:%ld, name:%@", latestVersionCode, latestVersionName);
     
-    // 2. 读取本地版本信息（从Info.plist）
-    NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+    // 2. 读取本地版本信息（从Info.plist，确保非空处理）
+    NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"0";
     NSInteger localVersionCode = [localVersionCodeStr integerValue]; // 本地版本号（整数）
-    NSString *localVersionName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"]; // 本地版本名称（如"1.1.0"）
+    NSString *localVersionName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @""; // 本地版本名称（如"10.0.6"）
     NSLog(@"本地版本 - code:%ld, name:%@", localVersionCode, localVersionName);
     
-    // 3. 版本号判断：服务器版本号 > 本地版本号（修复原逻辑的!=问题）
+    // 3. 版本号判断：服务器版本号 > 本地版本号 → 需要更新
     BOOL isCodeNeedUpdate = (latestVersionCode > localVersionCode);
     
-    // 4. 版本名称判断：服务器版本名称 > 本地版本名称（使用新增工具方法）
-    BOOL isNameNeedUpdate = [[self class] versionName:localVersionName isLessThan:latestVersionName];
+    // 4. 版本名称判断：服务器版本名称 > 本地版本名称 → 需要更新（用语义化比较）
+    BOOL isNameNeedUpdate = NO;
+    if (latestVersionName.length > 0 && localVersionName.length > 0) {
+        // 调用工具方法：比较服务器版本名和本地版本名
+        NSComparisonResult result = [self compareSemanticVersion:latestVersionName withVersion2:localVersionName];
+        isNameNeedUpdate = (result == NSOrderedDescending); // 服务器版本名 > 本地 → 需要更新
+    }
     
-    // 5. 最终需要更新的条件：版本号和版本名称均满足更新（确保两者同步）
+    // 5. 最终需要更新的条件：版本号 或 版本名称 满足更新（两者任一满足即可）
     BOOL needUpdate = isCodeNeedUpdate || isNameNeedUpdate;
     
     // 6. 更新按钮UI
     if (needUpdate) {
+        NSLog(@"发现新版：服务器版本高于本地");
         self.titleLabel.text = @"发现新版";
-        [self.downloadButton setTitle:[NSString stringWithFormat:@"当前:%@ 下载新版:%@", localVersionName,latestVersionName] forState:UIControlStateNormal];
+        [self.downloadButton setTitle:[NSString stringWithFormat:@"当前:%@ 下载新版:%@", localVersionName, latestVersionName] forState:UIControlStateNormal];
         self.downloadButton.enabled = YES;
         self.downloadButton.backgroundColor = [UIColor systemBlueColor];
     } else {
+        NSLog(@"无需更新：本地版本已是最新（或高于服务器）");
         [self.downloadButton setTitle:[NSString stringWithFormat:@"已是最新版(%@)", localVersionName] forState:UIControlStateNormal];
         self.downloadButton.enabled = NO;
         self.downloadButton.backgroundColor = [UIColor lightGrayColor];
     }
 }
-
-// 比较两个版本名称（如"1.0.2"和"1.1.0"），返回YES表示version1 < version2（需要更新）
-+ (BOOL)versionName:(NSString *)version1 isLessThan:(NSString *)version2 {
-    if (!version1 || !version2) return NO; // 空值不判定为需要更新
+- (NSComparisonResult)compareSemanticVersion:(NSString *)version1 withVersion2:(NSString *)version2 {
+    // 分割版本号为数组（如 "10.0.6" → @[@10, @0, @6]）
+    NSArray *parts1 = [version1 componentsSeparatedByString:@"."];
+    NSArray *parts2 = [version2 componentsSeparatedByString:@"."];
     
-    // 按"."拆分版本号为数组（如"1.2.3" → @[@"1", @"2", @"3"]）
-    NSArray<NSString *> *v1Components = [version1 componentsSeparatedByString:@"."];
-    NSArray<NSString *> *v2Components = [version2 componentsSeparatedByString:@"."];
+    // 取最长数组长度，补0对齐（如 "10.0" 和 "10.0.1" → 补为 @[@10,@0,@0] 和 @[@10,@0,@1]）
+    NSUInteger maxCount = MAX(parts1.count, parts2.count);
     
-    // 取最长的数组长度，短数组缺失部分按0处理
-    NSInteger maxCount = MAX(v1Components.count, v2Components.count);
-    for (NSInteger i = 0; i < maxCount; i++) {
-        // 解析当前段的数字（超出数组范围则为0）
-        NSInteger v1 = (i < v1Components.count) ? [v1Components[i] integerValue] : 0;
-        NSInteger v2 = (i < v2Components.count) ? [v2Components[i] integerValue] : 0;
+    for (NSUInteger i = 0; i < maxCount; i++) {
+        NSInteger num1 = (i < parts1.count) ? [parts1[i] integerValue] : 0;
+        NSInteger num2 = (i < parts2.count) ? [parts2[i] integerValue] : 0;
         
-        // 逐段比较
-        if (v1 < v2) {
-            return YES; // version1当前段更小，整体版本更低
-        } else if (v1 > v2) {
-            return NO; // version1当前段更大，整体版本更高
+        if (num1 > num2) {
+            return NSOrderedDescending; // version1 > version2
+        } else if (num1 < num2) {
+            return NSOrderedAscending;  // version1 < version2
         }
-        // 相等则继续比较下一段
     }
-    
-    return NO; // 所有段都相等，版本相同
+    return NSOrderedSame; // 版本相等
 }
 
 /**

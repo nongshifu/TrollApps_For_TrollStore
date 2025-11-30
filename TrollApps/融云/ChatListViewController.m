@@ -12,14 +12,6 @@
 #import "MyTabBarController.h"
 #import "MiniButtonView.h"
 
-//是否打印
-#define MY_NSLog_ENABLED YES
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 @interface ChatListViewController ()<RCIMClientReceiveMessageDelegate,RCIMConnectionStatusDelegate,UISearchResultsUpdating,UISearchBarDelegate,RCTypingStatusDelegate,RCMessageDestructDelegate>
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
@@ -323,6 +315,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     //得到每个用户的userId
     NSString *targetId = model.targetId;
     
+   
     
 
 
@@ -348,7 +341,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     //设置头像
     UIImageView * avaView = (UIImageView *)mycel.headerImageView;
     //设置头像
-    NSString *avaurl = [NSString stringWithFormat:@"%@/%@",localURL,userModel.avatar];
+    NSString *avaurl = [NSString stringWithFormat:@"%@",userModel.avatar];
+    NSLog(@"更新头像地址:%@",avaurl);
     [avaView sd_setImageWithURL:[NSURL URLWithString:avaurl]];
     
    

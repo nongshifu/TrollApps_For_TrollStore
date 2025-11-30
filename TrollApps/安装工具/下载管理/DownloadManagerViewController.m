@@ -1018,7 +1018,7 @@
         [self showAlertWithTitle:@"路径无效" message:@"文件路径包含无法解析的字符"];
         return;
     }
-    NSURL *fileURL = [NSURL fileURLWithPath:encodedPath];
+    NSURL *fileURL = [NSURL fileURLWithPath:filePath];
     if (!fileURL) {
         [self showAlertWithTitle:@"URL无效" message:@"无法创建文件URL"];
         return;

@@ -11,14 +11,11 @@
 #import "NetworkClient.h"
 #import <SDWebImage/SDWebImage.h>
 #import <Masonry/Masonry.h>
-//是否打印
-#define MY_NSLog_ENABLED NO
+#import "loadData.h"
+// 目标 .m 文件顶部（必须在所有 #import 之前！）
+#undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // 当前文件单独启用
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 @interface EditUserProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate>
 
 @property (nonatomic, strong) UIImageView *avatarImageView;
@@ -354,7 +351,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 }
 
 - (void)loadUserData {
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    NSString *udid = self.udid;
     if (udid.length < 5) {
         NSLog(@"用户未登录");
         [SVProgressHUD showInfoWithStatus:@"您还未登录\n请先登录绑定UDID"];
@@ -367,13 +364,22 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         if(userModel && userModel.udid.length>5){
             [NewProfileViewController sharedInstance].userInfo = userModel;
             self.userInfo = userModel;
+            //刷新融云缓存
+            [[loadData sharedInstance] refreshUserInfoCache:userModel];
+            NSLog(@"读取用户头像:%@",userModel.avatar);
             // 加载头像
             if (userModel.avatar.length > 0) {
-                // 假设avatar是URL
-                NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
-                [self.avatarImageView sd_setImageWithURL:avatarURL placeholderImage:[UIImage imageNamed:@"default_avatar"]];
-            } else {
-                self.avatarImageView.image = [UIImage imageNamed:@"default_avatar"];
+                NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@?time=%ld",userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+                NSLog(@"avatarURL:%@",avatarURL);
+                // 加载图片，使用刷新缓存选项
+                [self.avatarImageView sd_setImageWithURL:avatarURL
+                                      placeholderImage:self.avatarImageView.image?:[UIImage systemImageNamed:@"person.crop.circle.fill"]
+                                                 options:SDWebImageRefreshCached completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    if(image){
+                        self.avatarImageView.image = image;
+                        
+                    }
+                }];
             }
             
             
@@ -447,11 +453,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
     // 获取选择的图片
-    UIImage *selectedImage = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
     
+    UIImage *selectedImage = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
+    NSLog(@"选择图片代理selectedImage:%@",selectedImage);
     if (selectedImage) {
+        self.userInfo.avatarImage = selectedImage;
         self.avatarImageView.image = selectedImage;
         self.selectedAvatarImage = selectedImage;
+        [self uploadAvatar];
     }
     
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -516,7 +525,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     NSDictionary *dic = [userInfo yy_modelToJSONObject];
     NSMutableDictionary *newDic = [NSMutableDictionary dictionaryWithDictionary:dic];
     newDic[@"action"] = @"updateProfile";
-    
+    newDic[@"target_udid"] = self.userInfo.udid;
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:newDic
@@ -541,9 +550,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                 UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"成功" message:msg preferredStyle:UIAlertControllerStyleAlert];
                 [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                     // 如果选择了新头像，将其转换为Base64并更新到userInfo
-                    if (self.selectedAvatarImage) {
-                        [self uploadAvatar];
-                    }
+                    
                     [self loadUserData];
                     [self dismiss];
                 }]];
@@ -595,6 +602,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 4. 构建参数（确保key正确）
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"action"] = @"updateAvatar";
+    params[@"target_udid"] = self.userInfo.udid;
     params[@"avatar"] = base64Image; // 关键：确保key与PHP端一致
     
     // 5. 打印参数（排查是否被修改）
@@ -613,16 +621,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         NSInteger code = [jsonResult[@"code"] integerValue];
         if (code == 200) { // 假设SUCCESS为0
             [SVProgressHUD showSuccessWithStatus:jsonResult[@"msg"] ?: @"头像更新成功"];
+            
             // 更新UI...
             [self loadUserData];
         } else {
             [SVProgressHUD showErrorWithStatus:jsonResult[@"msg"] ?: @"更新失败"];
         }
+        [SVProgressHUD dismissWithDelay:1];
     } failure:^(NSError *error) {
         NSLog(@"上传失败：%@", error.localizedDescription);
         [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"网络错误：%@", error.localizedDescription]];
     }];
 }
+
 - (void)backButtonTapped:(UIBarButtonItem *)sender {
     [self.navigationController popViewControllerAnimated:YES];
 }

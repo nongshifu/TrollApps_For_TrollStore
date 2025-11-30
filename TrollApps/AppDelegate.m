@@ -14,7 +14,8 @@
 #import "NewProfileViewController.h"
 #import "ShowOneAppViewController.h"
 #import "UserProfileViewController.h"
-
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 @interface AppDelegate ()
 
 @end
@@ -148,7 +149,11 @@
         NSLog(@"读取用户信息：%@",userModel);
         if(userModel){
             
-            NSString *avaurl = [NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970];
+            
+            NSString *avaurl = userModel.avatar;
+            if(![avaurl containsString:@"http"]){
+                avaurl = [NSString stringWithFormat:@"%@/%@",localURL,userModel.avatar];
+            }
             NSLog(@"读取用户信息avaurl：%@",avaurl);
             RCUserInfo *userInfo = [[RCUserInfo alloc] initWithUserId:userId name:userModel.nickname portrait:avaurl];
             [[RCIM sharedRCIM] refreshUserInfoCache:userInfo withUserId:userId];

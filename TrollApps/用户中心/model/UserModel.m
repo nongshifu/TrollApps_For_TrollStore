@@ -9,6 +9,10 @@
 #import "NetworkClient.h"
 #import "UserModel.h"
 #import "NewProfileViewController.h"
+
+#undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // 当前文件单独启用
+
 @implementation UserModel
 
 /**

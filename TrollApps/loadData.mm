@@ -9,6 +9,11 @@
 #include <sys/sysctl.h>
 #include <dlfcn.h>
 #import "AppVersionHistoryViewController.h"
+#import "AppVersionHistoryModel.h"
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+
 @implementation loadData
 
 + (instancetype)sharedInstance {
@@ -54,6 +59,7 @@
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
     [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
         self.userModel = userModel;
+        [self refreshUserInfoCache:userModel];
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
         [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
@@ -66,6 +72,7 @@
 - (void)fetchUserInfoFromServerWithIDFV:(NSString *)idfv {
     [UserModel getUserInfoWithIDFV:[self getIDFV] success:^(UserModel * _Nonnull userModel) {
         self.userModel = userModel;
+        [self refreshUserInfoCache:userModel];
         if(self.userModel.udid.length>5){
             [KeychainTool saveString:self.userModel.udid forKey:TROLLAPPS_SAVE_UDID_KEY];
         }
@@ -76,7 +83,17 @@
     }];
     
 }
-
+//刷新融云
+- (void)refreshUserInfoCache:(UserModel *)userModel{
+    NSString *avaurl = userModel.avatar;
+    if(![avaurl containsString:@"http"]){
+        avaurl = [NSString stringWithFormat:@"%@/%@",localURL,userModel.avatar];
+    }
+    NSLog(@"刷新融云 读取用户信息avaurl：%@",avaurl);
+    RCUserInfo *userInfo = [[RCUserInfo alloc] initWithUserId:userModel.udid name:userModel.nickname portrait:avaurl];
+    [[RCIM sharedRCIM] refreshUserInfoCache:userInfo withUserId:userModel.udid];
+    
+}
 /// 获取本地存储的UDID
 - (NSString *)getUDID {
     // 优先从本地存储获取（通过描述文件获取的UDID）
@@ -229,42 +246,59 @@
     
     // 设备UDID/IDFV
     NSString *udid = [self getUDID] ?: [self getIDFV];
-    // 应用唯一标识（bundle_id，如"com.example.TrollApps"）
+    // 应用唯一标识（bundle_id）
     NSString *bundleId = [[NSBundle mainBundle] bundleIdentifier];
-    // 当前应用版本号（current_version_code，对应Info.plist的CFBundleVersion）
+    
+    // --------------------------
+    // 关键修改1：同时获取两个版本号
+    // --------------------------
+    // 1. 完整版本号（CFBundleVersion，如 123，对应后端 version_code）
     NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
     NSInteger currentVersionCode = [localVersionCodeStr integerValue];
     
-    // 2. 校验必填参数
+    // 2. 短版本号（CFBundleShortVersionString，如 1.2.3，对应后端 short_version）
+    NSString *localShortVersionStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    if (!localShortVersionStr || localShortVersionStr.length == 0) {
+        [SVProgressHUD showErrorWithStatus:@"获取本地短版本号失败"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    
+    // --------------------------
+    // 关键修改2：校验短版本号（可选，确保参数有效）
+    // --------------------------
     if (!bundleId || bundleId.length == 0) {
         [SVProgressHUD showErrorWithStatus:@"获取应用标识失败"];
         [SVProgressHUD dismissWithDelay:2];
         return;
     }
     if (currentVersionCode <= 0) {
-        [SVProgressHUD showErrorWithStatus:@"获取本地版本号失败"];
+        [SVProgressHUD showErrorWithStatus:@"获取本地完整版本号失败"];
         [SVProgressHUD dismissWithDelay:2];
         return;
     }
     
-    // 3. 构建请求参数（包含后端要求的所有必填字段）
+    // --------------------------
+    // 关键修改3：请求参数中添加短版本号
+    // --------------------------
     NSDictionary *params = @{
         @"udid": udid ?: @"",
         @"action": @"getVersionUpdateInfo",
-        @"bundle_id": bundleId, // 后端必填：应用唯一标识
-        @"current_version_code": @(currentVersionCode) // 后端必填：当前版本号
+        @"bundle_id": bundleId,
+        @"current_version_code": @(currentVersionCode), // 完整版本号（数字）
+        @"version_name": localShortVersionStr  // 短版本号（字符串，如 @"1.2.3"）
     };
+    NSLog(@"请求查询版本:%@",params);
     
-    // 4. 接口地址
+    // 接口地址（不变）
     NSString *url = [NSString stringWithFormat:@"%@/admin/app_version_api.php", localURL];
     
-    // 5. 发送网络请求
+    // 发送网络请求（不变，仅参数新增）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                             urlString:url
                                             parameters:params
                                                 udid:udid
                                               progress:^(NSProgress *progress) {
-        // 进度回调（可选，此处无需处理）
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -273,30 +307,82 @@
                 return;
             }
             NSLog(@"检查版本返回:%@",jsonResult);
-            // 6. 解析接口返回数据
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString *msg = jsonResult[@"msg"];
             
-            if (code ==200) {
-                // 成功：解析版本信息
+            if (code == 200) {
                 NSDictionary *data = jsonResult[@"data"];
-                NSLog(@"need_update:%@",data[@"need_update"]);
-                BOOL needUpdate = [data[@"need_update"] boolValue];
-                
-                
-                // 可选：显示更新提示（如果需要）
-                if (needUpdate) {
-                    AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
-                    [[UIView getTopViewController] presentPanModal:vc];
-                }
+                NSLog(@"成功：解析版本信息:%@",data);
+                AppVersionHistoryModel *appVersionHistoryModel = [AppVersionHistoryModel yy_modelWithDictionary:data];
+                [self updateLatestAppVersionUI:appVersionHistoryModel];
             }else{
                 [SVProgressHUD showInfoWithStatus:msg];
                 [SVProgressHUD dismissWithDelay:10];
             }
         });
     } failure:^(NSError *error) {
-        
+        [SVProgressHUD showErrorWithStatus:@"检查更新失败"];
+        [SVProgressHUD dismissWithDelay:2];
     }];
 }
+
+
+- (void)updateLatestAppVersionUI:(AppVersionHistoryModel*)appVersionHistoryModel {
+    // 1. 读取服务端版本信息（确保非空，避免崩溃）
+    NSInteger latestVersionCode = appVersionHistoryModel.version_code; // 服务器版本号（整数）
+    NSString *latestVersionName = appVersionHistoryModel.version_name ?: @""; // 服务器版本名称（如"10.0.5"）
+    NSLog(@"服务器版本 - code:%ld, name:%@", latestVersionCode, latestVersionName);
+    
+    // 2. 读取本地版本信息（从Info.plist，确保非空处理）
+    NSString *localVersionCodeStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"0";
+    NSInteger localVersionCode = [localVersionCodeStr integerValue]; // 本地版本号（整数）
+    NSString *localVersionName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @""; // 本地版本名称（如"10.0.6"）
+    NSLog(@"本地版本 - code:%ld, name:%@", localVersionCode, localVersionName);
+    
+    // 3. 版本号判断：服务器版本号 > 本地版本号 → 需要更新
+    BOOL isCodeNeedUpdate = (latestVersionCode > localVersionCode);
+    
+    // 4. 版本名称判断：服务器版本名称 > 本地版本名称 → 需要更新（用语义化比较）
+    BOOL isNameNeedUpdate = NO;
+    if (latestVersionName.length > 0 && localVersionName.length > 0) {
+        // 调用工具方法：比较服务器版本名和本地版本名
+        NSComparisonResult result = [self compareSemanticVersion:latestVersionName withVersion2:localVersionName];
+        isNameNeedUpdate = (result == NSOrderedDescending); // 服务器版本名 > 本地 → 需要更新
+    }
+    
+    // 5. 最终需要更新的条件：版本号 或 版本名称 满足更新（两者任一满足即可）
+    BOOL needUpdate = isCodeNeedUpdate || isNameNeedUpdate;
+    
+    // 6. 更新按钮UI
+    if (needUpdate) {
+        NSLog(@"发现新版：服务器版本高于本地");
+        AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
+        [[UIView getTopViewController] presentPanModal:vc];
+    } else {
+        NSLog(@"无需更新：本地版本已是最新（或高于服务器）");
+        
+    }
+}
+- (NSComparisonResult)compareSemanticVersion:(NSString *)version1 withVersion2:(NSString *)version2 {
+    // 分割版本号为数组（如 "10.0.6" → @[@10, @0, @6]）
+    NSArray *parts1 = [version1 componentsSeparatedByString:@"."];
+    NSArray *parts2 = [version2 componentsSeparatedByString:@"."];
+    
+    // 取最长数组长度，补0对齐（如 "10.0" 和 "10.0.1" → 补为 @[@10,@0,@0] 和 @[@10,@0,@1]）
+    NSUInteger maxCount = MAX(parts1.count, parts2.count);
+    
+    for (NSUInteger i = 0; i < maxCount; i++) {
+        NSInteger num1 = (i < parts1.count) ? [parts1[i] integerValue] : 0;
+        NSInteger num2 = (i < parts2.count) ? [parts2[i] integerValue] : 0;
+        
+        if (num1 > num2) {
+            return NSOrderedDescending; // version1 > version2
+        } else if (num1 < num2) {
+            return NSOrderedAscending;  // version1 < version2
+        }
+    }
+    return NSOrderedSame; // 版本相等
+}
+
 
 @end

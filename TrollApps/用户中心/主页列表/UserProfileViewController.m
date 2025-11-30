@@ -19,14 +19,11 @@
 #import "WebToolModel.h"
 #import "MoodStatusModel.h"
 #import "MyCollectionViewController.h"
-//是否打印
-#define MY_NSLog_ENABLED NO
+#import "loadData.h"
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
+// 目标 .m 文件顶部（必须在所有 #import 之前！）
+#undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // 当前文件单独启用
 
 @interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
@@ -552,7 +549,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 - (void)editProfile:(UITapGestureRecognizer *)gestureRecognizer {
     
     NSString *myudid = [NewProfileViewController sharedInstance].userInfo.udid;
-    if([self.userInfo.udid isEqualToString:myudid]){
+    if([self.userInfo.udid isEqualToString:myudid] || [NewProfileViewController sharedInstance].userInfo.role){
         EditUserProfileViewController *vc = [EditUserProfileViewController new];
         vc.udid = self.userInfo.udid;
         [self presentPanModal:vc];
@@ -602,6 +599,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     }
     [UserModel getUserInfoWithUdid:self.user_udid success:^(UserModel * _Nonnull userModel) {
         self.userInfo = userModel;
+        NSString *userDic = [userModel yy_modelToJSONString];
+        NSLog(@"userDic:%@",userDic);
         if(self.userInfo.udid.length>5){
             [self updateWithUserModel:self.userInfo];
             
@@ -623,13 +622,14 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 /// 更新用户模型并刷新UI
 - (void)updateWithUserModel:(UserModel *)userModel {
-    
+    //刷新融云缓存
+    [[loadData sharedInstance] refreshUserInfoCache:userModel];
     // 1. 更新昵称
     self.nicknameLabel.text = userModel.nickname.length > 0 ? userModel.nickname : @"用户名";
     
     // 2. 更新头像
     if (userModel.avatar.length > 0) {
-        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@?time=%ld",localURL,userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
+        NSURL *avatarURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@?time=%ld",userModel.avatar,(long)[NSDate date].timeIntervalSince1970]];
         NSLog(@"avatarURL:%@",avatarURL);
         // 加载图片，使用刷新缓存选项
         [self.avatarImageView sd_setImageWithURL:avatarURL

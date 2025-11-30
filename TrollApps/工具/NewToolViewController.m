@@ -13,19 +13,10 @@
 #import "AppSearchViewController.h"
 #import "NewAppFileModel.h"
 #import "ImageGridSearchViewController.h"
-
+#import "DocumentPickerViewController.h"
 #define kTool_Draft_KEY @"kTool_Draft_KEY"
 
-//是否打印
-#define MY_NSLog_ENABLED NO
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
-
-@interface NewToolViewController () <UITextFieldDelegate, UITextViewDelegate, ToolTagsViewDelegate, HTMLCodeEditorViewDelegate,UINavigationControllerDelegate,UIImagePickerControllerDelegate,AppSearchViewControllerDelegate,ImageGridSearchViewControllerDelegate>
+@interface NewToolViewController () <UITextFieldDelegate, UITextViewDelegate, ToolTagsViewDelegate, HTMLCodeEditorViewDelegate,UINavigationControllerDelegate,UIImagePickerControllerDelegate,AppSearchViewControllerDelegate,ImageGridSearchViewControllerDelegate, UIDocumentPickerDelegate>
 
 @property (nonatomic, strong) UIButton *titleButton;
 @property (nonatomic, strong) UIButton *draftButton;
@@ -738,6 +729,9 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [alert addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self openPhotoLibrary];
     }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"从文件选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self openFileApp];
+    }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
     
@@ -767,6 +761,29 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         [self showAlertWithTitle:@"提示" message:@"相册不可用"];
     }
 }
+//打开文件选择图片
+- (void)openFileApp {
+    
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
+    NSArray *documentTypes = @[(NSString *)kUTTypeImage]; // 所有图片文件类型
+    
+    
+    // 创建文件选择控制器
+    DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
+    
+    // 设置代理
+    documentPicker.delegate = self;
+    
+    // 允许选择多个文件 (可选)
+    documentPicker.allowsMultipleSelection = NO;
+    // 设置全屏显示
+    documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+    
+    // 显示文件选择器
+    [self presentViewController:documentPicker animated:YES completion:nil];
+}
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -784,6 +801,92 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
+#pragma mark - UIDocumentPickerDelegate（文件选择代理）
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    [controller dismissViewControllerAnimated:YES completion:nil];
+    
+    // 空判断（简化逻辑，统一提示）
+    if (urls.count == 0) {
+        [self showErrorHUDWithMessage:@"未选择任何文件"];
+        return;
+    }
+    
+    // 单选模式：直接取第一个URL（符合业务逻辑）
+    NSURL *selectedURL = urls.firstObject;
+    if (!selectedURL) {
+        [self showErrorHUDWithMessage:@"未选择有效文件"];
+        return;
+    }
+
+    // 按业务类型分支处理（主文件/头像）
+    [self handleAvatarImageSelectionWithURL:selectedURL];
+    
+    // 统一释放权限（放在最后，确保所有分支都能释放）
+    [selectedURL stopAccessingSecurityScopedResource];
+}
+#pragma mark - 业务处理：头像图片选择
+- (void)handleAvatarImageSelectionWithURL:(NSURL *)imageURL {
+    UIImage *selectedImage = nil;
+    @try {
+        // 直接读取图片（选择器已限制图片类型，无需额外判断）
+        selectedImage = [self imageFromURL:imageURL];
+    } @catch (NSException *exception) {
+        NSString *errorMsg = [NSString stringWithFormat:@"处理图片失败：%@", exception.reason];
+        [self showErrorHUDWithMessage:errorMsg];
+        NSLog(@"[头像处理异常] %@", errorMsg);
+        return;
+    }
+    
+    // 图片有效性校验
+    if (!selectedImage) {
+        [self showErrorHUDWithMessage:@"图片文件损坏或格式不支持"];
+        return;
+    }
+    
+    // 日志优化：输出图片信息
+    NSLog(@"[头像选择成功] 尺寸：%@，大小：%@ bytes",
+          NSStringFromCGSize(selectedImage.size),
+          @(UIImageJPEGRepresentation(selectedImage, 1.0).length));
+    
+    // 跳转编辑页面
+    [self presentEditViewControllerWithImage:selectedImage];
+}
+
+#pragma mark - 辅助方法：图片读取（兼容HEIC/GIF等格式）
+- (UIImage *)imageFromURL:(NSURL *)url {
+    if (!url) return nil;
+    
+    CGImageSourceRef imageSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (!imageSource) {
+        NSLog(@"[图片读取失败] 无法创建图片源：%@", url.absoluteString);
+        return nil;
+    }
+    
+    // 优化：获取图片属性，确保读取成功
+    CFDictionaryRef imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);
+    if (!imageProperties) {
+        CFRelease(imageSource);
+        NSLog(@"[图片读取失败] 无法获取图片属性：%@", url.absoluteString);
+        return nil;
+    }
+    
+    CGImageRef cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, NULL);
+    UIImage *image = nil;
+    if (cgImage) {
+        // 优化：自动适配屏幕缩放和图片方向
+        image = [UIImage imageWithCGImage:cgImage
+                                     scale:[UIScreen mainScreen].scale
+                               orientation:UIImageOrientationUp];
+        CGImageRelease(cgImage);
+    } else {
+        NSLog(@"[图片读取失败] 无法创建CGImage：%@", url.absoluteString);
+    }
+    
+    // 释放资源（避免内存泄漏）
+    CFRelease(imageProperties);
+    CFRelease(imageSource);
+    return image;
+}
 
 #pragma mark - Validation
 
@@ -1131,8 +1234,12 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     
     HXPhotoManager *manager = [[HXPhotoManager alloc] init];
     HXPhotoModel *photoModel = [HXPhotoModel photoModelWithImage:image];
-    
-    [[self.view getTopViewController] hx_presentPhotoEditViewControllerWithManager:manager photoModel:photoModel delegate:nil done:^(HXPhotoModel *beforeModel, HXPhotoModel *afterModel, HXPhotoEditViewController *viewController) {
+    manager.configuration.movableCropBox =  YES;
+    manager.configuration.movableCropBoxEditSize = YES;
+    manager.configuration.movableCropBoxCustomRatio = CGPointMake(1, 1);
+    manager.configuration.photoEditCustomRatios = @[@{@"正方形" : @"{1, 1}"}];
+    UIViewController *topVc = [self.view getTopViewController];
+    [topVc hx_presentPhotoEditViewControllerWithManager:manager photoModel:photoModel delegate:nil done:^(HXPhotoModel *beforeModel, HXPhotoModel *afterModel, HXPhotoEditViewController *viewController) {
         // 获取编辑后的图片
         UIImage *editedImage = afterModel.thumbPhoto ?: afterModel.thumbPhoto;
         weakSelf.iconView.image = editedImage;
@@ -1146,13 +1253,28 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
             [SVProgressHUD dismissWithDelay:1];
             
             // 直接 dismiss 当前控制器（ImageGridSearchViewController）
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [weakSelf dismissViewControllerAnimated:YES completion:nil];
-            });
+            // 直接 dismiss 当前控制器（ImageGridSearchViewController）
+            if([topVc isKindOfClass:[HXPhotoEditViewController class]]){
+                [topVc dismissViewControllerAnimated:YES completion:nil];
+            }
         }];
     } cancel:^(HXPhotoEditViewController *viewController) {
         [viewController dismissViewControllerAnimated:YES completion:nil];
     }];
+}
+
+
+#pragma mark - 辅助方法：UI提示（统一样式，便于维护）
+// 错误提示HUD
+- (void)showErrorHUDWithMessage:(NSString *)message {
+    [SVProgressHUD showErrorWithStatus:message];
+    [SVProgressHUD dismissWithDelay:2.5]; // 延长显示时间，确保用户看清
+}
+
+// 成功提示HUD
+- (void)showSuccessHUDWithMessage:(NSString *)message {
+    [SVProgressHUD showSuccessWithStatus:message];
+    [SVProgressHUD dismissWithDelay:2.0];
 }
 
 

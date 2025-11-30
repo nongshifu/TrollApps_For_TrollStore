@@ -26,7 +26,7 @@
 /// 获取底部安全区域高度（包括底部栏，如果有）的宏  注释：这个宏返回设备底部安全区域的高度，主要用于处理 iPhone X 及后续设备的底部手势区域和可能存在的底部栏。确保视图在不同设备上正确布局，不会被底部区域遮挡。
 #define get_BOTTOM_SAFE_AREA_HEIGHT ([[UIApplication sharedApplication] delegate].window.safeAreaInsets.bottom > 0? [[UIApplication sharedApplication] delegate].window.safeAreaInsets.bottom : 0)
 
-
+#define WEAK_SELF __weak typeof(self) weakSelf = self; // 弱引用宏
 
 
 //主域名
@@ -72,6 +72,8 @@
 #import "BaseBottomSheetVC.h"//底部弹出控制器
 #import "SendMessage.h"//发送融云消息
 #import "SandboxFileBrowserVC.h"//文件管理
+
+
 //第三方
 #import "HXPhotoPicker.h"
 #import "YYModel.h"

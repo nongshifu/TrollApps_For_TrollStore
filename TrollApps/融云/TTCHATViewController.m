@@ -13,14 +13,7 @@
 #import "UIView.h"
 #import "ContactHelper.h"
 #import "DemoBaseViewController.h"
-//是否打印
-#define MY_NSLog_ENABLED YES
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 @interface TTCHATViewController ()<RCIMClientReceiveMessageDelegate,RCTypingStatusDelegate,RCMessageDestructDelegate,UISearchResultsUpdating,UISearchBarDelegate>
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器

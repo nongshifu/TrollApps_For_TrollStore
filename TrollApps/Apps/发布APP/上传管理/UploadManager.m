@@ -11,14 +11,7 @@
 #import "YYModel.h"
 #import "NetworkClient.h"
 #import "config.h"
-//是否打印
-#define MY_NSLog_ENABLED NO
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 @interface UploadManager ()
 
 @property (nonatomic, strong) NetworkClient *networkClient;

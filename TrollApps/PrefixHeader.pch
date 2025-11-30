@@ -1,0 +1,20 @@
+//
+//  PrefixHeader.pch
+//  TrollApps
+//
+//  Created by 十三哥 on 2025/11/30.
+//  Copyright © 2025 iOS_阿玮. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>       // 所有文件都需要的 UIKit 框架
+#import <Foundation/Foundation.h> // 基础框架
+
+
+//是否打印
+#define MY_NSLog_ENABLED NO
+
+#define NSLog(fmt, ...) \
+if (MY_NSLog_ENABLED) { \
+    NSString *className = NSStringFromClass([self class]); \
+    NSLog((@"[%s] MyLog from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
+}

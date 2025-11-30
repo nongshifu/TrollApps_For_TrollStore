@@ -24,14 +24,6 @@
 #import "ToolMessage.h"
 #import "CommunityViewController.h"
 
-//是否打印
-#define MY_NSLog_ENABLED YES
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 @interface AppInfoCell ()<MiniButtonViewDelegate,HXPhotoViewDelegate>
 
@@ -167,7 +159,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 更新说明（替换为UITextView）
     self.releaseNotesTextView = [[UITextView alloc] init];
     self.releaseNotesTextView.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
-    self.releaseNotesTextView.textColor = [UIColor blueColor];
+    self.releaseNotesTextView.textColor = [UIColor colorWithLightColor:[UIColor blueColor] darkColor:[UIColor yellowColor]];
     self.releaseNotesTextView.editable = NO;
     self.releaseNotesTextView.selectable = YES;
     self.releaseNotesTextView.scrollEnabled = NO;

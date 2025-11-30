@@ -1,16 +1,10 @@
+
 #import "AppCommentCell.h"
 #import "UserModel.h" // 引入用户信息模型
 #import "NewProfileViewController.h"
 #import "UserProfileViewController.h"
 #import "LikeModel.h"
-//是否打印
-#define MY_NSLog_ENABLED YES
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 @interface AppCommentCell ()
 @property (nonatomic, strong) UIImageView *avatarImageView;

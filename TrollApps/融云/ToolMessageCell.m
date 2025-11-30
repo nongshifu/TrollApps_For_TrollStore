@@ -1,17 +1,11 @@
+
 #import "ToolMessageCell.h"
 #import "config.h"
 #import "ShowOneToolViewController.h"
 #import "ShowOneAppViewController.h"
 #import "UserProfileViewController.h"
 #import <Masonry/Masonry.h> // 确保导入Masonry（布局依赖）
-//是否打印
-#define MY_NSLog_ENABLED YES
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 // 固定配置（按需求定义）
 static const CGFloat kBubbleFixedWidth = 250;    // 气泡固定宽度
 static const CGFloat kInnerPadding = 10;         // 气泡内部上下左右间隔

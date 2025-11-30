@@ -28,14 +28,6 @@
 //草稿字符串
 #define kPublishAppDraft @"PublishAppDraft"
 
-//是否打印
-#define MY_NSLog_ENABLED YES
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 #pragma mark - 宏定义（统一配置，便于维护）
 // 最大文件大小（建议放在.h或全局常量文件中，这里临时定义）

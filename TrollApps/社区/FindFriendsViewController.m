@@ -6,6 +6,7 @@
 //  Copyright © 2025 iOS_阿玮. All rights reserved.
 //
 
+
 #import "FindFriendsViewController.h"
 #import "UserModel.h"
 #import "UserModelCell.h"
@@ -15,14 +16,8 @@
 #import "UserProfileViewController.h"
 #import "TTCHATViewController.h"
 
-//是否打印
-#define MY_NSLog_ENABLED YES
-
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-   NSString *className = NSStringFromClass([self class]); \
-   NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 #define FIND_TITLES_SAVE_KEY @"FIND_TITLES_SAVE_KEY"
 #define KEYWORD_SAVE_KEY @"keyword_SAVE_KEY"
@@ -258,7 +253,7 @@ if (MY_NSLog_ENABLED) { \
                     NSArray * list = data[@"list"];
                     for (NSDictionary *dic in list) {
                         UserModel *model = [UserModel yy_modelWithDictionary:dic];
-                        NSLog(@"读取用户user_id:%ld nickname:%@",model.user_id,model.nickname);
+                        NSLog(@"读取用户user_id:%ld nickname:%@ avatar:%@",model.user_id,model.nickname,model.avatar);
                         [self.dataSource addObject:model];
                     }
                     [self refreshTable];

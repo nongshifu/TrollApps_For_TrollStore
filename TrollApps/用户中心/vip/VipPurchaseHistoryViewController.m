@@ -14,14 +14,7 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <IGListKit/IGListKit.h>
 
-//是否打印
-#define MY_NSLog_ENABLED YES
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 
 // 顶部容器高度
 #define kTopContainerHeight 64

@@ -4,17 +4,9 @@
 //
 //  Created by 十三哥 on 2023/12/14.
 //
-
 #import <UIKit/UIKit.h>
 #import "UIColor.h"
-//是否打印
-#define MY_NSLog_ENABLED NO
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-    NSString *className = NSStringFromClass([self class]); \
-    NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
 @implementation UIColor(myColor)
 
 //任意随机色

@@ -19,14 +19,9 @@
 #import "ArrowheadMenu.h"
 #import "UserProfileViewController.h"
 #include <dlfcn.h>
-//是否打印
-#define MY_NSLog_ENABLED NO
 
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface AppsViewController () <TemplateListDelegate, UIScrollViewDelegate, UISearchBarDelegate, UIPageViewControllerDelegate, UIPageViewControllerDataSource,MiniButtonViewDelegate, UIContextMenuInteractionDelegate, MenuViewControllerDelegate,JXCategoryViewDelegate>
 //顶部分类
@@ -55,6 +50,11 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 @property (nonatomic, strong) NSArray<NSString *>*sortArray;
 
+//设置底部4个按钮标题
+@property (nonatomic, strong) NSArray<NSString *>*bottomTitles;
+//设置底部4个按钮图片
+@property (nonatomic, strong) NSArray<NSString *>*icons;
+
 @end
 
 @implementation AppsViewController
@@ -67,6 +67,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.currentPageIndex = 0;
     self.isTapViewToHideKeyboard = YES;
     self.sortArray = @[@"最近更新", @"最早发布", @"最多评论", @"最多点赞", @"最多收藏", @"最多分享"];
+    self.bottomTitles = @[@"分类", @"收藏", @"文件管理", @"下载"];
+    self.icons = @[@"tag", @"star.lefthalf.fill", @"folder.fill.badge.plus", @"icloud.and.arrow.down"];
     [self setupUI];
 
     
@@ -422,9 +424,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     self.bottomButton.buttonSpace = 10;
     self.bottomButton.fontSize = 15;
     [self.view addSubview:self.bottomButton];
-    NSArray *titles = @[@"分类", @"收藏", @"文件管理", @"下载"];
-    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"folder.fill.badge.plus", @"icloud.and.arrow.down"];
-    [self.bottomButton updateButtonsWithStrings:titles icons:icons];
+    
+    [self.bottomButton updateButtonsWithStrings:_bottomTitles icons:_icons];
     [self.bottomButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
         make.width.mas_equalTo(kWidth-20);
@@ -789,6 +790,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
                                        animated:YES
                                      completion:nil];
     
+    
     [self switchTabsWithIndex:index];
     
     
@@ -797,13 +799,19 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 
 #pragma mark 切换页面后操作
 - (void)switchTabsWithIndex:(NSInteger)index{
+    //振动
     [DemoBaseViewController triggerVibration];
-    
-    self.viewControllers[index].tag = self.titles[index];
-    
+    //设置当前页面控制器
+    self.currentVC = self.viewControllers[index];
+    //设置标题
+//    self.viewControllers[index].tag = self.titles[index];
+    //设置当前下标属性
     self.currentPageIndex = index;
+    //设置排序按钮背景
     self.sortButton.backgroundColor = [UIColor randomColorWithAlpha:0.5];
+    //启用点击
     self.sortButton.userInteractionEnabled = YES;
+    //为签名3个单独设置
     if(self.currentPageIndex ==0){
         [self.sortButton setTitle:@"最近更新" forState:UIControlStateNormal];
         self.sortButton.userInteractionEnabled = NO;
@@ -817,9 +825,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
         NSString *title = self.sortArray[self.currentVC.sortType];
         [self.sortButton setTitle:title forState:UIControlStateNormal];
     }
-    NSArray *titles = @[@"分类", @"收藏", @"文件管理", @"下载"];
-    NSArray *icons = @[@"tag", @"star.lefthalf.fill", @"folder.fill.badge.plus", @"icloud.and.arrow.down"];
-    [self.bottomButton updateButtonsWithStrings:titles icons:icons];
+
+    [self.bottomButton updateButtonsWithStrings:_bottomTitles icons:_icons];
     if(self.currentVC.dataSource.count==0){
         //读取第一页数据
         [self.currentVC refreshLoadInitialData];

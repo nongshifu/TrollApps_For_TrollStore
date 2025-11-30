@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4B2BD5B69203FEDBBC41AEC3 /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; };
 		4F639DF42272E94500776206 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DF32272E94500776206 /* ViewController.m */; };
 		4F639DF92272E94C00776206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DF82272E94C00776206 /* Assets.xcassets */; };
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
@@ -154,7 +153,23 @@
 		C2E44CEA2EDAFB8C00110348 /* FileModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CE92EDAFB8C00110348 /* FileModel.m */; };
 		C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEC2EDAFCA200110348 /* FileUtils.m */; };
 		C2E44CF02EDAFCCD00110348 /* SandboxFileBrowserVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */; };
+		C2E44CF12EDC197700110348 /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; };
+		C2E44CF22EDC197700110348 /* Pods_TrollApps.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C2E44CF32EDC197700110348 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C2E44CF22EDC197700110348 /* Pods_TrollApps.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		068050F3072675203E6A8899 /* Pods_TrollApps.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrollApps.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -447,6 +462,7 @@
 		C2E44CEC2EDAFCA200110348 /* FileUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileUtils.m; sourceTree = "<group>"; };
 		C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFileBrowserVC.h; sourceTree = "<group>"; };
 		C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SandboxFileBrowserVC.m; sourceTree = "<group>"; };
+		C2E44CF42EDC408300110348 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -455,7 +471,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B2BD5B69203FEDBBC41AEC3 /* Pods_TrollApps.framework in Frameworks */,
+				C2E44CF12EDC197700110348 /* Pods_TrollApps.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -517,6 +533,7 @@
 				C2E44B3A2EDAD35C00110348 /* runInBg */,
 				4F639DF22272E94500776206 /* ViewController.h */,
 				4F639DF32272E94500776206 /* ViewController.m */,
+				C2E44CF42EDC408300110348 /* PrefixHeader.pch */,
 			);
 			path = TrollApps;
 			sourceTree = "<group>";
@@ -546,7 +563,7 @@
 			isa = PBXGroup;
 			children = (
 				C2E44B342EDAD35C00110348 /* 编辑资料 */,
-				C2E44B1C2EDAD35C00110348 /* 列表 */,
+				C2E44B1C2EDAD35C00110348 /* 主页列表 */,
 				C2E44B2C2EDAD35C00110348 /* 名片二维码 */,
 				C2E44B142EDAD35C00110348 /* 我的收藏 */,
 				C2E44B372EDAD35C00110348 /* 隐私政策 */,
@@ -623,15 +640,15 @@
 			path = cell;
 			sourceTree = "<group>";
 		};
-		C2E44B1C2EDAD35C00110348 /* 列表 */ = {
+		C2E44B1C2EDAD35C00110348 /* 主页列表 */ = {
 			isa = PBXGroup;
 			children = (
 				C2E44B1D2EDAD35C00110348 /* UserListViewController.h */,
-				C2E44B1E2EDAD35C00110348 /* UserProfileViewController.h */,
 				C2E44B1F2EDAD35C00110348 /* UserListViewController.m */,
+				C2E44B1E2EDAD35C00110348 /* UserProfileViewController.h */,
 				C2E44B202EDAD35C00110348 /* UserProfileViewController.m */,
 			);
-			path = "列表";
+			path = "主页列表";
 			sourceTree = "<group>";
 		};
 		C2E44B212EDAD35C00110348 /* 状态说说 */ = {
@@ -1072,12 +1089,12 @@
 		C2E44BE22EDAD35D00110348 /* 发布APP */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BE32EDAD35D00110348 /* PublishAppViewController.h */,
 				C2E44BE42EDAD35D00110348 /* 任务管理 */,
-				C2E44BE92EDAD35D00110348 /* 文件处理 */,
-				C2E44BEE2EDAD35D00110348 /* PublishAppViewController.m */,
-				C2E44BEF2EDAD35D00110348 /* 文件选择器 */,
 				C2E44BF22EDAD35D00110348 /* 上传管理 */,
+				C2E44BE92EDAD35D00110348 /* 文件处理 */,
+				C2E44BEF2EDAD35D00110348 /* 文件选择器 */,
+				C2E44BE32EDAD35D00110348 /* PublishAppViewController.h */,
+				C2E44BEE2EDAD35D00110348 /* PublishAppViewController.m */,
 			);
 			path = "发布APP";
 			sourceTree = "<group>";
@@ -1304,11 +1321,11 @@
 			isa = PBXGroup;
 			children = (
 				C2E44C462EDAD35E00110348 /* AppVersionHistoryCell.h */,
-				C2E44C472EDAD35E00110348 /* AppVersionHistoryViewController.h */,
-				C2E44C482EDAD35E00110348 /* AppVersionHistoryModel.h */,
 				C2E44C492EDAD35E00110348 /* AppVersionHistoryCell.m */,
-				C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */,
+				C2E44C482EDAD35E00110348 /* AppVersionHistoryModel.h */,
 				C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */,
+				C2E44C472EDAD35E00110348 /* AppVersionHistoryViewController.h */,
+				C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */,
 			);
 			path = "版本管理";
 			sourceTree = "<group>";
@@ -1349,6 +1366,7 @@
 				B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */,
 				C287212D2E28266500ABC6AE /* ShellScript */,
 				3C40C51D675A8D5792CFBF9B /* [CP] Copy Pods Resources */,
+				C2E44CF32EDC197700110348 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1492,7 +1510,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\n# 1. ldid 工具路径（如果已在环境变量中可省略，否则填绝对路径）\nLDID_PATH=\"ldid\"\n# 2. 权限文件 RootSign.entitlements 路径（相对于项目根目录或绝对路径）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"\n# 3. IPA 输出目录（默认为桌面，可自定义）\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\n# 4. IPA 文件名（默认为项目名+时间戳）\nIPA_NAME=\"${PROJECT_NAME}.ipa\"\n\n# ==============================================\n# 自动获取 Xcode 编译产物路径（无需修改）\n# ==============================================\n# 编译后的 .app 路径\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\n# .app 内的可执行文件路径（与 PRODUCT_NAME 同名）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 检查必要文件是否存在\n# ==============================================\n# 检查 .app 是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：编译产物 .app 不存在，路径：${APP_PATH}\"\n    exit 1\nfi\n\n# 检查可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在，路径：${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# 检查 ldid 是否可用\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then\n    echo \"❌ 错误：未找到 ldid 工具，请检查路径是否正确\"\n    exit 1\nfi\n\n# 检查权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：RootSign.entitlements 不存在，路径：${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 使用 ldid 签名可执行文件\n# ==============================================\necho \"📝 开始使用 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\n# 检查签名是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ 签名失败！请检查 entitlements 文件格式或 ldid 权限\"\n    exit 1\nfi\necho \"✅ 签名成功！\"\n\n# ==============================================\n# 打包 IPA（IPA 要求应用必须放在 Payload 目录下）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的 .app 到 Payload 目录\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\n# 压缩为 IPA\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r \"${IPA_FULL_PATH}\" .\n\n# 检查打包是否成功\nif [ $? -ne 0 ]; then\n    echo \"❌ IPA 打包失败！\"\n    exit 1\nfi\n\n# 清理临时文件\nrm -rf \"${TMP_IPA_DIR}\"\n\necho \"✅ IPA 打包完成！路径：${IPA_FULL_PATH}\"\n";
+			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\nLDID_PATH=\"ldid\"  # 已在环境变量中可直接用，否则填绝对路径（如 /usr/local/bin/ldid）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"  # 权限文件路径\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"  # IPA输出目录\nIPA_NAME=\"${PROJECT_NAME}_$(date +%Y%m%d%H%M%S).ipa\"  # 增加时间戳，避免覆盖\n#IPA_NAME=\"${PROJECT_NAME}.ipa\"  # 增加时间戳，避免覆盖\n# ==============================================\n# 自动获取关键路径（无需修改，强制可执行文件名称=PRODUCT_NAME）\n# ==============================================\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"  # 编译后的.app路径\nEXECUTABLE_NAME=\"${PRODUCT_NAME}\"  # 强制可执行文件名称与.app名称一致（核心修复）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"  # 可执行文件路径\n\n# ==============================================\n# 前置校验（避免无效操作）\n# ==============================================\necho \"🔍 开始前置校验...\"\n\n# 校验权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：权限文件不存在 → ${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# 校验.app包是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：.app包不存在 → ${APP_PATH}\"\n    exit 1\nfi\n\n# 校验可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在 → ${EXECUTABLE_PATH}\"\n    echo \"⚠️  请检查 Xcode 项目配置：PRODUCT_NAME 与 EXECUTABLE_NAME 是否一致\"\n    exit 1\nfi\n\n# ==============================================\n# 1. 给可执行文件添加执行权限（核心修复）\n# ==============================================\necho \"🔧 给可执行文件添加执行权限...\"\nchmod +x \"${EXECUTABLE_PATH}\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：添加执行权限失败 → ${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 2. 使用 ldid 签名可执行文件（确保 -S 与路径无空格）\n# ==============================================\necho \"📝 开始使用 ldid 签名可执行文件...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"  # -S和权限文件路径无空格\nif [ $? -eq 0 ]; then\n    echo \"✅ ldid 签名成功！\"\nelse\n    echo \"❌ 错误：ldid 签名失败 → 请检查权限文件格式和路径\"\n    exit 1\nfi\n\n# ==============================================\n# 3. 打包 IPA（严格按 Apple 标准结构）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录（每次重建，避免残留）\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nrm -rf \"${TMP_IPA_DIR}\"  # 清理旧临时目录\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的.app到Payload目录（必须放在Payload下，否则IPA无效）\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：复制.app到Payload失败\"\n    exit 1\nfi\n\n# 压缩为IPA（-q 静默模式，-r 递归压缩，-X 排除.DS_Store等无用文件）\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\n\nmkdir -p \"${IPA_OUTPUT_DIR}\"  # 确保输出目录存在\ncd \"${TMP_IPA_DIR}\" && zip -q -r -X \"${IPA_FULL_PATH}\" .\nif [ $? -eq 0 ]; then\n    echo \"✅ IPA 打包成功！\"\n    echo \"📁 IPA 路径：${IPA_FULL_PATH}\"\nelse\n    echo \"❌ 错误：IPA 打包失败\"\n    exit 1\nfi\n\n# ==============================================\n# 4. 清理临时文件\n# ==============================================\nrm -rf \"${TMP_IPA_DIR}\"\necho \"🧹 清理临时文件完成\"\n\n# 脚本执行成功\nexit 0\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1771,6 +1789,8 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch";
 				INFOPLIST_FILE = TrollApps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1803,6 +1823,8 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch";
 				INFOPLIST_FILE = TrollApps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (

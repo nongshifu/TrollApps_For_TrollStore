@@ -24,13 +24,7 @@
 #import "moodStatusViewController.h"
 #import "UserProfileViewController.h"
 #import "VipPurchaseHistoryViewController.h"
-// 是否打印日志
-#define MY_NSLog_ENABLED YES
-#define NSLog(fmt, ...) \
-if (MY_NSLog_ENABLED) { \
-NSString *className = NSStringFromClass([self class]); \
-NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
-}
+
 
 @interface NewProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, TemplateSectionControllerDelegate, TemplateListDelegate,WKNavigationDelegate>
 
@@ -581,6 +575,8 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
     // 保存最新用户模型
     self.userInfo = userModel;
     [loadData sharedInstance].userModel = userModel;
+    //刷新融云缓存
+    [[loadData sharedInstance] refreshUserInfoCache:userModel];
     // 1. 更新昵称
     self.nicknameLabel.text = userModel.nickname.length > 0 ? userModel.nickname : @"未注册用户";
     
@@ -720,7 +716,7 @@ NSLog((@"[%s] from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS
 #pragma mark - 数据加载与处理
 - (void)loadUserInfo {
     NSString *udid = [self getUDID];
-    NSLog(@"loadUserInfo_getUDID:%@",udid)
+    NSLog(@"loadUserInfo_getUDID:%@",udid);
     if (udid.length > 0) {
         NSLog(@"成功读取到UDID:%@",udid);
         [KeychainTool saveString:udid forKey:TROLLAPPS_SAVE_UDID_KEY];
