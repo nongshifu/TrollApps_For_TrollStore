@@ -31,7 +31,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param userInfo 包含联系方式的用户模型
 - (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo;
 
-
+/// 显示联系作者的操作菜单
+/// @param udid 包含联系方式的用户udid
+- (void)showContactActionSheetWithUserUdid:(NSString *)udid;
 
 @end
 

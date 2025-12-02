@@ -24,7 +24,15 @@
 #import "moodStatusViewController.h"
 #import "UserProfileViewController.h"
 #import "VipPurchaseHistoryViewController.h"
+#import "YSMPaymentManager.h"
+#import <CommonCrypto/CommonCrypto.h>
+#import "YSMPaymentConfig.h"
+#import "PaymentManager.h"
+#import "ContactHelper.h"
 
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface NewProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, TemplateSectionControllerDelegate, TemplateListDelegate,WKNavigationDelegate>
 
@@ -40,12 +48,15 @@
 @property (nonatomic, strong) UIAlertController *loadingAlert;
 
 
-@property (nonatomic, assign) BOOL isAnimating; // 动画锁：YES表示正在执行动画
-@property (nonatomic, assign) BOOL isBuyIng; // 操作锁：YES正在进行
-@property (nonatomic, copy) NSString *localLongTermToken; // 本地存储的长效Token
-@property (nonatomic, assign) NSTimeInterval tokenExpireTime; // Token过期时间（1个月）
+@property (nonatomic, assign) BOOL isAnimating;                    // 动画锁：YES表示正在执行动画
+@property (nonatomic, assign) BOOL isBuyIng;                       // 操作锁：YES正在进行
+@property (nonatomic, copy) NSString *localLongTermToken;          // 本地存储的长效Token
+@property (nonatomic, assign) NSTimeInterval tokenExpireTime;      // Token过期时间（1个月）
 
-@property (nonatomic, strong) UIButton *historicalOrdersButton;
+@property (nonatomic, strong) UIButton *historicalOrdersButton;    //历史订单
+@property (nonatomic, strong) UIButton *contactHelperButton;       // 联系开发者
+
+@property (nonatomic, assign) PaymentType payType;
 
 @end
 
@@ -359,6 +370,19 @@
     [self.historicalOrdersButton setContentEdgeInsets:UIEdgeInsetsMake(2, 5, 2, 5)];
     [self.historicalOrdersButton addTarget:self action:@selector(handleHistoricalOrdersButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.historicalOrdersButton];
+    
+    self.contactHelperButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.contactHelperButton setTitle:@"联系客服" forState:UIControlStateNormal]; // 未获取时的文本
+    [self.contactHelperButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.contactHelperButton.titleLabel.font = [UIFont systemFontOfSize:13];
+    self.contactHelperButton.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.5];
+    self.contactHelperButton.layer.cornerRadius = 5;
+    self.contactHelperButton.layer.borderWidth = 1.0;
+    self.contactHelperButton.layer.borderColor = [UIColor systemBlueColor].CGColor;
+    [self.contactHelperButton setContentEdgeInsets:UIEdgeInsetsMake(2, 5, 2, 5)];
+    [self.contactHelperButton addTarget:self action:@selector(contactHelperButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.contactHelperButton];
+    
 }
 
 
@@ -495,7 +519,7 @@
     
     // 备用视图约束（后期VIP套餐表格）
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.moodTextView.mas_bottom).offset(20);
+        make.top.equalTo(self.moodTextView.mas_bottom).offset(50);
         make.left.equalTo(self.view).offset(20);
         make.right.equalTo(self.view).offset(-20);
         make.bottom.equalTo(self.view.mas_bottom).offset(-get_BOTTOM_TAB_BAR_HEIGHT - 10);
@@ -512,6 +536,11 @@
         
         make.height.mas_equalTo(20);
         make.right.equalTo(self.collectionView).offset(0);
+        make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
+    }];
+    [self.contactHelperButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_equalTo(20);
+        make.right.equalTo(self.historicalOrdersButton.mas_left).offset(-20);
         make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
     }];
     
@@ -551,6 +580,11 @@
             
             make.height.mas_equalTo(20);
             make.right.equalTo(self.collectionView).offset(0);
+            make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
+        }];
+        [self.contactHelperButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.height.mas_equalTo(20);
+            make.right.equalTo(self.historicalOrdersButton.mas_left).offset(-20);
             make.bottom.equalTo(self.collectionView.mas_top).offset(-10);
         }];
         
@@ -791,7 +825,7 @@
     }];
 }
 
-#pragma mark - UDID相关（核心适配点3）
+#pragma mark - UDID点击相
 - (void)handleUDIDButton:(UIButton *)sender {
     if ([self canAccessUDID]) {
         [self fetchAndDisplayDeviceIdentifier];
@@ -805,6 +839,10 @@
 - (void)handleHistoricalOrdersButton:(UIButton *)sender {
     VipPurchaseHistoryViewController *vc = [VipPurchaseHistoryViewController new];
     [self presentPanModal:vc];
+}
+
+- (void)contactHelperButtonTap:(UIButton *)button {
+    [[ContactHelper shared] showContactActionSheetWithUserUdid:@"00008030-001265591423802E"];
 }
 
 - (BOOL)canAccessUDID {
@@ -1056,6 +1094,9 @@
     NSDictionary *dic = [self.userInfo yy_modelToJSONObject];
     NSMutableDictionary *newDic = [NSMutableDictionary dictionaryWithDictionary:dic];
     newDic[@"action"] = @"updateProfile";
+    newDic[@"udid"] = udid;
+    newDic[@"target_udid"] = udid;
+    
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
@@ -1064,6 +1105,8 @@
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"更新用户昵称jsonResult:%@",jsonResult);
+            NSLog(@"更新用户昵称stringResult:%@",stringResult);
             [SVProgressHUD dismiss];
            
             // 解析响应数据
@@ -1335,14 +1378,23 @@
     [SVProgressHUD dismissWithDelay:0.4 completion:^{
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"购买确认"
                                                                        message:[NSString stringWithFormat:@"确定购买%@吗？", package.title]
-                                                                preferredStyle:UIAlertControllerStyleAlert];
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
         
         [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
             self.isBuyIng = NO;
         }]];
         
-        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            [self handlePurchaseWithPackage:package];
+        [alert addAction:[UIAlertAction actionWithTitle:@"支付宝付款" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            self.payType = PaymentTypeAlipay;
+            [self createOrderWithPackage:package];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:@"QQ钱包支付" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            self.payType = PaymentTypeQQPay;
+            [self createOrderWithPackage:package];
+        }]];
+        [alert addAction:[UIAlertAction actionWithTitle:@"微信支付" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            self.payType = PaymentTypeWeChatPay;
+            [self createOrderWithPackage:package];
         }]];
         
         [self presentViewController:alert animated:YES completion:nil];
@@ -1350,7 +1402,101 @@
 }
 
 /// 处理套餐购买请求（重构版：参数与vip.json对齐）
-- (void)handlePurchaseWithPackage:(VIPPackage *)package {
+#pragma mark - 先创建订单记录（调用PHP接口）
+- (void)createOrderWithPackage:(VIPPackage *)package{
+    NSString * mch_orderid = [self generateOrderIdWithPrefix:self.userInfo.udid];
+    NSLog(@"先创建订单记录：%@",mch_orderid);
+    // 1. 校验参数
+    if (!package || !self.userInfo || self.userInfo.udid.length == 0) {
+        NSLog(@"UDID为空");
+        [SVProgressHUD showErrorWithStatus:@"UDID为空"];
+        [SVProgressHUD dismissWithDelay:1];
+        return;
+    }
+    
+    if (package.price <= 0) {
+        [SVProgressHUD showErrorWithStatus:@"金额错误"];
+        [SVProgressHUD dismissWithDelay:1];
+        return;
+    }
+    
+    // 2. 构建请求参数（与PHP的 purchase_vip.php 接口参数对应）
+    self.loadingAlert = [UIAlertController alertControllerWithTitle:@"请稍后" message:@"订单创建中，请等待。。" preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:self.loadingAlert animated:YES completion:nil];
+    
+    NSDictionary *requestParams = @{
+        @"udid": self.userInfo.udid,
+        @"token": self.userInfo.token ?: @"",
+        @"mch_orderid":mch_orderid,
+        @"data": @{ // 直接在第一层 data 中放业务参数
+            @"vipLevel": @(package.level),
+            @"VIPPackage": @{
+                @"packageId": package.packageId ?: @"",
+                @"title": package.title ?: @"",
+                @"price": @(package.price),
+                @"level": @(package.level)
+            }
+            // 移除所有冗余字段（mch_orderid、重复的udid/token）
+        }
+    };
+    NSLog(@"先创建订单requestParams：%@",requestParams);
+    // 3. 调用PHP创建订单接口（你的 purchase_vip.php 地址）
+    NSString *createOrderURL = @"https://niceiphone.com/vip/purchase_vip.php?action=createOrder";
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:createOrderURL
+                                             parameters:requestParams udid:self.userInfo.udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 4. 解析PHP返回结果（按你原PHP接口的响应格式）
+            NSLog(@"先创建订单返回jsonResult：%@",jsonResult);
+            NSLog(@"先创建订单返回stringResult：%@",stringResult);
+            NSInteger code = [jsonResult[@"code"] integerValue];
+            NSString *msg = jsonResult[@"msg"] ?: @"创建订单失败";
+            
+            if (code != 200 && code != 0) { // 按你PHP的SUCCESS常量值调整（通常是200或0）
+                [self showAlertWithConfirmationFromViewController:self title:@"错误" message:msg confirmTitle:@"确定" cancelTitle:@"取消" onConfirmed:^{
+                    
+                } onCancelled:^{
+                    
+                }];
+                return;
+            }
+            
+            // 5. 提取商户订单号（mch_orderid）
+            NSDictionary *data = jsonResult[@"data"];
+            NSString *mchOrderId = data[@"mch_orderid"];
+            if (!mchOrderId || mchOrderId.length == 0) {
+                self.loadingAlert = [UIAlertController alertControllerWithTitle:@"错误" message:@"云端订单号生成失败" preferredStyle:UIAlertControllerStyleAlert];
+                // 添加取消按钮
+                UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                    
+                    
+                }];
+                [self.loadingAlert addAction:cancelAction];
+                [self presentViewController:self.loadingAlert animated:YES completion:nil];
+                return;
+            }
+            [self handlePurchaseWithPackage:package mch_orderid:mch_orderid];
+        });
+        
+        
+    } failure:^(NSError *error) {
+        NSLog(@"error:%@",error.localizedDescription);
+        
+    }];
+    
+}
+
+#pragma mark - 处理套餐购买请求（修改为本地调用YSMPaymentManager）
+
+- (void)handlePurchaseWithPackage:(VIPPackage *)package mch_orderid:(NSString *)mch_orderid{
+    if(self.loadingAlert){
+        [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
+    }
+    self.loadingAlert = [UIAlertController alertControllerWithTitle:@"订单创建成功" message:@"发起支付跳转中，请1分钟内进行支付。" preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:self.loadingAlert animated:YES completion:nil];
+    
     if (self.isBuyIng) {
         NSLog(@"handlePurchaseWithPackage操作频繁-稍后重试");
         [SVProgressHUD showInfoWithStatus:@"操作频繁-稍后重试"];
@@ -1372,162 +1518,55 @@
         return;
     }
 
-    // 2. 构建购买参数（严格对应PHP接收格式：data包含vipLevel和VIPPackage）
-    NSDictionary *packageJSON = [package yy_modelToJSONObject]; // 模型转JSON（与vip.json字段一致）
-    NSDictionary *requestData = @{
-        @"vipLevel": @(package.level),          // 套餐等级
-        @"VIPPackage": packageJSON,              // 完整套餐信息（与vip.json对齐）
-        @"udid": udid,
-        @"token": self.localLongTermToken ?: @"", // 长效Token（之前已实现）
-    };
-
-    
-    NSLog(@"购买请求parameters:%@",requestData);
-
-    // 4. 显示加载弹窗
-    self.loadingAlert = [UIAlertController alertControllerWithTitle:@"处理中"
-                                                            message:[NSString stringWithFormat:@"正在购买「%@」...", package.title]
-                                                     preferredStyle:UIAlertControllerStyleAlert];
-    [self presentViewController:self.loadingAlert animated:YES completion:^{
-        // 5. 发送购买请求（POST + JSON格式）
-        NSString *purchaseURL = [NSString stringWithFormat:@"%@/vip/purchase_vip.php", localURL];
-        [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                  urlString:purchaseURL
-                                                 parameters:requestData
-                                                       udid:udid
-                                                   progress:^(NSProgress *progress) {
-        } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self handlePurchaseSuccessWithResponse:jsonResult package:package];
-            });
-        } failure:^(NSError *error) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self handlePurchaseFailureWithError:error];
-            });
-        }];
-    }];
-}
-
-
-#pragma mark - 处理购买成功响应（修改版）
-- (void)handlePurchaseSuccessWithResponse:(id)responseObject package:(VIPPackage *)package {
-    NSLog(@"handlePurchaseSuccessWithResponse:%@",responseObject);
-    self.isBuyIng = NO;
-    [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
-
-    if (![responseObject isKindOfClass:[NSDictionary class]]) {
-        [self showAlertWithTitle:@"购买失败" message:@"返回数据格式错误"];
-        return;
-    }
-    NSLog(@"订单创建返回:%@",responseObject);
-    NSInteger code = [responseObject[@"code"] intValue];
-    NSString *message = responseObject[@"msg"] ?: @"购买结果未知";
-    NSDictionary *data = responseObject[@"data"];
-
-    if (code == 200 && [responseObject[@"status"] isEqualToString:@"pending"]) {
-        // 1. 获取支付链接和订单号
-        NSString *payUrl = data[@"pay_url"];
-        NSString *mchOrderId = data[@"mch_orderid"];
-        
-        if (payUrl.length > 0 && mchOrderId.length > 0) {
-            // 2. 保存订单号用于后续查询
-            [[NSUserDefaults standardUserDefaults] setObject:mchOrderId forKey:@"CurrentVipOrderId"];
-            [[NSUserDefaults standardUserDefaults] synchronize];
+    // 1. 初始化支付管理器并配置商户信息
+    [[PaymentManager sharedManager] startPaymentWithOrderNo:mch_orderid  // 唯一订单号
+                                productName:package.title
+                                     amount:[NSString stringWithFormat:@"%.2f",package.price]            // 两位小数
+                                paymentType:self.payType   // 支付宝支付
+                                  notifyUrl:@"https://niceiphone.com/vip/notify.php"  // 服务器异步通知地址
+                                  returnUrl:@"trollapps://package/select"  // 页面跳转地址
+                                   siteName:@"TrollApps"         // 可选，可为nil
+                                 completion:^(BOOL isSuccess, NSString *message, NSDictionary *resultDict) {
+        if (isSuccess) {
+            self.isBuyIng = NO; // 解除操作锁
+            NSLog(@"支付流程完成：%@", resultDict);
+            [SVProgressHUD showSuccessWithStatus:@"支付流程已完成，等待服务器确认~"];
+            [SVProgressHUD dismissWithDelay:2];
+            // 可选：跳转到订单查询页面或首页
             
-            // 3. 跳转支付页面
-            [self showPaymentWebView:payUrl];
         } else {
-            [self showAlertWithTitle:@"支付参数错误" message:@"无法获取支付信息"];
+            NSLog(@"支付失败：%@", message);
+            [SVProgressHUD showErrorWithStatus:message];
+            [SVProgressHUD dismissWithDelay:2];
         }
-    } else {
-        [self showAlertWithTitle:@"购买失败" message:message];
-    }
-}
-
-
-- (void)handlePurchaseFailureWithError:(NSError *)error {
-    self.isBuyIng = NO;
-    [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
-    [self showAlertWithTitle:@"网络错误" message:@"购买失败，请检查网络连接"];
-}
-
-#pragma mark - 显示支付网页
-- (void)showPaymentWebView:(NSString *)urlString {
-    WKWebView *webView = [[WKWebView alloc] initWithFrame:self.view.bounds];
-    webView.navigationDelegate = self;
-    [self.view addSubview:webView];
-    
-    // 添加关闭按钮
-    UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
-    [closeBtn addTarget:self action:@selector(closePaymentWebView:) forControlEvents:UIControlEventTouchUpInside];
-    closeBtn.frame = CGRectMake(20, 40, 60, 30);
-    [webView addSubview:closeBtn];
-    
-    NSURL *url = [NSURL URLWithString:urlString];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
-}
-
-#pragma mark - 关闭支付页面
-- (void)closePaymentWebView:(UIButton *)btn {
-    [btn.superview removeFromSuperview];
-    // 关闭后查询订单状态
-    [self queryPaymentStatus];
-}
-
-#pragma mark - 查询支付状态
-- (void)queryPaymentStatus {
-    NSString *mchOrderId = [[NSUserDefaults standardUserDefaults] stringForKey:@"CurrentVipOrderId"];
-    if (!mchOrderId) {
-        return;
-    }
-
-    NSDictionary *params = @{
-        @"action": @"queryVipOrder",
-        @"mch_orderid": mchOrderId,
-        @"udid": self.userInfo.udid ?: @""
-    };
-
-    [SVProgressHUD showWithStatus:@"查询支付结果..."];
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/sdk/Ysm-SDK-php/query_vip_order.php", localURL]
-                                             parameters:params
-                                                   udid:self.userInfo.udid
-                                               progress:nil
-                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [SVProgressHUD dismiss];
-            if ([jsonResult[@"code"] integerValue] == 200 && [jsonResult[@"status"] isEqualToString:@"success"]) {
-                [self showAlertWithTitle:@"支付成功" message:@"您已成功购买VIP服务"];
-                [self loadUserInfo]; // 刷新用户信息
-            } else {
-                NSString *msg = jsonResult[@"msg"] ?: @"支付未完成，请稍后查询";
-                [self showAlertWithTitle:@"查询结果" message:msg];
-            }
-        });
-       
-    } failure:^(NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [SVProgressHUD dismiss];
-            [self showAlertWithTitle:@"查询失败" message:@"无法获取支付状态，请稍后重试"];
-        });
-        
     }];
+    
+    
 }
 
-#pragma mark - WKNavigationDelegate
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    NSURL *url = navigationAction.request.URL;
-    if ([url.scheme isEqualToString:@"trollapps"]) {
-        // 从支付页面跳转回来
-        [webView removeFromSuperview];
-        [self queryPaymentStatus];
-        decisionHandler(WKNavigationActionPolicyCancel);
-        return;
+#pragma mark - 生成唯一订单号
+- (NSString *)generateOrderIdWithPrefix:(NSString *)prefix {
+    // 格式：前缀 + 10位时间戳 + 6位随机数（确保唯一）
+    NSString *timestamp = [NSString stringWithFormat:@"%.0f", [[NSDate date] timeIntervalSince1970]];
+    NSString *randomStr = [self generateNonceStrWithLength:6];
+    return [NSString stringWithFormat:@"%@_%@_%@", prefix ?: @"TrollApps_VIP", timestamp, randomStr];
+}
+
+#pragma mark - 生成随机字符串
+- (NSString *)generateNonceStrWithLength:(NSInteger)length {
+    if (length < 6) length = 6; // 最小6位（符合文档要求）
+    if (length > 32) length = 32; // 最大32位（符合文档要求）
+    
+    NSString *chars = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-*";
+    NSMutableString *nonceStr = [NSMutableString stringWithCapacity:length];
+    
+    for (NSInteger i = 0; i < length; i++) {
+        NSInteger randomIndex = arc4random_uniform((uint32_t)chars.length);
+        [nonceStr appendFormat:@"%C", [chars characterAtIndex:randomIndex]];
     }
-    decisionHandler(WKNavigationActionPolicyAllow);
+    
+    return nonceStr;
 }
-
 /**
  * 当滚动视图滚动时调用此方法。
  *
@@ -1536,9 +1575,9 @@
  */
 - (void)scrollViewDidScrollWithOffset:(CGFloat)offset isScrollingUp:(BOOL)isScrollingUp{
     if(isScrollingUp){
-        NSLog(@"向上滚动:%f",offset);
+//        NSLog(@"向上滚动:%f",offset);
     }else{
-        NSLog(@"向下滚动:%f",offset);
+//        NSLog(@"向下滚动:%f",offset);
     }
     self.isScrollingUp = isScrollingUp;
     [self updateViewConstraints];

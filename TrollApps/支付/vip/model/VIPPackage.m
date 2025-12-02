@@ -20,7 +20,8 @@
     return [self.packageId isEqualToString:other.packageId] &&
            [self.title isEqualToString:other.title] &&
            [self.vipDescription isEqualToString:other.vipDescription] &&
-           [self.price isEqualToString:other.price] &&
+           self.price == other.price &&
+           
            self.level == other.level &&
            [self.themeColor isEqualToString:other.themeColor] &&
            self.isRecommended == other.isRecommended &&

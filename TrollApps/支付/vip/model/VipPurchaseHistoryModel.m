@@ -28,6 +28,7 @@
     if (![self.udid isEqualToString:model.udid]) return NO;
     if (!([self.idfv isEqualToString:model.idfv] || (self.idfv == nil && model.idfv == nil))) return NO;
     if (![self.packageId isEqualToString:model.packageId]) return NO;
+    if (![self.vipDescription isEqualToString:model.vipDescription]) return NO;
     if (![self.packageTitle isEqualToString:model.packageTitle]) return NO;
     if (![self.price isEqualToString:model.price]) return NO;
     if (self.vipLevel != model.vipLevel) return NO;

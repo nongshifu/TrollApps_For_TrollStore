@@ -11,6 +11,11 @@
 		4F639DF92272E94C00776206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DF82272E94C00776206 /* Assets.xcassets */; };
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
 		4F639DFF2272E94C00776206 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DFE2272E94C00776206 /* main.m */; };
+		C26FF4812EDDF67A00C3F195 /* YSMPaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */; };
+		C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4852EDEB38300C3F195 /* PaymentManager.m */; };
+		C26FF48B2EDED10500C3F195 /* YSMPayRequestModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */; };
+		C26FF48C2EDED10500C3F195 /* YSMPayResponseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4892EDED10500C3F195 /* YSMPayResponseModel.m */; };
+		C26FF4912EDED43F00C3F195 /* ShowOneOrderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */; };
 		C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C287212C2E28262400ABC6AE /* RootSign.entitlements */; };
 		C2E44C4C2EDAD35E00110348 /* ConfigField.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFA2EDAD35C00110348 /* ConfigField.m */; };
 		C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFC2EDAD35C00110348 /* SystemViewController.m */; };
@@ -134,7 +139,7 @@
 		C2E44CC82EDAD35F00110348 /* BubbleTipManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C212EDAD35D00110348 /* BubbleTipManager.m */; };
 		C2E44CC92EDAD35F00110348 /* UIView.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C242EDAD35D00110348 /* UIView.m */; };
 		C2E44CCA2EDAD35F00110348 /* ExpandableIconButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C262EDAD35E00110348 /* ExpandableIconButton.m */; };
-		C2E44CCB2EDAD35F00110348 /* UIResponder+DoneButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C282EDAD35E00110348 /* UIResponder+DoneButton.m */; };
+		C2E44CCB2EDAD35F00110348 /* UIResponder+SearchHistoryToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C282EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.m */; };
 		C2E44CCC2EDAD35F00110348 /* KeychainTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C2C2EDAD35E00110348 /* KeychainTool.m */; };
 		C2E44CCD2EDAD35F00110348 /* TimeTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C2E2EDAD35E00110348 /* TimeTool.m */; };
 		C2E44CCE2EDAD35F00110348 /* UIColor.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C302EDAD35E00110348 /* UIColor.m */; };
@@ -181,6 +186,18 @@
 		4F639DFB2272E94C00776206 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F639DFD2272E94C00776206 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F639DFE2272E94C00776206 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		C26FF4782EDDF5AB00C3F195 /* YSMPaymentConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentConfig.h; sourceTree = "<group>"; };
+		C26FF47F2EDDF67A00C3F195 /* YSMPaymentManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentManager.h; sourceTree = "<group>"; };
+		C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YSMPaymentManager.m; sourceTree = "<group>"; };
+		C26FF4842EDEB38300C3F195 /* PaymentManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PaymentManager.h; sourceTree = "<group>"; };
+		C26FF4852EDEB38300C3F195 /* PaymentManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PaymentManager.m; sourceTree = "<group>"; };
+		C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YSMPayRequestModel.m; sourceTree = "<group>"; };
+		C26FF4882EDED10400C3F195 /* YSMPayRequestModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YSMPayRequestModel.h; sourceTree = "<group>"; };
+		C26FF4892EDED10500C3F195 /* YSMPayResponseModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YSMPayResponseModel.m; sourceTree = "<group>"; };
+		C26FF48A2EDED10500C3F195 /* YSMPayResponseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YSMPayResponseModel.h; sourceTree = "<group>"; };
+		C26FF48E2EDED1B300C3F195 /* MZFConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MZFConfig.h; sourceTree = "<group>"; };
+		C26FF48F2EDED43F00C3F195 /* ShowOneOrderViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShowOneOrderViewController.h; sourceTree = "<group>"; };
+		C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShowOneOrderViewController.m; sourceTree = "<group>"; };
 		C28720712E25432100ABC6AE /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C287212C2E28262400ABC6AE /* RootSign.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = RootSign.entitlements; sourceTree = "<group>"; };
@@ -423,7 +440,7 @@
 		C2E44C242EDAD35D00110348 /* UIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIView.m; sourceTree = "<group>"; };
 		C2E44C262EDAD35E00110348 /* ExpandableIconButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ExpandableIconButton.m; sourceTree = "<group>"; };
 		C2E44C272EDAD35E00110348 /* ExpandableIconButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExpandableIconButton.h; sourceTree = "<group>"; };
-		C2E44C282EDAD35E00110348 /* UIResponder+DoneButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIResponder+DoneButton.m"; sourceTree = "<group>"; };
+		C2E44C282EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIResponder+SearchHistoryToolbar.m"; sourceTree = "<group>"; };
 		C2E44C292EDAD35E00110348 /* UIImage+Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Extensions.h"; sourceTree = "<group>"; };
 		C2E44C2B2EDAD35E00110348 /* KeychainTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeychainTool.h; sourceTree = "<group>"; };
 		C2E44C2C2EDAD35E00110348 /* KeychainTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeychainTool.m; sourceTree = "<group>"; };
@@ -442,7 +459,7 @@
 		C2E44C3B2EDAD35E00110348 /* BaseMenuViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseMenuViewController.m; sourceTree = "<group>"; };
 		C2E44C3D2EDAD35E00110348 /* MultiIconButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MultiIconButton.m; sourceTree = "<group>"; };
 		C2E44C3E2EDAD35E00110348 /* MultiIconButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiIconButton.h; sourceTree = "<group>"; };
-		C2E44C3F2EDAD35E00110348 /* UIResponder+DoneButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIResponder+DoneButton.h"; sourceTree = "<group>"; };
+		C2E44C3F2EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIResponder+SearchHistoryToolbar.h"; sourceTree = "<group>"; };
 		C2E44C402EDAD35E00110348 /* UIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIView.h; sourceTree = "<group>"; };
 		C2E44C412EDAD35E00110348 /* UIImage+Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Extensions.m"; sourceTree = "<group>"; };
 		C2E44C432EDAD35E00110348 /* QRCodeGeneratorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QRCodeGeneratorViewController.h; sourceTree = "<group>"; };
@@ -463,6 +480,7 @@
 		C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFileBrowserVC.h; sourceTree = "<group>"; };
 		C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SandboxFileBrowserVC.m; sourceTree = "<group>"; };
 		C2E44CF42EDC408300110348 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		C2E44D1A2EDD83FF00110348 /* AFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -499,6 +517,7 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C26FF4822EDEB37300C3F195 /* 支付 */,
 				C2E44B8C2EDAD35D00110348 /* 安装工具 */,
 				C2E44C452EDAD35E00110348 /* 版本管理 */,
 				C2E44BC52EDAD35D00110348 /* 表格控制器模板TemplateListController */,
@@ -519,7 +538,6 @@
 				C2E44B002EDAD35C00110348 /* AppDelegate.m */,
 				C2E44BE02EDAD35D00110348 /* Apps */,
 				4F639DF82272E94C00776206 /* Assets.xcassets */,
-				C2E44B5C2EDAD35C00110348 /* CommentInputView */,
 				C28720712E25432100ABC6AE /* config.h */,
 				4F639DFD2272E94C00776206 /* Info.plist */,
 				4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */,
@@ -541,20 +559,55 @@
 		67ABF29B7E82C79B43DF5CF3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44D1A2EDD83FF00110348 /* AFNetworking.framework */,
 				068050F3072675203E6A8899 /* Pods_TrollApps.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		C26FF4822EDEB37300C3F195 /* 支付 */ = {
+			isa = PBXGroup;
+			children = (
+				C26FF48D2EDED13500C3F195 /* 易收米 */,
+				C2E44B022EDAD35C00110348 /* vip */,
+				C26FF4832EDEB37900C3F195 /* 码支付 */,
+			);
+			path = "支付";
+			sourceTree = "<group>";
+		};
+		C26FF4832EDEB37900C3F195 /* 码支付 */ = {
+			isa = PBXGroup;
+			children = (
+				C26FF4842EDEB38300C3F195 /* PaymentManager.h */,
+				C26FF4852EDEB38300C3F195 /* PaymentManager.m */,
+				C26FF48E2EDED1B300C3F195 /* MZFConfig.h */,
+			);
+			path = "码支付";
+			sourceTree = "<group>";
+		};
+		C26FF48D2EDED13500C3F195 /* 易收米 */ = {
+			isa = PBXGroup;
+			children = (
+				C26FF4782EDDF5AB00C3F195 /* YSMPaymentConfig.h */,
+				C26FF47F2EDDF67A00C3F195 /* YSMPaymentManager.h */,
+				C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */,
+				C26FF4882EDED10400C3F195 /* YSMPayRequestModel.h */,
+				C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */,
+				C26FF48A2EDED10500C3F195 /* YSMPayResponseModel.h */,
+				C26FF4892EDED10500C3F195 /* YSMPayResponseModel.m */,
+			);
+			path = "易收米";
+			sourceTree = "<group>";
+		};
 		C2E44AF92EDAD35C00110348 /* 系统设置 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44AFD2EDAD35C00110348 /* ConfigField.h */,
 				C2E44AFA2EDAD35C00110348 /* ConfigField.m */,
 				C2E44AFB2EDAD35C00110348 /* ConfigItem.h */,
-				C2E44AFC2EDAD35C00110348 /* SystemViewController.m */,
-				C2E44AFD2EDAD35C00110348 /* ConfigField.h */,
 				C2E44AFE2EDAD35C00110348 /* ConfigItem.m */,
 				C2E44AFF2EDAD35C00110348 /* SystemViewController.h */,
+				C2E44AFC2EDAD35C00110348 /* SystemViewController.m */,
 			);
 			path = "系统设置";
 			sourceTree = "<group>";
@@ -573,7 +626,6 @@
 				C2E44B312EDAD35C00110348 /* model */,
 				C2E44B0F2EDAD35C00110348 /* NewProfileViewController.h */,
 				C2E44B132EDAD35C00110348 /* NewProfileViewController.mm */,
-				C2E44B022EDAD35C00110348 /* vip */,
 			);
 			path = "用户中心";
 			sourceTree = "<group>";
@@ -581,10 +633,12 @@
 		C2E44B022EDAD35C00110348 /* vip */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B032EDAD35C00110348 /* VipPurchaseHistoryViewController.m */,
 				C2E44B042EDAD35C00110348 /* cell */,
 				C2E44B092EDAD35C00110348 /* model */,
 				C2E44B0E2EDAD35C00110348 /* VipPurchaseHistoryViewController.h */,
+				C2E44B032EDAD35C00110348 /* VipPurchaseHistoryViewController.m */,
+				C26FF48F2EDED43F00C3F195 /* ShowOneOrderViewController.h */,
+				C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */,
 			);
 			path = vip;
 			sourceTree = "<group>";
@@ -592,10 +646,10 @@
 		C2E44B042EDAD35C00110348 /* cell */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B052EDAD35C00110348 /* VIPPackageCell.m */,
+				C2E44B082EDAD35C00110348 /* vip_purchase_historyCell.h */,
 				C2E44B062EDAD35C00110348 /* vip_purchase_historyCell.m */,
 				C2E44B072EDAD35C00110348 /* VIPPackageCell.h */,
-				C2E44B082EDAD35C00110348 /* vip_purchase_historyCell.h */,
+				C2E44B052EDAD35C00110348 /* VIPPackageCell.m */,
 			);
 			path = cell;
 			sourceTree = "<group>";
@@ -604,8 +658,8 @@
 			isa = PBXGroup;
 			children = (
 				C2E44B0A2EDAD35C00110348 /* VIPPackage.h */,
-				C2E44B0B2EDAD35C00110348 /* VipPurchaseHistoryModel.h */,
 				C2E44B0C2EDAD35C00110348 /* VIPPackage.m */,
+				C2E44B0B2EDAD35C00110348 /* VipPurchaseHistoryModel.h */,
 				C2E44B0D2EDAD35C00110348 /* VipPurchaseHistoryModel.m */,
 			);
 			path = model;
@@ -624,9 +678,9 @@
 			isa = PBXGroup;
 			children = (
 				C2E44B152EDAD35C00110348 /* MyCollectionViewController.h */,
-				C2E44B162EDAD35C00110348 /* MyFavoritesListViewController.m */,
 				C2E44B172EDAD35C00110348 /* MyCollectionViewController.m */,
 				C2E44B182EDAD35C00110348 /* MyFavoritesListViewController.h */,
+				C2E44B162EDAD35C00110348 /* MyFavoritesListViewController.m */,
 			);
 			path = "我的收藏";
 			sourceTree = "<group>";
@@ -654,16 +708,16 @@
 		C2E44B212EDAD35C00110348 /* 状态说说 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B222EDAD35C00110348 /* CustomMoodStatusNavView.m */,
-				C2E44B232EDAD35C00110348 /* MoodStatusModel.h */,
-				C2E44B242EDAD35C00110348 /* PublishMoodViewController.m */,
-				C2E44B252EDAD35C00110348 /* moodStatusViewController.m */,
-				C2E44B262EDAD35C00110348 /* moodStatusCell.m */,
 				C2E44B272EDAD35C00110348 /* CustomMoodStatusNavView.h */,
-				C2E44B282EDAD35C00110348 /* PublishMoodViewController.h */,
-				C2E44B292EDAD35C00110348 /* MoodStatusModel.m */,
+				C2E44B222EDAD35C00110348 /* CustomMoodStatusNavView.m */,
 				C2E44B2A2EDAD35C00110348 /* moodStatusCell.h */,
+				C2E44B262EDAD35C00110348 /* moodStatusCell.m */,
+				C2E44B232EDAD35C00110348 /* MoodStatusModel.h */,
+				C2E44B292EDAD35C00110348 /* MoodStatusModel.m */,
 				C2E44B2B2EDAD35C00110348 /* moodStatusViewController.h */,
+				C2E44B252EDAD35C00110348 /* moodStatusViewController.m */,
+				C2E44B282EDAD35C00110348 /* PublishMoodViewController.h */,
+				C2E44B242EDAD35C00110348 /* PublishMoodViewController.m */,
 			);
 			path = "状态说说";
 			sourceTree = "<group>";
@@ -786,13 +840,13 @@
 			path = "网页管理器";
 			sourceTree = "<group>";
 		};
-		C2E44B5C2EDAD35C00110348 /* CommentInputView */ = {
+		C2E44B5C2EDAD35C00110348 /* 评论输入框 */ = {
 			isa = PBXGroup;
 			children = (
 				C2E44B5D2EDAD35C00110348 /* CommentInputView.m */,
 				C2E44B5E2EDAD35C00110348 /* CommentInputView.h */,
 			);
-			path = CommentInputView;
+			path = "评论输入框";
 			sourceTree = "<group>";
 		};
 		C2E44B5F2EDAD35C00110348 /* 导航 */ = {
@@ -807,6 +861,7 @@
 		C2E44B622EDAD35C00110348 /* 评论 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44B5C2EDAD35C00110348 /* 评论输入框 */,
 				C2E44B642EDAD35C00110348 /* AppCommentCell.h */,
 				C2E44B662EDAD35C00110348 /* AppCommentCell.m */,
 				C2E44B632EDAD35C00110348 /* CommentModel.h */,
@@ -818,10 +873,10 @@
 		C2E44B682EDAD35C00110348 /* 网络 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B692EDAD35C00110348 /* TokenGenerator.h */,
-				C2E44B6A2EDAD35C00110348 /* NetworkClient.m */,
-				C2E44B6B2EDAD35C00110348 /* TokenGenerator.m */,
 				C2E44B6C2EDAD35C00110348 /* NetworkClient.h */,
+				C2E44B6A2EDAD35C00110348 /* NetworkClient.m */,
+				C2E44B692EDAD35C00110348 /* TokenGenerator.h */,
+				C2E44B6B2EDAD35C00110348 /* TokenGenerator.m */,
 			);
 			path = "网络";
 			sourceTree = "<group>";
@@ -1209,8 +1264,8 @@
 				C2E44C302EDAD35E00110348 /* UIColor.m */,
 				C2E44C292EDAD35E00110348 /* UIImage+Extensions.h */,
 				C2E44C412EDAD35E00110348 /* UIImage+Extensions.m */,
-				C2E44C3F2EDAD35E00110348 /* UIResponder+DoneButton.h */,
-				C2E44C282EDAD35E00110348 /* UIResponder+DoneButton.m */,
+				C2E44C3F2EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.h */,
+				C2E44C282EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.m */,
 				C2E44C402EDAD35E00110348 /* UIView.h */,
 				C2E44C242EDAD35D00110348 /* UIView.m */,
 			);
@@ -1510,7 +1565,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\nLDID_PATH=\"ldid\"  # 已在环境变量中可直接用，否则填绝对路径（如 /usr/local/bin/ldid）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"  # 权限文件路径\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"  # IPA输出目录\nIPA_NAME=\"${PROJECT_NAME}_$(date +%Y%m%d%H%M%S).ipa\"  # 增加时间戳，避免覆盖\n#IPA_NAME=\"${PROJECT_NAME}.ipa\"  # 增加时间戳，避免覆盖\n# ==============================================\n# 自动获取关键路径（无需修改，强制可执行文件名称=PRODUCT_NAME）\n# ==============================================\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"  # 编译后的.app路径\nEXECUTABLE_NAME=\"${PRODUCT_NAME}\"  # 强制可执行文件名称与.app名称一致（核心修复）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"  # 可执行文件路径\n\n# ==============================================\n# 前置校验（避免无效操作）\n# ==============================================\necho \"🔍 开始前置校验...\"\n\n# 校验权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：权限文件不存在 → ${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# 校验.app包是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：.app包不存在 → ${APP_PATH}\"\n    exit 1\nfi\n\n# 校验可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在 → ${EXECUTABLE_PATH}\"\n    echo \"⚠️  请检查 Xcode 项目配置：PRODUCT_NAME 与 EXECUTABLE_NAME 是否一致\"\n    exit 1\nfi\n\n# ==============================================\n# 1. 给可执行文件添加执行权限（核心修复）\n# ==============================================\necho \"🔧 给可执行文件添加执行权限...\"\nchmod +x \"${EXECUTABLE_PATH}\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：添加执行权限失败 → ${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 2. 使用 ldid 签名可执行文件（确保 -S 与路径无空格）\n# ==============================================\necho \"📝 开始使用 ldid 签名可执行文件...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"  # -S和权限文件路径无空格\nif [ $? -eq 0 ]; then\n    echo \"✅ ldid 签名成功！\"\nelse\n    echo \"❌ 错误：ldid 签名失败 → 请检查权限文件格式和路径\"\n    exit 1\nfi\n\n# ==============================================\n# 3. 打包 IPA（严格按 Apple 标准结构）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录（每次重建，避免残留）\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nrm -rf \"${TMP_IPA_DIR}\"  # 清理旧临时目录\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的.app到Payload目录（必须放在Payload下，否则IPA无效）\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：复制.app到Payload失败\"\n    exit 1\nfi\n\n# 压缩为IPA（-q 静默模式，-r 递归压缩，-X 排除.DS_Store等无用文件）\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\n\nmkdir -p \"${IPA_OUTPUT_DIR}\"  # 确保输出目录存在\ncd \"${TMP_IPA_DIR}\" && zip -q -r -X \"${IPA_FULL_PATH}\" .\nif [ $? -eq 0 ]; then\n    echo \"✅ IPA 打包成功！\"\n    echo \"📁 IPA 路径：${IPA_FULL_PATH}\"\nelse\n    echo \"❌ 错误：IPA 打包失败\"\n    exit 1\nfi\n\n# ==============================================\n# 4. 清理临时文件\n# ==============================================\nrm -rf \"${TMP_IPA_DIR}\"\necho \"🧹 清理临时文件完成\"\n\n# 脚本执行成功\nexit 0\n";
+			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\nLDID_PATH=\"ldid\"  # 已在环境变量中可直接用，否则填绝对路径（如 /usr/local/bin/ldid）\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"  # 权限文件路径\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"  # IPA输出目录\nIPA_NAME=\"${PROJECT_NAME}_$(date +%Y%m%d%H%M%S).ipa\"  # 增加时间戳，避免覆盖\n#IPA_NAME=\"${PROJECT_NAME}.ipa\"  # 增加时间戳，避免覆盖\n# ==============================================\n# 自动获取关键路径（无需修改，强制可执行文件名称=PRODUCT_NAME）\n# ==============================================\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"  # 编译后的.app路径\nEXECUTABLE_NAME=\"${PRODUCT_NAME}\"  # 强制可执行文件名称与.app名称一致（核心修复）\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"  # 可执行文件路径\n\n# ==============================================\n# 前置校验（避免无效操作）\n# ==============================================\necho \"🔍 开始前置校验...\"\n\n# 校验权限文件是否存在\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then\n    echo \"❌ 错误：权限文件不存在 → ${ENTITLEMENTS_PATH}\"\n    exit 1\nfi\n\n# 校验.app包是否存在\nif [ ! -d \"${APP_PATH}\" ]; then\n    echo \"❌ 错误：.app包不存在 → ${APP_PATH}\"\n    exit 1\nfi\n\n# 校验可执行文件是否存在\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then\n    echo \"❌ 错误：可执行文件不存在 → ${EXECUTABLE_PATH}\"\n    echo \"⚠️  请检查 Xcode 项目配置：PRODUCT_NAME 与 EXECUTABLE_NAME 是否一致\"\n    exit 1\nfi\n\n# ==============================================\n# 1. 给可执行文件添加执行权限（核心修复）\n# ==============================================\necho \"🔧 给可执行文件添加执行权限...\"\nchmod +x \"${EXECUTABLE_PATH}\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：添加执行权限失败 → ${EXECUTABLE_PATH}\"\n    exit 1\nfi\n\n# ==============================================\n# 2. 使用 ldid 签名可执行文件（确保 -S 与路径无空格）\n# ==============================================\necho \"📝 开始使用 ldid 签名可执行文件...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"  # -S和权限文件路径无空格\nif [ $? -eq 0 ]; then\n    echo \"✅ ldid 签名成功！\"\nelse\n    echo \"❌ 错误：ldid 签名失败 → 请检查权限文件格式和路径\"\n    exit 1\nfi\n\n\n\n# ==============================================\n# 3. 打包 IPA（严格按 Apple 标准结构）\n# ==============================================\necho \"📦 开始打包 IPA...\"\n\n# 创建临时打包目录（每次重建，避免残留）\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nrm -rf \"${TMP_IPA_DIR}\"  # 清理旧临时目录\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\n\n# 复制签名后的.app到Payload目录（必须放在Payload下，否则IPA无效）\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\nif [ $? -ne 0 ]; then\n    echo \"❌ 错误：复制.app到Payload失败\"\n    exit 1\nfi\n\n# 压缩为IPA（-q 静默模式，-r 递归压缩，-X 排除.DS_Store等无用文件）\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\n\nmkdir -p \"${IPA_OUTPUT_DIR}\"  # 确保输出目录存在\ncd \"${TMP_IPA_DIR}\" && zip -q -r -X \"${IPA_FULL_PATH}\" .\nif [ $? -eq 0 ]; then\n    echo \"✅ IPA 打包成功！\"\n    echo \"📁 IPA 路径：${IPA_FULL_PATH}\"\nelse\n    echo \"❌ 错误：IPA 打包失败\"\n    exit 1\nfi\n\n# ==============================================\n# 4. 清理临时文件\n# ==============================================\nrm -rf \"${TMP_IPA_DIR}\"\necho \"🧹 清理临时文件完成\"\n\n# 脚本执行成功\nexit 0\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1520,6 +1575,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C2E44C992EDAD35E00110348 /* DylibInfo.m in Sources */,
+				C26FF48C2EDED10500C3F195 /* YSMPayResponseModel.m in Sources */,
 				4F639DF42272E94500776206 /* ViewController.m in Sources */,
 				C2E44CB32EDAD35E00110348 /* PublishAppViewController.m in Sources */,
 				C2E44CC52EDAD35F00110348 /* CustomScrollView.m in Sources */,
@@ -1530,6 +1586,7 @@
 				C2E44CB12EDAD35E00110348 /* HXPhotoURLConverter.m in Sources */,
 				C2E44CC72EDAD35F00110348 /* ImageModel.m in Sources */,
 				C2E44CCA2EDAD35F00110348 /* ExpandableIconButton.m in Sources */,
+				C26FF4912EDED43F00C3F195 /* ShowOneOrderViewController.m in Sources */,
 				C2E44C732EDAD35E00110348 /* CommentInputView.m in Sources */,
 				C2E44C6A2EDAD35E00110348 /* ToolTagsView.m in Sources */,
 				C2E44C612EDAD35E00110348 /* UserCardViewController.m in Sources */,
@@ -1552,7 +1609,8 @@
 				C2E44CBB2EDAD35E00110348 /* ShowOneAppViewController.m in Sources */,
 				C2E44C682EDAD35E00110348 /* NewToolViewController.m in Sources */,
 				C2E44C712EDAD35E00110348 /* WebViewController.m in Sources */,
-				C2E44CCB2EDAD35F00110348 /* UIResponder+DoneButton.m in Sources */,
+				C2E44CCB2EDAD35F00110348 /* UIResponder+SearchHistoryToolbar.m in Sources */,
+				C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */,
 				C2E44C532EDAD35E00110348 /* VIPPackage.m in Sources */,
 				C2E44C632EDAD35E00110348 /* UserModel.m in Sources */,
 				C2E44C9C2EDAD35E00110348 /* AppListController.m in Sources */,
@@ -1565,6 +1623,7 @@
 				C2E44CC92EDAD35F00110348 /* UIView.m in Sources */,
 				C2E44C9F2EDAD35E00110348 /* Root.m in Sources */,
 				C2E44CAC2EDAD35E00110348 /* FeedbackCell.m in Sources */,
+				C26FF48B2EDED10500C3F195 /* YSMPayRequestModel.m in Sources */,
 				C2E44CCF2EDAD35F00110348 /* ArrowheadMenu.m in Sources */,
 				C2E44C792EDAD35E00110348 /* AppSearchCell.m in Sources */,
 				C2E44C742EDAD35E00110348 /* MyTabBarController.m in Sources */,
@@ -1609,6 +1668,7 @@
 				C2E44C672EDAD35E00110348 /* ContactHelper.m in Sources */,
 				C2E44CC22EDAD35E00110348 /* AppVersionModel.m in Sources */,
 				C2E44CD22EDAD35F00110348 /* UIView+DrawGraphics.m in Sources */,
+				C26FF4812EDDF67A00C3F195 /* YSMPaymentManager.m in Sources */,
 				C2E44CD32EDAD35F00110348 /* BaseMenuViewController.m in Sources */,
 				C2E44C7B2EDAD35E00110348 /* AppSearchViewController.m in Sources */,
 				C2E44C722EDAD35E00110348 /* ToolStoreListViewController.m in Sources */,
@@ -1785,7 +1845,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_ENTITLMENTS = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
@@ -1804,6 +1864,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.trollapps.shisange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -1819,7 +1880,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_ENTITLMENTS = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
@@ -1838,6 +1899,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.trollapps.shisange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

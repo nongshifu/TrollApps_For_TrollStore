@@ -18,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSInteger sort;
 //列表类型
 @property (nonatomic, assign) NSInteger selectedIndex;
+//查询目标
+@property (nonatomic, strong) NSString *target_udid;
 @end
 
 NS_ASSUME_NONNULL_END

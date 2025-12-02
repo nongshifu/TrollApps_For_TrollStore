@@ -11,6 +11,10 @@
 #import "HXCustomAssetModel.h"
 #import "config.h"
 #import "AppInfoModel.h"
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+
 @implementation HXPhotoURLConverter
 
 + (void)convertPhotoModelsToURLs:(NSArray<HXPhotoModel *> * _Nonnull)photoModels

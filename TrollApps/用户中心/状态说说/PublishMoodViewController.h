@@ -17,6 +17,7 @@ typedef void(^PublishSuccessBlock)(void);
 // 发布成功后回调（用于刷新列表）
 @property (nonatomic, copy) PublishSuccessBlock publishSuccessBlock;
 
+@property (nonatomic, strong) NSString * udid;
 @end
 
 NS_ASSUME_NONNULL_END

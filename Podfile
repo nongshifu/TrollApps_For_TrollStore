@@ -29,7 +29,6 @@ target 'TrollApps' do
   pod 'ZXingObjC' #二维码
   pod 'HXPhotoPickerObjC' #帖子照片展示
   pod 'HXPhotoPickerObjC/SDWebImage'
-  pod 'HXPhotoPickerObjC/SDWebImage_AF'
   pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
 
 end

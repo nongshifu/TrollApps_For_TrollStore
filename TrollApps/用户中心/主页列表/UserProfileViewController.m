@@ -23,7 +23,7 @@
 
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // 当前文件单独启用
+#define MY_NSLog_ENABLED YES // 当前文件单独启用
 
 @interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
@@ -52,6 +52,7 @@
 
 @property (nonatomic, strong) UISearchBar *searchBar; // 搜索框
 @property (nonatomic, assign) BOOL isSearch; // 搜索状态
+
 @end
 
 @implementation UserProfileViewController
@@ -75,7 +76,6 @@
     [self setupViewControllers];
     //设置页面
     [self setupPageViewController];
-   
     //设置约束
     [self setupViewConstraints];
     //更新约束
@@ -219,6 +219,7 @@
     [self.sortButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
     self.sortButton.backgroundColor = [UIColor colorWithLightColor:[UIColor whiteColor] darkColor:[[UIColor whiteColor] colorWithAlphaComponent:0.2]];
     [self.sortButton setTitle:@"NEW" forState:UIControlStateNormal];
+    
     [self.sortButton addTarget:self action:@selector(sortButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.sortButton];
     
@@ -244,7 +245,7 @@
         UserListViewController *controller = [[UserListViewController alloc] init];
         controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
-        controller.typeString = @"newest";
+        controller.sort = self.sortButton.selected;
         controller.selectedIndex = i;
         controller.showMyApp = NO;
         controller.user_udid = self.userInfo.udid ? self.userInfo.udid:@"";
@@ -363,6 +364,7 @@
         make.right.equalTo(self.view.mas_right);
         make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
     }];
+    
     
     
     CGFloat offsHeight = self.keyboardIsShow ? self.keyboardHeight : 0;
@@ -486,6 +488,7 @@
         make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight - offsetY);
     }];
     
+    
     [UIView animateWithDuration:0.4 animations:^{
         //仅在评论列表显示发布评论视图 并且非搜索状态
         self.commentInputView.alpha = (self.selectedIndex == 2 && !self.isSearch);
@@ -517,24 +520,28 @@
     
     
     [self updateViewConstraints];
+    
+    //读取数据
+    if(self.currentVC.dataSource.count == 0 ){
+        [self.currentVC loadDataWithPage:1];
+    }
+    NSString *title = self.currentVC.sort ? @"HOT" : @"NEW";
+    [self.sortButton setTitle:title forState:UIControlStateNormal];
 }
 
 - (void)sortButtonTap:(UIButton*)button {
-    NSArray *title = @[@"newest",@"hottest"];
-    // 获取下标
-    NSUInteger arrayIndex = [title indexOfObject:self.currentVC.typeString];
+    
     //重置页码
     self.currentVC.page = 1;
-    //取反操作
-    self.currentVC.typeString = title[!arrayIndex];
+    
     //设置排序
-    self.currentVC.sort = arrayIndex;
+    self.currentVC.sort = !self.currentVC.sort;
+    //设置按钮标题
+    NSString *title = self.currentVC.sort ? @"HOT" : @"NEW";
+    //设置按钮标题
+    [button setTitle:title forState:UIControlStateNormal];
     //重新加载数据
     [self.currentVC refreshLoadInitialData];
-    //更新按钮
-    NSString *buttonTitle = !arrayIndex ?@"HOT":@"NEW";
-    [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
-    
     
     
 }
@@ -598,20 +605,8 @@
         return;
     }
     [UserModel getUserInfoWithUdid:self.user_udid success:^(UserModel * _Nonnull userModel) {
-        self.userInfo = userModel;
-        NSString *userDic = [userModel yy_modelToJSONString];
-        NSLog(@"userDic:%@",userDic);
-        if(self.userInfo.udid.length>5){
-            [self updateWithUserModel:self.userInfo];
-            
-            for (UserListViewController *vc in self.viewControllers) {
-                vc.user_udid = self.userInfo.udid;
-                [vc loadDataWithPage:1];
-                
-            }
-            
-            
-        }
+        
+        [self updateWithUserModel:userModel];
         
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
@@ -622,6 +617,25 @@
 
 /// 更新用户模型并刷新UI
 - (void)updateWithUserModel:(UserModel *)userModel {
+    //设置页面用户
+    self.userInfo = userModel;
+    //设置页面udid
+    self.user_udid = self.userInfo.udid;
+    NSString *userDic = [userModel yy_modelToJSONString];
+    NSLog(@"userDic:%@",userDic);
+    [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley.fill"] status:userModel.mutualFollowStatusText];
+    [SVProgressHUD dismissWithDelay:1];
+    //读取数据
+    for (int i = 0; i<self.viewControllers.count; i++) {
+        UserListViewController *controller = self.viewControllers[i];
+        controller.sort = NO;
+        controller.selectedIndex = i;
+        controller.showMyApp = NO;
+        controller.user_udid = self.userInfo.udid;
+        controller.keyword = self.searchBar.text;
+        if(i == 0) [controller loadDataWithPage:1];
+        
+    }
     //刷新融云缓存
     [[loadData sharedInstance] refreshUserInfoCache:userModel];
     // 1. 更新昵称
@@ -747,14 +761,14 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
-    
+    [self fetchUserInfoFromServerWithUDID:self.user_udid];
 }
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
     if(!self.user_udid)return;
-    [self fetchUserInfoFromServerWithUDID:self.user_udid];
+    
 }
 
 
@@ -804,6 +818,7 @@
     MyCollectionViewController *vc = [MyCollectionViewController new];
     vc.selectedIndex = 0;
     vc.showFollowList = self.userInfo.isShowFollows;
+    vc.target_udid = self.userInfo.udid;
     [self presentPanModal:vc];
  
 }
@@ -967,19 +982,19 @@
     if (completed) {
         // 获取当前显示的页面索引
         UserListViewController *VC = (UserListViewController*)pageViewController.viewControllers.firstObject;
-        
         NSInteger index = [self.viewControllers indexOfObject:VC];
         self.selectedIndex = index;
         self.segmentedControl.selectedSegmentIndex = index;
         self.currentVC = self.viewControllers[index];
         self.currentVC.user_udid = self.userInfo.udid;
-        
-        NSArray *title = @[@"newest",@"hottest"];
-        // 获取下标
-        NSUInteger arrayIndex = [title indexOfObject:self.currentVC.typeString];
-        
-        NSString *buttonTitle = arrayIndex ? @"HOT":@"NEW";
-        [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
+        //设置按钮标题
+        NSString *title = self.currentVC.sort ? @"HOT" : @"NEW";
+        //设置按钮标题
+        [self.sortButton setTitle:title forState:UIControlStateNormal];
+        //读取数据
+        if(self.currentVC.dataSource.count == 0 ){
+            [self.currentVC loadDataWithPage:1];
+        }
         
         // 表格视图约束
         CGFloat offsetY = self.selectedIndex == 2 ? 50 :0;//如果在评论列表页面 上移动50给评论视图

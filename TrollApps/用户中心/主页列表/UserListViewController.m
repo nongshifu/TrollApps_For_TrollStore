@@ -18,6 +18,9 @@
 #import "moodStatusCell.h"
 #import "ToolViewCell.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+
 @interface UserListViewController ()<TemplateSectionControllerDelegate>
 
 @end
@@ -66,7 +69,7 @@
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
         @"action":@"getAppList",
-        @"type":self.typeString?:@"newest",
+        @"sortType":@(self.sort),
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
         @"pageSize":@(20),
@@ -315,9 +318,8 @@
     
     NSDictionary *dic = @{
         @"page": @(self.page),
-        @"udid": udid, // 简化空值判断
+        @"udid": self.user_udid, // 简化空值判断
         @"sort": @(self.sort),
-        
         @"keyword": self.keyword ?: @"",
         @"action": @"getMoodList"
     };

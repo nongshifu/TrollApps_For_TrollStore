@@ -46,9 +46,6 @@ PODS:
   - HXPhotoPickerObjC/Default (3.3.4)
   - HXPhotoPickerObjC/SDWebImage (3.3.4):
     - SDWebImage (~> 5.0)
-  - HXPhotoPickerObjC/SDWebImage_AF (3.3.4):
-    - AFNetworking
-    - SDWebImage (~> 5.0)
   - IGListDiffKit (5.0.0)
   - IGListKit (5.0.0):
     - IGListDiffKit (= 5.0.0)
@@ -92,7 +89,6 @@ DEPENDENCIES:
   - HWPanModal (~> 0.9.4)
   - HXPhotoPickerObjC
   - HXPhotoPickerObjC/SDWebImage
-  - HXPhotoPickerObjC/SDWebImage_AF
   - IGListKit (~> 5.0.0)
   - JXCategoryView
   - LGSideMenuController (= 2.3.0)
@@ -145,6 +141,6 @@ SPEC CHECKSUMS:
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: f2e4bf3a3b258b4868e555d9311e4b7817602c7d
+PODFILE CHECKSUM: 78e1f391df2b0ef9797942b2074eae972d312663
 
 COCOAPODS: 1.16.2

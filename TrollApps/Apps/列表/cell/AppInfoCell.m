@@ -24,6 +24,8 @@
 #import "ToolMessage.h"
 #import "CommunityViewController.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface AppInfoCell ()<MiniButtonViewDelegate,HXPhotoViewDelegate>
 
@@ -330,12 +332,13 @@
         
         // 设置应用图标
         NSLog(@"iconURL:%@",appInfo.icon_url);
+        
         [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
             if(image){
                 self.appIconImageView.image = image;
             }
         }];
-        
+        NSLog(@"附件列表:%@",self.appInfoModel.fileNames);
         // 根据应用状态调整下载按钮
         [self updateDownloadButtonForAppStatus:appInfo.app_status];
         
@@ -840,6 +843,7 @@
                                                                 handler:^(UIAlertAction * _Nonnull action) {
         // 跳转到收藏列表页面
         MyCollectionViewController *vc = [MyCollectionViewController new];
+        vc.target_udid = self.appInfoModel.udid;
         [[self getviewController] presentPanModal:vc];
     }];
     [actionSheet addAction:viewFavoritesAction];
@@ -1226,7 +1230,7 @@
 #pragma mark - 更新后的HXPhotoManager配置
 
 - (void)addAssModelToManagerWith:(NSArray<NSString *> *)appFileModels {
-    Demo9Model *models =[ [HXPhotoURLConverter alloc] getAssetModels:appFileModels];
+    Demo9Model *models =[[HXPhotoURLConverter alloc] getAssetModels:appFileModels];
     self.manager = [[HXPhotoURLConverter alloc] getManager:models];
     
     NSLog(@"最后:%@",appFileModels);

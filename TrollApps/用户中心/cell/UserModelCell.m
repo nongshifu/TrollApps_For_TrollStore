@@ -13,7 +13,8 @@
 #import "NewProfileViewController.h"
 #import "ToolMessage.h"
 
-
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface UserModelCell ()
 @property (nonatomic, strong) UserModel *userModel;
@@ -348,11 +349,13 @@ static UIImage *imageWithColor(UIColor *color) {
 - (void)configureWithUserModel:(UserModel *)model {
     if (!model) return;
     self.userModel = model;
+    NSLog(@"头像地址:%@",model.avatar);
 
     // 头像设置
     if (model.avatarImage) {
         self.avatarImageView.image = model.avatarImage;
-    } else if (model.avatar.length > 0) {
+    }
+    if (model.avatar.length > 0) {
         [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:model.avatar]
                               placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
     } else {

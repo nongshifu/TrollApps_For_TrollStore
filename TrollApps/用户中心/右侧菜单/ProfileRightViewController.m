@@ -449,13 +449,14 @@
         UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"超级系统设置" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
            
             // 确定操作的处理，这里可以获取输入框的内容
-            BaseBottomSheetVC *vc = [BaseBottomSheetVC new];
+            SystemViewController *vc = [SystemViewController new];
             [[self.view getTopViewController] presentPanModal:vc];
             
         }];
         // 添加确定按钮
         UIAlertAction *myAction = [UIAlertAction actionWithTitle:@"资料设置" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             EditUserProfileViewController *vc = [EditUserProfileViewController new];
+            vc.udid = [NewProfileViewController sharedInstance].userInfo.udid;
             [[self.view getTopViewController] presentPanModal:vc];
         }];
         
@@ -467,6 +468,7 @@
         
     }else {
         EditUserProfileViewController *vc = [EditUserProfileViewController new];
+        vc.udid = [NewProfileViewController sharedInstance].userInfo.udid;
         [[self.view getTopViewController] presentPanModal:vc];
     }
     

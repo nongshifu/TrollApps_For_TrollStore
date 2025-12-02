@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>       // 所有文件都需要的 UIKit 框架
 #import <Foundation/Foundation.h> // 基础框架
+//
+//#ifndef DEBUG
 
 
 //是否打印
@@ -18,3 +20,4 @@ if (MY_NSLog_ENABLED) { \
     NSString *className = NSStringFromClass([self class]); \
     NSLog((@"[%s] MyLog from class[%@] " fmt), __PRETTY_FUNCTION__, className, ##__VA_ARGS__); \
 }
+//#endif

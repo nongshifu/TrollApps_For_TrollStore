@@ -180,7 +180,7 @@
     // 构建请求参数
     NSDictionary *params = @{
         @"action": @"createMood",
-        @"udid": myUdid,
+        @"udid": self.udid,
         @"content": content // 心情内容
     };
     NSLog(@"准备发布params:%@",params);

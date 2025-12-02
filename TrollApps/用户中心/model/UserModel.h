@@ -17,6 +17,14 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void(^UserInfoSuccessBlock)(UserModel *userModel);
 typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 
+// 双向关注状态枚举（对应后端返回的 0-3 状态码）
+typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
+    UserFollowMutualStatus_None = 0,    // 0: 相互未关注
+    UserFollowMutualStatus_HimFollowMe, // 1: 他关注我
+    UserFollowMutualStatus_IFollowHim,  // 2: 我关注他
+    UserFollowMutualStatus_Mutual       // 3: 互关
+};
+
 
 @interface UserModel : NSObject<IGListDiffable,YYModel>
 @property (nonatomic, assign) NSInteger user_id;
@@ -45,11 +53,14 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 @property (nonatomic, assign) NSInteger like_count;//点赞数量
 @property (nonatomic, assign) NSInteger reply_count;//评论数量
 @property (nonatomic, assign) NSInteger app_count;//APP数量
-@property (nonatomic, assign) NSInteger role;
+@property (nonatomic, assign) NSInteger role; //是否管理员
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
 @property (nonatomic, assign) NSInteger follower_count;//粉丝量
 @property (nonatomic, assign) NSInteger following_count;//关注量
 @property (nonatomic, assign) BOOL isFollow;//是否已经关注
+@property (nonatomic, assign) UserFollowMutualStatus mutualFollowStatus;// 新增：双向关注状态（核心属性）
+@property (nonatomic, copy) NSString * mutualFollowStatusText; // 新增：双向关注状态（文本提示）
+
 @property (nonatomic, assign) BOOL isShowFollows;//是否显示收藏列表 关注列表等隐私内容
 @property (nonatomic, assign) BOOL is_online;//是否在线
 /**
@@ -88,6 +99,11 @@ typedef void(^UserInfoFailureBlock)(NSError *error, NSString *errorMsg);
 + (void)getUserInfoWithIDFV:(NSString *)idfv
                     success:(UserInfoSuccessBlock)success
                     failure:(UserInfoFailureBlock)failure;
+///查询好友关系
++ (void)getMutualFollowStatusWithTargetUdid:(NSString *)targetUdid
+                                    success:(void(^)(UserFollowMutualStatus status, NSString *statusDesc))success
+                                    failure:(UserInfoFailureBlock)failure;
+
 @end
 
 NS_ASSUME_NONNULL_END

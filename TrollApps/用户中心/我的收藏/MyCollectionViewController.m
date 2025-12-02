@@ -11,11 +11,13 @@
 #import "config.h"
 #import "ShowOneAppViewController.h"
 #import "ArrowheadMenu.h"
-
+#import "NewProfileViewController.h"
 #import "AppInfoModel.h"
 #import "WebToolModel.h"
 #import <Masonry/Masonry.h>
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface MyCollectionViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate,MenuViewControllerDelegate, UIPageViewControllerDelegate,UIPageViewControllerDataSource, UISearchBarDelegate>
 @property (nonatomic, strong) NSArray *titles;//标题数组
@@ -47,10 +49,10 @@
     self.view.backgroundColor = [UIColor clearColor];
     self.isTapViewToHideKeyboard = YES;
     self.titles = @[@"Ta收藏的App",@"Ta收藏的Web工具",@"Ta的粉丝",@"Ta的关注"];
-    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 5, kWidth, 40)];
+    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 7, kWidth, 40)];
     self.titleLabel.text = self.titles[self.selectedIndex];
     self.titleLabel.textColor = [UIColor labelColor];
-    self.titleLabel.font = [UIFont boldSystemFontOfSize:20];
+    self.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     self.titleLabel.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:self.titleLabel];
 
@@ -68,7 +70,7 @@
     self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.sortButton setTitle:@"New" forState:UIControlStateNormal];
     self.sortButton.frame = CGRectMake(20, 50, 100, 40);
-    self.sortButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
+    self.sortButton.backgroundColor = [UIColor systemBackgroundColor];
     [self.sortButton addTarget:self action:@selector(sortButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     self.sortButton.layer.cornerRadius = 15;
     [self.view addSubview:self.sortButton];
@@ -85,6 +87,17 @@
     
     [self updateViewConstraints];
     
+    
+    
+}
+
+- (void)setTarget_udid:(NSString *)target_udid{
+    _target_udid = target_udid;
+    //判断是不是自己
+    if([_target_udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid]){
+        // 是自己：遍历可变数组，把所有「Ta」替换为「我」
+        self.titles = @[@"我收藏的App",@"我收藏的Web工具",@"我的粉丝",@"我的关注"];
+    }
 }
 
 //设置搜索框
@@ -125,6 +138,7 @@
     for (int i = 0; i < count; i++) {
         MyFavoritesListViewController *controller = [[MyFavoritesListViewController alloc] init];
         controller.templateListDelegate = self;
+        controller.target_udid = _target_udid;
         controller.hidesVerticalScrollIndicator = YES;
         controller.keyword = @"";
         controller.sort = 0;
@@ -283,6 +297,7 @@
                                      completion:^(BOOL finished) {
         if (finished) {
 //            NSLog(@"已通过指示器切换到页面 %ld", (long)targetIndex);
+            
         }
     }];
     //设置底部原点
@@ -306,6 +321,7 @@
         
         NSString *buttonTitle = self.sortArray[targetVC.sort];
         [self.sortButton setTitle:buttonTitle forState:UIControlStateNormal];
+        
     });
 }
 
@@ -314,7 +330,11 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
-    
+    if([_target_udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid]){
+        // 是自己：遍历可变数组，把所有「Ta」替换为「我」
+        self.titles = @[@"我收藏的App",@"我收藏的Web工具",@"我的粉丝",@"我的关注"];
+        self.titleLabel.text = self.titles[self.selectedIndex];
+    }
     
 }
 

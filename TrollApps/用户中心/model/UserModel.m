@@ -11,7 +11,7 @@
 #import "NewProfileViewController.h"
 
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED YES // 当前文件单独启用
+#define MY_NSLog_ENABLED NO // 当前文件单独启用
 
 @implementation UserModel
 
@@ -254,4 +254,53 @@
     [self getUserInfoWithType:@"idfv" queryValue:idfv success:success failure:failure];
 }
 
+#pragma mark - 外部调用接口（通过关系状态）
+- (NSString *)statusDescription {
+    switch (_mutualFollowStatus) {
+        case UserFollowMutualStatus_None:
+            return @"相互未关注";
+        case UserFollowMutualStatus_HimFollowMe:
+            return @"他关注我";
+        case UserFollowMutualStatus_IFollowHim:
+            return @"我关注他";
+        case UserFollowMutualStatus_Mutual:
+            return @"互关";
+        default:
+            return @"未知状态";
+    }
+}
+// 在 UserModel.m 中实现
++ (void)getMutualFollowStatusWithTargetUdid:(NSString *)targetUdid
+                                    success:(void(^)(UserFollowMutualStatus status, NSString *statusDesc))success
+                                    failure:(UserInfoFailureBlock)failure {
+    // 获取当前用户的 UDID 和 Token（从本地存储获取，如 UserDefaults）
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :@"";
+    if(udid.length<5){
+        [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];
+        [SVProgressHUD dismissWithDelay:4];
+        return;
+    }
+    NSDictionary *params = @{
+        @"action" : @"getMutualFollowStatus",
+        @"udid" : udid,
+        @"data" : @{@"target_udid" : targetUdid}
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url parameters:params
+                                                   udid:udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        NSInteger statusCode = [jsonResult[@"data"][@"status"] integerValue];
+        UserFollowMutualStatus status = (UserFollowMutualStatus)statusCode;
+        if (success) {
+            success(status, jsonResult[@"data"][@"statusText"]);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error, @"查询关注状态失败");
+        }
+    }];
+    
+}
 @end

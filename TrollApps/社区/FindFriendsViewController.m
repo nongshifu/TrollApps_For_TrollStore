@@ -125,6 +125,7 @@
     [self loadDataWithPage:1];
     
 }
+
 #pragma mark - 约束相关
 
 //设置约束
@@ -201,7 +202,7 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page {
-    
+    [SVProgressHUD showWithStatus:nil];
     NSString *udid = [loadData sharedInstance].userModel.udid ? [loadData sharedInstance].userModel.udid :[[NewProfileViewController sharedInstance] getIDFV];
     
     if (udid.length <= 5) {
@@ -251,6 +252,9 @@
                     NSDictionary * data = jsonResult[@"data"];
                     NSLog(@"读取用户列表:%@",data);
                     NSArray * list = data[@"list"];
+                    if(list.count>0){
+                        self.page+=1;
+                    }
                     for (NSDictionary *dic in list) {
                         UserModel *model = [UserModel yy_modelWithDictionary:dic];
                         NSLog(@"读取用户user_id:%ld nickname:%@ avatar:%@",model.user_id,model.nickname,model.avatar);
@@ -264,14 +268,14 @@
                     NSLog(@"共:%ld个APP",total);
                     BOOL hasMore = [pagination[@"hasMore"] boolValue];
                     NSLog(@"noMoreData:%d",hasMore);
-                    [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"搜索到%ld个结果",list.count]];
-                    [SVProgressHUD dismissWithDelay:1 completion:^{
-                        if(!hasMore){
-                            [self handleNoMoreData];
-                            [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley.fill"] status:@"到底啦！"];
-                            [SVProgressHUD dismissWithDelay:1];
-                        }
-                    }];
+                    if(list.count >0){
+                        [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"搜索到%ld个结果",list.count]];
+                    }else{
+                        [self handleNoMoreData];
+                        [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"翻到底啦"];
+                    }
+                    
+                    [SVProgressHUD dismissWithDelay:2];
                     
                     
                 }else{
@@ -326,7 +330,7 @@
     [searchBar resignFirstResponder]; // 收起键盘
     searchBar.text = @""; // 清空输入框
     self.keyword = @"";   // 清空关键词
-    
+    self.page = 1;
     // 补充：隐藏历史搜索视图
     self.miniButtonView.hidden = YES;
     [self updateViewConstraints];
@@ -345,16 +349,17 @@
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
     NSString *searchText = searchController.searchBar.text;
     NSLog(@"输入过程1：%@", searchText);
+    if(![searchText isEqualToString:self.keyword]) return;
     
     // 停止之前的定时器，避免重复触发
     [self.searchTimer invalidate];
     
     // 0.5秒后执行搜索（防抖）
-    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-                                                       target:self
-                                                     selector:@selector(executeDebounceSearch:)
-                                                     userInfo:searchText
-                                                      repeats:NO];
+//    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+//                                                       target:self
+//                                                     selector:@selector(executeDebounceSearch:)
+//                                                     userInfo:searchText
+//                                                      repeats:NO];
 }
 
 // 防抖搜索执行方法
@@ -591,4 +596,5 @@
     [self setBackgroundUI];
   
 }
+
 @end

@@ -447,7 +447,6 @@
     NSDictionary *params = @{
         @"action": @"updateConfig",
         @"udid": udid,
-        
         @"config_key": item.config_key ?: @"",
         @"config_value": item.config_value ?: @"",
         @"config_type": @(item.config_type),

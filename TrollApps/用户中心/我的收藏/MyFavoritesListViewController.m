@@ -15,6 +15,9 @@
 #import "ToolViewCell.h"
 #import "UserModelCell.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+
 @interface MyFavoritesListViewController () <TemplateSectionControllerDelegate>
 
 @end
@@ -56,104 +59,16 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page{
-    
+    [SVProgressHUD showWithStatus:nil];
     if(self.selectedIndex==0){
         [self loadUserAppDataWithPage:page];
     }else if(self.selectedIndex==1){
         [self loadToolDataWithPage:page];
     }else if(self.selectedIndex==2){
-        [self loadUserFollowerDataWithPage:page type:YES];
-    }else if(self.selectedIndex==3){
         [self loadUserFollowerDataWithPage:page type:NO];
+    }else if(self.selectedIndex==3){
+        [self loadUserFollowerDataWithPage:page type:YES];
     }
-    
-}
-/**
- 加载用户web工具
- @param page 当前请求的页码
- */
-- (void)loadToolDataWithPage:(NSInteger)page{
-    
-    
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
-    if (!udid || udid.length <= 5) {
-        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
-        [SVProgressHUD dismissWithDelay:3];
-        return;
-    }
-    
-    NSString * keyword = self.keyword ? self.keyword : @"";
-    NSDictionary *dic = @{
-        @"action":@"getUserFavoriteList",
-        @"keyword":keyword,
-        @"tag":self.tag ?:@"",
-        @"udid":udid,
-        @"page":@(self.page),
-        @"pageSize":@(20),
-        @"sort":@(self.sort),// 排序方式（NO=最新收藏，YES=最早收藏）
-    };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    NSLog(@"url:%@ dic:%@",url,dic);
-   
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
-        
-    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"stringResult:%@",stringResult);
-            [self endRefreshing];
-            if(self.page <=1){
-                [self.dataSource removeAllObjects];
-            }
-            if(!jsonResult){
-                [SVProgressHUD showErrorWithStatus:@"返回数据非法"];
-                [SVProgressHUD dismissWithDelay:2 completion:^{
-                    return;
-                }];
-            }
-            NSLog(@"读取数据jsonResult: %@", jsonResult);
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSString *message = jsonResult[@"msg"];
-            if(code == 200){
-                NSDictionary * data = jsonResult[@"data"];
-                NSArray *tools = data[@"tools"];
-                if(tools && tools.count>0){
-                    for (NSDictionary *dic in tools) {
-                        WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
-                        [self.dataSource addObject:model];
-                    }
-                    [self refreshTable];
-                }
-                
-                
-                NSDictionary * pagination = data[@"pagination"];
-                BOOL has_more = [pagination[@"has_more"] boolValue];
-                if(has_more){
-                    NSLog(@"有更多数据");
-                    self.page+=1;
-                }else{
-                    NSLog(@"没有有更多数据");
-                    [self handleNoMoreData];
-                }
-                
-                
-            }else{
-                NSLog(@"数据搜索失败出错: %@", message);
-                [SVProgressHUD showErrorWithStatus:message];
-                [SVProgressHUD dismissWithDelay:2 completion:^{
-                    return;
-                }];
-            }
-            
-        });
-    } failure:^(NSError *error) {
-        NSLog(@"异步请求Error: %@", error);
-        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
-        [SVProgressHUD dismissWithDelay:2 completion:^{
-            return;
-        }];
-    }];
     
 }
 
@@ -176,7 +91,7 @@
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
         @"pageSize":@(10),
-        @"udid":udid,
+        @"udid":self.target_udid,
         @"showMyApp":@(YES),
         @"sortType":@(self.sort),
         @"page":@(page)
@@ -191,6 +106,7 @@
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
+                [SVProgressHUD dismiss];
                 [self endRefreshing];
                 if(self.page <=1){
                     [self.dataSource removeAllObjects];
@@ -241,6 +157,97 @@
 
 }
 
+/**
+ 加载用户web工具
+ @param page 当前请求的页码
+ */
+- (void)loadToolDataWithPage:(NSInteger)page{
+    
+    
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    if (!udid || udid.length <= 5) {
+        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
+        [SVProgressHUD dismissWithDelay:3];
+        return;
+    }
+    
+    NSString * keyword = self.keyword ? self.keyword : @"";
+    NSDictionary *dic = @{
+        @"action":@"getUserFavoriteList",
+        @"keyword":keyword,
+        @"tag":self.tag ?:@"",
+        @"udid":self.target_udid,
+        @"page":@(self.page),
+        @"pageSize":@(20),
+        @"sort":@(self.sort),// 排序方式（NO=最新收藏，YES=最早收藏）
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
+    NSLog(@"url:%@ dic:%@",url,dic);
+   
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url parameters:dic
+                                                   udid:udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"stringResult:%@",stringResult);
+            [SVProgressHUD dismiss];
+            [self endRefreshing];
+            if(self.page <=1){
+                [self.dataSource removeAllObjects];
+            }
+            if(!jsonResult){
+                [SVProgressHUD showErrorWithStatus:@"返回数据非法"];
+                [SVProgressHUD dismissWithDelay:2 completion:^{
+                    return;
+                }];
+            }
+            NSLog(@"读取数据jsonResult: %@", jsonResult);
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString *message = jsonResult[@"msg"];
+            if(code == 200){
+                NSDictionary * data = jsonResult[@"data"];
+                NSArray *tools = data[@"tools"];
+                if(tools && tools.count>0){
+                    for (NSDictionary *dic in tools) {
+                        NSLog(@"读取关注用户数据dic: %@", dic);
+                        WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
+                        [self.dataSource addObject:model];
+                    }
+                    [self refreshTable];
+                }
+                
+                
+                NSDictionary * pagination = data[@"pagination"];
+                BOOL has_more = [pagination[@"has_more"] boolValue];
+                if(has_more){
+                    NSLog(@"有更多数据");
+                    self.page+=1;
+                }else{
+                    NSLog(@"没有有更多数据");
+                    [self handleNoMoreData];
+                }
+                
+                
+            }else{
+                NSLog(@"数据搜索失败出错: %@", message);
+                [SVProgressHUD showErrorWithStatus:message];
+                [SVProgressHUD dismissWithDelay:2 completion:^{
+                    return;
+                }];
+            }
+            
+        });
+    } failure:^(NSError *error) {
+        NSLog(@"异步请求Error: %@", error);
+        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
+        [SVProgressHUD dismissWithDelay:2 completion:^{
+            return;
+        }];
+    }];
+    
+}
+
 
 /**
  加载用户粉丝 isFollower = YES 粉丝列表   isFollower = NO 关注列表
@@ -261,8 +268,9 @@
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
         @"pageSize":@(20),
-        @"udid":udid,
+        @"udid":self.target_udid,
         @"sortType":@(self.sort),
+        @"type":@(isFollower),
         @"page":@(page)
         
     };
@@ -275,6 +283,7 @@
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
+                [SVProgressHUD dismiss];
                 [self endRefreshing];
                 if(self.page <=1){
                     [self.dataSource removeAllObjects];

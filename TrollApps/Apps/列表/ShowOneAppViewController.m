@@ -18,6 +18,8 @@
 #import "CommentModel.h"
 #import "ContactHelper.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
@@ -204,6 +206,7 @@
 }
 
 - (void)editAppInfoStatuWithIndex:(NSInteger )index title:(NSString *)title{
+    
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
     if(!udid || udid.length<5){
         [SVProgressHUD showInfoWithStatus:@"请先获取UDID进行绑定登录"];
@@ -234,20 +237,35 @@
             NSInteger new_status = [jsonResult[@"new_status"] intValue];
             NSString *msg = jsonResult[@"msg"];
             if(code == 200){
-                [self showAlertFromViewController:self title:@"操作完成" message:[NSString stringWithFormat:@"已成功修改为\n%@",title]];
-                if(index<6){
-                    self.appInfo.app_status = new_status;
-                    [self refreshLoadInitialData];
-                }else{
-                    [self dismiss];
-                }
+                
+                [self showAlertWithConfirmationFromViewController:self title:@"操作完成" message:msg confirmTitle:@"确定" cancelTitle:nil onConfirmed:^{
+                    if(index<6){
+                        self.appInfo.app_status = new_status;
+                        [self refreshLoadInitialData];
+                    }else{
+                        UIViewController *topVc = [self.view getTopViewController];
+                        if([topVc isKindOfClass:[ShowOneAppViewController class]]){
+                            
+                            [topVc dismissViewControllerAnimated:YES completion:nil];
+                        }
+                        
+                    
+                    }
+                } onCancelled:^{
+                    
+                }];
+                
             }else{
+                
+                
                 [self showAlertFromViewController:[self.view getTopViewController] title:@"操作失败" message:msg];
             }
         });
         
         
+        
     } failure:^(NSError *error) {
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [self showAlertFromViewController:[self.view getTopViewController] title:@"错误" message:[NSString stringWithFormat:@"%@",error]];
         });

@@ -24,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *packageId;
 /// 套餐名称（如"1个月VIP会员"）
 @property (nonatomic, copy) NSString *packageTitle;
+/// 套餐介绍
+@property (nonatomic, copy) NSString *vipDescription;
 /// 套餐价格（如"¥68"）
 @property (nonatomic, copy) NSString *price;
 /// VIP等级（1-5）

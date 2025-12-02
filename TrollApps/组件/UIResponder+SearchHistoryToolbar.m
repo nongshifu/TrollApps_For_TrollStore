@@ -1,7 +1,8 @@
-#import "UIResponder+DoneButton.h"
+#import "UIResponder+SearchHistoryToolbar.h"
 #import <objc/runtime.h>
 
-@implementation UIResponder (DoneButton)
+
+@implementation UIResponder (SearchHistoryToolbar)
 
 + (void)load {
     static dispatch_once_t onceToken;

@@ -13,7 +13,7 @@
 #import <Masonry/Masonry.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <IGListKit/IGListKit.h>
-
+#import "ShowOneOrderViewController.h"
 
 
 // 顶部容器高度
@@ -249,6 +249,11 @@
     if ([model isKindOfClass:[VipPurchaseHistoryModel class]]) {
         VipPurchaseHistoryModel *orderModel = (VipPurchaseHistoryModel *)model;
         NSLog(@"点击了订单: %@", orderModel.mch_orderid);
+        ShowOneOrderViewController *vc = [ShowOneOrderViewController new];
+        vc.udid = orderModel.udid;
+        vc.targetOrderNo = orderModel.mch_orderid;
+        [self presentViewController:vc animated:YES completion:nil];
+
     }
 }
 

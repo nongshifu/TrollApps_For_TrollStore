@@ -251,6 +251,7 @@
     MyCollectionViewController *vc = [MyCollectionViewController new];
     vc.selectedIndex = 3;
     vc.showFollowList = YES;
+    vc.target_udid = [loadData sharedInstance].userModel.udid;
     [self presentPanModal:vc];
 }
 

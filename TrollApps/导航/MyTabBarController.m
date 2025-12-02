@@ -21,6 +21,9 @@
 #import "ChatListViewController.h"
 #import "UserProfileViewController.h"
 #import "loadData.h"
+#import "PublishMoodViewController.h"
+#import "moodStatusViewController.h"
+#import "MyCollectionViewController.h"
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -188,9 +191,56 @@
             
             return;
         case 4:{
-            EditUserProfileViewController *publishVC = [[EditUserProfileViewController alloc] init];
-            publishVC.title = @"修改用户资料";
-            [self presentPanModal:publishVC];
+            NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"个人中心" message:@"请选择" preferredStyle:UIAlertControllerStyleActionSheet];
+            // 添加取消按钮
+            UIAlertAction * aa = [UIAlertAction actionWithTitle:@"个人主页" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                UserProfileViewController *vc = [UserProfileViewController new];
+                vc.user_udid = udid;
+                [self presentPanModal:vc];
+                
+            }];
+            [alert addAction:aa];
+            
+            UIAlertAction * bb = [UIAlertAction actionWithTitle:@"我的动态" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                moodStatusViewController *publishVC = [[moodStatusViewController alloc] init];
+                publishVC.udid = [NewProfileViewController sharedInstance].userInfo.udid;
+                [self presentPanModal:publishVC];
+                
+            }];
+            [alert addAction:bb];
+            
+            UIAlertAction * cc = [UIAlertAction actionWithTitle:@"发布新动态" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                
+                PublishMoodViewController *publishVC = [[PublishMoodViewController alloc] init];
+                publishVC.udid = [NewProfileViewController sharedInstance].userInfo.udid;
+                [self presentPanModal:publishVC];
+            }];
+            [alert addAction:cc];
+            UIAlertAction * dd = [UIAlertAction actionWithTitle:@"修改资料" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                EditUserProfileViewController *publishVC = [[EditUserProfileViewController alloc] init];
+                
+                publishVC.udid = [NewProfileViewController sharedInstance].userInfo.udid;
+                [self presentPanModal:publishVC];
+                
+            }];
+            [alert addAction:dd];
+            UIAlertAction * ee = [UIAlertAction actionWithTitle:@"我的收藏" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                MyCollectionViewController *publishVC = [[MyCollectionViewController alloc] init];
+                publishVC.target_udid = [NewProfileViewController sharedInstance].userInfo.udid;
+                [self presentPanModal:publishVC];
+                
+            }];
+            [alert addAction:ee];
+            
+            UIAlertAction * ff = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                
+            }];
+            [alert addAction:ff];
+            
+          
+            [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
+            
         }
             
             return;
@@ -280,7 +330,7 @@
         @"t.circle",
         @"plus",
         @"lightbulb",
-        @"lasso",
+        @"pencil.and.outline",
     ];
     UIImage *icon = [UIImage systemImageNamed:icons[self.vCselectedIndex]];
     icon = [icon imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:28 weight:UIImageSymbolWeightBold]];

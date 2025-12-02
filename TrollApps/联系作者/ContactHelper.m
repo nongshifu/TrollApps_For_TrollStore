@@ -21,10 +21,18 @@
     return instance;
 }
 - (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo {
-    [self showContactActionSheetWithUserInfo:userInfo title:@"联系作者"];
+    [self showContactActionSheetWithUserInfo:userInfo title:@"联系TA"];
 }
 - (void)showContactActionSheetWithUserInfo:(UserModel *)userInfo title:(NSString *)title{
     [self showContactActionSheetWithUserInfo:userInfo baseViewController:[self getTopViewController] title:title];
+}
+- (void)showContactActionSheetWithUserUdid:(NSString *)udid {
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
+        [self showContactActionSheetWithUserInfo:userModel title:@"联系TA"];
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        [SVProgressHUD showErrorWithStatus:@"读取对方数据失败"];
+        [SVProgressHUD dismissWithDelay:3];
+    }];
 }
 
 /// 显示联系作者的操作菜单
@@ -36,7 +44,7 @@
     
     // 1. 手机号（拨打电话）
     if (userInfo.phone.length == 11) {
-        UIAlertAction *phoneAction = [UIAlertAction actionWithTitle:@"联系作者手机"
+        UIAlertAction *phoneAction = [UIAlertAction actionWithTitle:@"联系TA手机"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction *action) {
             [self makePhoneCall:userInfo.phone];
@@ -46,7 +54,7 @@
     
     // 2. Email（发送邮件）
     if (userInfo.email.length > 0 && [self isValidEmail:userInfo.email]) {
-        UIAlertAction *emailAction = [UIAlertAction actionWithTitle:@"联系作者Email"
+        UIAlertAction *emailAction = [UIAlertAction actionWithTitle:@"联系TA Email"
                                                             style:UIAlertActionStyleDefault
                                                           handler:^(UIAlertAction *action) {
             [self sendEmailTo:userInfo.email];
@@ -56,7 +64,7 @@
     
     // 3. QQ（打开QQ聊天）
     if (userInfo.qq.length > 4) {
-        UIAlertAction *qqAction = [UIAlertAction actionWithTitle:@"联系作者QQ"
+        UIAlertAction *qqAction = [UIAlertAction actionWithTitle:@"联系TA QQ"
                                                           style:UIAlertActionStyleDefault
                                                         handler:^(UIAlertAction *action) {
             [self openQQChat:userInfo.qq];
@@ -66,7 +74,7 @@
     
     // 4. 微信（提示复制微信号）
     if (userInfo.wechat.length > 4) {
-        UIAlertAction *wechatAction = [UIAlertAction actionWithTitle:@"联系作者微信"
+        UIAlertAction *wechatAction = [UIAlertAction actionWithTitle:@"联系TA微信"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction *action) {
             [self copyWechatID:userInfo.wechat];
@@ -76,7 +84,7 @@
     
     // 5. TG（打开Telegram聊天）
     if (userInfo.tg.length > 4) {
-        UIAlertAction *tgAction = [UIAlertAction actionWithTitle:@"联系作者TG"
+        UIAlertAction *tgAction = [UIAlertAction actionWithTitle:@"联系TA TG"
                                                           style:UIAlertActionStyleDefault
                                                         handler:^(UIAlertAction *action) {
             [self openTelegramChat:userInfo.tg];
@@ -105,7 +113,7 @@
         [alertController addAction:udidAction];
     }
     //查看他主页
-    UIAlertAction *openView = [UIAlertAction actionWithTitle:@"查看Ta主页"
+    UIAlertAction *openView = [UIAlertAction actionWithTitle:@"查看TA主页"
                                                           style:UIAlertActionStyleDestructive
                                                         handler:^(UIAlertAction *action) {
         UserProfileViewController *vc = [UserProfileViewController new];

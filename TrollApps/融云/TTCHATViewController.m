@@ -13,8 +13,8 @@
 #import "UIView.h"
 #import "ContactHelper.h"
 #import "DemoBaseViewController.h"
-
-
+#import "NewProfileViewController.h"
+#import "loadData.h"
 @interface TTCHATViewController ()<RCIMClientReceiveMessageDelegate,RCTypingStatusDelegate,RCMessageDestructDelegate,UISearchResultsUpdating,UISearchBarDelegate>
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
 @property (nonatomic, assign) long long startTime; // 开始时间
@@ -28,6 +28,8 @@
 @property (nonatomic, strong) UISearchController *searchController;
 
 @property (nonatomic, strong) UIView *shareView;
+@property (nonatomic, strong) UILabel *topTitleLabel;//标题
+@property (nonatomic, strong) UILabel *bottomTitleLabel;//副标题
 @end
 
 @implementation TTCHATViewController
@@ -91,17 +93,33 @@
     [self.headerView addSubview:self.datePicker];
     
     [self setupNavigationBarWithSearch];
-    
+    [self getUserData];
 
 }
 
+- (void)getUserData{
+    [UserModel getUserInfoWithUdid:self.targetId success:^(UserModel * _Nonnull userModel) {
+        self.user = userModel;
+        [self setuSubTitleText:userModel];
+        
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        
+    }];
+}
 
 - (void)updateViewConstraints {
     [super updateViewConstraints];
     
+    BOOL isModal = [self isModalPresented];
+    
     
     [self.headerView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.bottom.equalTo(self.conversationMessageCollectionView.mas_top).offset(-5); // 顶部偏移量
+        if(isModal){
+            make.top.equalTo(self.conversationMessageCollectionView.mas_top).offset(5); // 顶部偏移量
+        }else{
+            make.bottom.equalTo(self.conversationMessageCollectionView.mas_top).offset(-5); // 顶部偏移量
+        }
+        
         make.width.mas_equalTo(kWidth - 40);
         make.height.mas_equalTo(40);
         make.left.equalTo(self.view).offset(20);
@@ -112,41 +130,86 @@
 }
 
 - (void)setupNavigationBarWithSearch {
-   
     self.navigationController.navigationBarHidden = NO;
     self.tabBarController.tabBar.hidden = YES;
-    // 创建搜索控制器
+    
+    // ===================== 原有搜索控制器逻辑（保持不变）=====================
     self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
     self.searchController.searchResultsUpdater = self;
     self.searchController.searchBar.delegate = self;
-    
     self.searchController.obscuresBackgroundDuringPresentation = NO;
     self.searchController.searchBar.placeholder = @"输入搜索内容";
-
     self.searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
     self.searchController.searchBar.returnKeyType = UIReturnKeySearch;
-    
-    // 配置导航项
     self.navigationItem.searchController = self.searchController;
-    self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
+    self.navigationItem.hidesSearchBarWhenScrolling = NO;
     
-    
-    // 地区选择按钮（移至右侧）
+    // ===================== 右侧按钮逻辑（保持不变）=====================
     UIBarButtonItem *closeItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     closeItem.tintColor = [UIColor labelColor];
     
-    // 地区选择按钮（移至右侧）
     UIBarButtonItem *chatItem = [[UIBarButtonItem alloc] initWithTitle:@"@ Ta" style:UIBarButtonItemStylePlain target:self action:@selector(contactButtonTap:)];
     chatItem.tintColor = [UIColor labelColor];
     
-    // 1. 判断是否是模态弹出
     BOOL isModal = [self isModalPresented];
-    //设置背景色
-    self.view.backgroundColor = isModal?[UIColor systemBackgroundColor]:[UIColor clearColor];
-    // 仅在模态时设置右侧关闭按钮，否则隐藏
+    self.view.backgroundColor = isModal ? [UIColor systemBackgroundColor] : [UIColor clearColor];
     self.navigationItem.rightBarButtonItem = isModal ? closeItem : chatItem;
-   
     
+    // ===================== 新增：双行标题视图（核心）=====================
+    // 1. 创建标题容器视图（开启用户交互，支持点击）
+    UIView *titleView = [[UIView alloc] init];
+    titleView.backgroundColor = [UIColor clearColor];
+    titleView.userInteractionEnabled = YES; // 关键：允许点击
+    self.navigationItem.titleView = titleView; // 赋值给导航栏标题视图
+    
+    // 2. 上标题（大字体、粗体）
+    UILabel *topTitleLabel = [[UILabel alloc] init];
+    topTitleLabel.text = self.title; // 可替换为动态文本（如用户昵称、分类名）
+    topTitleLabel.font = [UIFont boldSystemFontOfSize:17]; // 大字体（系统适配）
+    topTitleLabel.textColor = [UIColor labelColor]; // 适配浅色/深色模式
+    topTitleLabel.textAlignment = NSTextAlignmentCenter;
+    [titleView addSubview:topTitleLabel];
+    _topTitleLabel = topTitleLabel;
+    
+    // 3. 下标题（小字体、常规）
+    UILabel *bottomTitleLabel = [[UILabel alloc] init];
+    bottomTitleLabel.text = @"个性签名"; // 可替换为动态文本（如统计数、状态）
+    bottomTitleLabel.font = [UIFont boldSystemFontOfSize:8]; // 小字体（系统适配）
+    bottomTitleLabel.textColor = [UIColor randomColorWithAlpha:1]; // 次要文本色（适配模式）
+    bottomTitleLabel.textAlignment = NSTextAlignmentCenter;
+    [titleView addSubview:bottomTitleLabel];
+    _bottomTitleLabel = bottomTitleLabel;
+    
+    // 4. 标题视图布局（AutoLayout，确保双行居中）
+    [topTitleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.centerX.equalTo(titleView);
+        make.leading.trailing.greaterThanOrEqualTo(titleView).offset(8); // 左右留边距，避免文字溢出
+    }];
+    
+    [bottomTitleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(topTitleLabel.mas_bottom).offset(2); // 上下label间距
+        make.centerX.equalTo(titleView);
+        make.leading.trailing.greaterThanOrEqualTo(titleView).offset(8);
+        make.bottom.equalTo(titleView); // 底部对齐，撑开titleView高度
+    }];
+    
+    // 5. 给标题视图添加点击事件（弹出弹窗）
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(titleViewTapped)];
+    [titleView addGestureRecognizer:tapGesture];
+    
+    // ===================== 可选：导航栏样式优化（可选）=====================
+    // 导航栏背景色（适配模式）
+    if (@available(iOS 15.0, *)) {
+        UINavigationBarAppearance *appearance = [[UINavigationBarAppearance alloc] init];
+        appearance.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.03]; // 导航栏背景色
+        appearance.shadowColor = nil; // 隐藏导航栏底部分割线（可选）
+        appearance.backgroundEffect = nil;
+        self.navigationController.navigationBar.standardAppearance = appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
+    } else {
+        self.navigationController.navigationBar.barTintColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.03];
+        self.navigationController.navigationBar.shadowImage = [UIImage new];
+    }
 }
 
 - (void)setupShareView{
@@ -248,6 +311,17 @@
     
 }
 
+- (void)setuSubTitleText:(UserModel *)userMode{
+    if(self.user.bio.length>0){
+        self.bottomTitleLabel.text = self.user.bio;
+    }else if(self.user.moodStatus.length>0){
+        self.bottomTitleLabel.text = self.user.moodStatus;
+    }else{
+        self.bottomTitleLabel.text = @"我的个性签名我做主";
+    }
+    
+}
+
 #pragma mark - action 函数
 
 // 辅助方法：判断当前控制器是否是模态弹出
@@ -282,6 +356,36 @@
         [SVProgressHUD dismiss];
     }];
     
+    
+}
+
+//标题点击
+- (void)titleViewTapped{
+    NSLog(@"点击了标题");
+    NSString *title = @"个性签名";
+    NSString *message = nil;
+    if(self.user.bio.length>0){
+        message = self.user.bio;
+        
+    }
+    else if(self.user.moodStatus.length>0){
+        message = self.user.moodStatus;
+        
+    }
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"复制" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        UIPasteboard *past = [UIPasteboard generalPasteboard];
+        past.string = message;
+    }];
+    [alert addAction:confirmAction];
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+    }];
+    [alert addAction:cancelAction];
+    [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
     
 }
 
@@ -454,13 +558,14 @@
         NSLog(@"对方正在输入 消息类型：%@",contentType);
         
         if([contentType isEqualToString:@"RC:TxtMsg"]){
-            self.title = @"对方正在输入中";
+            self.bottomTitleLabel.text = @"对方正在输入中";
         }else if([contentType isEqualToString:@"RC:VcMsg"]){
-            self.title = @"对方正在说话中";
+            self.bottomTitleLabel.text = @"对方正在说话中";
         }
         
     }else{
-        self.title = self.user.nickname;
+        [self setuSubTitleText:self.user];
+        
     }
 }
 
@@ -587,7 +692,7 @@
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
     //储存正在聊天的ID 用来判断是否显示通知 离开控制器后要删除
     [self setupShareView];
-    
+    [self updateViewConstraints];
    
 }
 
@@ -783,6 +888,21 @@
                 [tagView removeFromSuperview];
             }
         }
+    }
+    if(!self.user)return;
+    if ([cell isKindOfClass:[RCMessageCell class]]) {
+        RCMessageCell *c =  (RCMessageCell *)cell;
+        // 隐藏头像
+        c.showPortrait = YES;
+        UIImageView *imageView = (UIImageView *)c.portraitImageView;
+        if(model.messageDirection == 2){
+            [imageView sd_setImageWithURL:[NSURL URLWithString:self.user.avatar]];
+        }else{
+            
+            [imageView sd_setImageWithURL:[NSURL URLWithString:[loadData sharedInstance].userModel.avatar]];
+        }
+        
+        
     }
     
 }

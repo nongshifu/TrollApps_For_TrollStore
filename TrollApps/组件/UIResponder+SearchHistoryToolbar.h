@@ -1,5 +1,5 @@
 //
-//  UIResponder+DoneButton.h
+//  UIResponder+SearchHistoryToolbar.h
 //  TrollApps
 //
 //  Created by 十三哥 on 2025/7/12.
@@ -10,8 +10,7 @@
 #import <objc/runtime.h>
 NS_ASSUME_NONNULL_BEGIN
 
-@interface UIResponder (DoneButton)
+@interface UIResponder (SearchHistoryToolbar)
 
 @end
-
 NS_ASSUME_NONNULL_END

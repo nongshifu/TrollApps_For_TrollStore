@@ -87,6 +87,7 @@
 // 发布按钮点击（根据实际需求实现跳转）
 - (void)publishButtonTapped {
     PublishMoodViewController *publishVC = [[PublishMoodViewController alloc] init];
+    publishVC.udid = self.udid;
     // 发布成功后刷新列表
     publishVC.publishSuccessBlock = ^{
         // 重新加载第一页数据

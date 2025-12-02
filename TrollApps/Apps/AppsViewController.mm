@@ -846,11 +846,10 @@
     if(tag ==0){
         CategoryManagerViewController *vc = [CategoryManagerViewController new];
         [self presentPanModal:vc];
-//        [self.navigationController pushViewController:vc animated:YES];
+
     }else if(tag ==1){
         MyCollectionViewController *vc = [MyCollectionViewController new];
-   
-        
+        vc.target_udid = [loadData sharedInstance].userModel.udid;
         [self presentPanModal:vc];
 
     }else if(tag ==2){

@@ -100,7 +100,7 @@
 - (void)configureWithPackage:(VIPPackage *)package {
     self.titleLabel.text = package.title;
     self.descLabel.text = package.vipDescription;
-    self.priceLabel.text = [NSString stringWithFormat:@"¥%@",package.price];
+    self.priceLabel.text = [NSString stringWithFormat:@"¥%.1f",package.price];
     
     // 设置主题色
     self.cardView.backgroundColor = [UIColor colorWithHexString:package.themeColor] ?: [UIColor randomColorWithAlpha:0.5];

@@ -28,6 +28,8 @@
 //草稿字符串
 #define kPublishAppDraft @"PublishAppDraft"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 #pragma mark - 宏定义（统一配置，便于维护）
 // 最大文件大小（建议放在.h或全局常量文件中，这里临时定义）
@@ -1303,6 +1305,7 @@ static NSSet *kAllowedMainFileTypes() {
     if(!model)return;
     self.iTunesAppModel = model;
     self.app_info.track_id = self.iTunesAppModel.trackId?:[TimeTool getTimeStampWith:[NSDate date]];
+    UIViewController *topVc = [self.view getTopViewController];
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用此App数据填充"
                                                                    message:nil
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
@@ -1320,8 +1323,11 @@ static NSSet *kAllowedMainFileTypes() {
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
-                    [SVProgressHUD dismissWithDelay:2 completion:^{
-                        [controller dismiss];
+                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                        if([topVc isKindOfClass:[AppSearchViewController class]]){
+                            [topVc dismissViewControllerAnimated:YES completion:nil];
+                        }
+                        
                     }];
                    
                 }
@@ -1347,10 +1353,12 @@ static NSSet *kAllowedMainFileTypes() {
             }];
         }
         [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
-        [SVProgressHUD dismissWithDelay:2 completion:^{
-            [controller dismiss];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            if([topVc isKindOfClass:[AppSearchViewController class]]){
+                [topVc dismissViewControllerAnimated:YES completion:nil];
+            }
+            
         }];
-        
         
     }]];
     
@@ -1386,8 +1394,11 @@ static NSSet *kAllowedMainFileTypes() {
                     self.selectappIconImage = image;
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-                    [SVProgressHUD dismissWithDelay:2 completion:^{
-                        [controller dismiss];
+                    [SVProgressHUD dismissWithDelay:1 completion:^{
+                        if([topVc isKindOfClass:[AppSearchViewController class]]){
+                            [topVc dismissViewControllerAnimated:YES completion:nil];
+                        }
+                        
                     }];
                     
                 }
@@ -1395,7 +1406,7 @@ static NSSet *kAllowedMainFileTypes() {
         }
         [SVProgressHUD showSuccessWithStatus:@"数据已填充"];
         [SVProgressHUD dismissWithDelay:1];
-        [controller dismiss];
+        
         
     }]];
     
@@ -1806,7 +1817,7 @@ static NSSet *kAllowedMainFileTypes() {
             
             NSLog(@"遍历媒体附件:%@", fileName);
             NSString *scheme = url.scheme.lowercaseString;
-            
+            NSLog(@"遍历媒体附件scheme:%@", scheme);
             // 网络URL（未修改，直接保留）
             if ([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) {
                 NSLog(@"网络图片:%@",url);

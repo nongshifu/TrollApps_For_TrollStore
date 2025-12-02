@@ -89,8 +89,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)showAlertWithConfirmationFromViewController:(UIViewController *)viewController
                                               title:(NSString *)title
                                             message:(NSString *)message
-                                       confirmTitle:(NSString *)confirmTitle
-                                        cancelTitle:(NSString *)cancelTitle
+                                       confirmTitle:(NSString * _Nullable)confirmTitle
+                                        cancelTitle:(NSString * _Nullable)cancelTitle
                                         onConfirmed:(void (^)(void))onConfirm
                                         onCancelled:(void (^)(void))onCancel;
                                   
