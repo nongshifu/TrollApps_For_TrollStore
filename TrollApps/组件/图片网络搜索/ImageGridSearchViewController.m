@@ -28,6 +28,17 @@
 
 @implementation ImageGridSearchViewController
 
++ (instancetype)sharedInstance {
+    static ImageGridSearchViewController *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[self alloc] init];
+        // 在这里进行初始化设置（如果需要的话）
+        
+    });
+    return sharedInstance;
+}
+
 #pragma mark - API配置
 - (NSString *)apiId {
     return @"10006437";
@@ -78,6 +89,7 @@
     self.searchController.obscuresBackgroundDuringPresentation = NO; // 不模糊背景
     self.searchController.searchBar.placeholder = @"输入关键词搜索图片";
     self.searchController.searchBar.delegate = self;
+    self.searchController.hidesNavigationBarDuringPresentation = NO; // 关键：搜索时不隐藏导航栏
     self.searchController.searchBar.searchBarStyle = UISearchBarStyleMinimal;
     self.searchController.searchBar.returnKeyType = UIReturnKeyDone;
     
@@ -369,21 +381,56 @@
         [selectButton setTintColor:[UIColor whiteColor]];
         
     } else {
-        // 新增：检查最大选择数量
-        if (self.maxiMum > 0 && self.selectedImages.count >= self.maxiMum) {
-            [self showToast:[NSString stringWithFormat:@"最多只能选择%ld张图片", (long)self.maxiMum]];
-            return; // 超过限制，不执行后续选择逻辑
+        // 核心修改：区分 maxiMum == 1 和 maxiMum > 1 的逻辑
+        if (self.maxiMum == 1) {
+            // 当 maxiMum == 1 时，自动取消之前的选择，切换到当前图片
+            if (self.selectedImages.count > 0) {
+                // 1. 取出之前选中的模型和URL
+                ImageModel *previousModel = self.selectedImages.firstObject;
+                NSString *previousUrl = previousModel.url;
+                
+                // 2. 从集合和数组中移除之前的选择
+                [self.selectedUrlSet removeObject:previousUrl];
+                [self.selectedImages removeObject:previousModel];
+                previousModel.isSelected = NO;
+                
+                // 3. 找到之前选中的图片索引，刷新对应Cell（确保UI同步）
+                NSInteger previousIndex = [self.imageUrls indexOfObject:previousUrl];
+                if (previousIndex != NSNotFound) {
+                    NSIndexPath *previousIndexPath = [NSIndexPath indexPathForItem:previousIndex inSection:0];
+                    [self.collectionView reloadItemsAtIndexPaths:@[previousIndexPath]];
+                }
+            }
+            
+            // 4. 选择当前图片
+            model.isSelected = YES;
+            [self.selectedUrlSet addObject:imageUrl];
+            [self.selectedImages addObject:model];
+            selectButton.selected = YES;
+            [selectButton setTintColor:[UIColor greenColor]];
+            
+        } else if (self.maxiMum > 0) {
+            // 当 maxiMum > 1 时，检查是否达到上限
+            if (self.selectedImages.count >= self.maxiMum) {
+                [self showToast:[NSString stringWithFormat:@"最多只能选择%ld张图片", (long)self.maxiMum]];
+                return; // 超过限制，不执行后续选择逻辑
+            }
+            
+            // 正常添加当前图片
+            model.isSelected = YES;
+            [self.selectedUrlSet addObject:imageUrl];
+            [self.selectedImages addObject:model];
+            selectButton.selected = YES;
+            [selectButton setTintColor:[UIColor greenColor]];
+            
+        } else {
+            // 当 maxiMum == 0（无限制）时，直接添加
+            model.isSelected = YES;
+            [self.selectedUrlSet addObject:imageUrl];
+            [self.selectedImages addObject:model];
+            selectButton.selected = YES;
+            [selectButton setTintColor:[UIColor greenColor]];
         }
-        
-        // 选中：添加到数组和集合
-        // 选中：创建并添加模型
-        
-        model.isSelected = YES; // 更新选中状态
-        [self.selectedUrlSet addObject:imageUrl];
-        [self.selectedImages addObject:model];
-        selectButton.selected = YES;
-        
-        [selectButton setTintColor:[UIColor greenColor]];
     }
     [selectButton.superview bringSubviewToFront:selectButton];
     
@@ -392,7 +439,7 @@
     UIBarButtonItem *confirmItem = [[UIBarButtonItem alloc] initWithCustomView:self.confirmButton];
     self.navigationItem.rightBarButtonItem = confirmItem;
     
-    //选择的时候发送点击对象
+    // 选择时发送点击对象
     BOOL newisSelected = [self.selectedUrlSet containsObject:imageUrl];//读取最新状态
     NSLog(@"选择状态:%d imageUrl:%@  newisSelected:%@",newisSelected,imageUrl,selectedImage);
     if ([self.delegate respondsToSelector:@selector(imageGridSearch:didSelectImage:cell:)]) {

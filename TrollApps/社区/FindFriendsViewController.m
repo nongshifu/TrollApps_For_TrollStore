@@ -258,6 +258,7 @@
                     for (NSDictionary *dic in list) {
                         UserModel *model = [UserModel yy_modelWithDictionary:dic];
                         NSLog(@"读取用户user_id:%ld nickname:%@ avatar:%@",model.user_id,model.nickname,model.avatar);
+                        [UserModel cacheUserModel:model];
                         [self.dataSource addObject:model];
                     }
                     [self refreshTable];

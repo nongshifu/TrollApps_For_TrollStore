@@ -18,7 +18,7 @@
 #import "ShowOneOrderViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 @interface AppDelegate ()
 
 @end
@@ -174,31 +174,6 @@
     
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
-    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-    // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
-}
-
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-}
-
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
-    // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-}
-
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-}
-
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-}
 
 #pragma mark - 接收消息后
 - (void)onReceived:(RCMessage *)message left:(int)left object:(id)object {
@@ -397,4 +372,62 @@
     }
     return topVC;
 }
+
+
+#pragma mark - 设置用户在线状态
+// 应用即将终止时调用（用户划掉应用、系统终止等）
+- (void)applicationWillTerminate:(UIApplication *)application {
+    [self setUserStatus:NO];
+}
+
+// 应用进入后台时调用（可选：设置为离开状态）
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    // 可选：用户返回桌面时，设置为"离开"状态
+    [self setUserStatus:NO];
+}
+
+// 应用激活时调用（可选：恢复在线状态）
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    // 可选：应用回到前台时，恢复"在线"状态
+    [self setUserStatus:YES];
+}
+
+// 通用设置用户状态方法（封装后台任务逻辑）
+- (void)setUserStatus:(BOOL )status {
+    // 1. 获取当前用户UDID（从本地存储或单例中获取）
+    NSString *currentUdid = [NewProfileViewController sharedInstance].userInfo.udid;
+    if (!currentUdid || currentUdid.length < 5) {
+        NSLog(@"未获取到当前用户UDID，跳过状态更新");
+        return;
+    }
+    
+    // 2. 启动后台任务，延长执行时间
+    __block UIBackgroundTaskIdentifier backgroundTaskId = UIBackgroundTaskInvalid;
+    backgroundTaskId = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"SetUserStatus" expirationHandler:^{
+        // 后台任务即将超时，结束任务
+        [[UIApplication sharedApplication] endBackgroundTask:backgroundTaskId];
+        backgroundTaskId = UIBackgroundTaskInvalid;
+    }];
+    
+    // 3. 调用设置在线状态的方法
+    [UserModel setOnlineStatusWithTargetUdid:currentUdid
+                                      status:status
+                                      success:^(NSString *message) {
+        NSLog(@"设置用户状态成功：%@，状态：%d", message, status);
+        // 结束后台任务
+        if (backgroundTaskId != UIBackgroundTaskInvalid) {
+            [[UIApplication sharedApplication] endBackgroundTask:backgroundTaskId];
+            backgroundTaskId = UIBackgroundTaskInvalid;
+        }
+    } failure:^(NSError *error, NSString *message) {
+        NSLog(@"设置用户状态失败：%@，状态：%d", message, status);
+        // 结束后台任务
+        if (backgroundTaskId != UIBackgroundTaskInvalid) {
+            [[UIApplication sharedApplication] endBackgroundTask:backgroundTaskId];
+            backgroundTaskId = UIBackgroundTaskInvalid;
+        }
+    }];
+}
+
+
 @end

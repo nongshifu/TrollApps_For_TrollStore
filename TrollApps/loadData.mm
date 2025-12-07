@@ -351,13 +351,15 @@
     }
     
     // 5. 最终需要更新的条件：版本号 或 版本名称 满足更新（两者任一满足即可）
-    BOOL needUpdate = isCodeNeedUpdate || isNameNeedUpdate;
-    
+    self.needUpdate = isCodeNeedUpdate || isNameNeedUpdate;
+    [[NSUserDefaults standardUserDefaults] setBool:self.needUpdate forKey:NEED_UPDATE_KEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     // 6. 更新按钮UI
-    if (needUpdate) {
+    if (self.needUpdate) {
         NSLog(@"发现新版：服务器版本高于本地");
         AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
         [[UIView getTopViewController] presentPanModal:vc];
+        
     } else {
         NSLog(@"无需更新：本地版本已是最新（或高于服务器）");
         

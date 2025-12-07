@@ -89,6 +89,7 @@ static NSSet *kAllowedMainFileTypes() {
 @property (nonatomic, strong) HXPhotoView *photoView;//图片选择器
 @property (nonatomic, strong) HXPhotoManager *manager;//图片管理
 @property (nonatomic, strong) AppSearchViewController *appSaearchViewController;//AppStore搜索
+@property (nonatomic, strong) ImageGridSearchViewController *imageGridSearchViewController;//网图搜索
 @property (nonatomic, strong) UIView *myNavigationBar;//导航
 
 
@@ -107,6 +108,7 @@ static NSSet *kAllowedMainFileTypes() {
 
 
 @implementation PublishAppViewController
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -250,7 +252,7 @@ static NSSet *kAllowedMainFileTypes() {
     self.versionField.returnKeyType = UIReturnKeyNext;
     self.versionField.delegate = self;
     self.versionField.text = @"1.0.0"; // 默认版本号
-    self.versionField.enabled = NO;
+    self.versionField.enabled = YES;
     self.versionField.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7];
     [self.contentView addSubview:self.versionField];
     
@@ -341,18 +343,20 @@ static NSSet *kAllowedMainFileTypes() {
     // 创建弱引用
     __weak typeof(self) weakSelf = self;
     self.photoView.interceptAddCellClick = YES;//拦截默认的选择
+    // 创建弱引用
+    
     self.photoView.didAddCellBlock = ^(HXPhotoView * _Nonnull myPhotoView) {
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"请选择" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
         
         // 添加取消按钮
         UIAlertAction*action1 = [UIAlertAction actionWithTitle:@"网络搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
        
-            ImageGridSearchViewController *vc = [ImageGridSearchViewController new];
-            vc.delegate = weakSelf;
-            vc.maxiMum = (12 - weakSelf.manager.afterSelectedArray.count);
-            vc.searchKeyword = weakSelf.appNameField.text;
-            vc.view.tag = 1;//区分头像还是相册
-            UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+            weakSelf.imageGridSearchViewController = [ImageGridSearchViewController sharedInstance];
+            weakSelf.imageGridSearchViewController.delegate = weakSelf;
+            weakSelf.imageGridSearchViewController.maxiMum = (12 - weakSelf.manager.afterSelectedArray.count);
+            weakSelf.imageGridSearchViewController.searchKeyword = weakSelf.appNameField.text;
+            weakSelf.imageGridSearchViewController.view.tag = 1;//区分头像还是相册
+            UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:weakSelf.imageGridSearchViewController];
             [weakSelf presentViewController:navVC animated:YES completion:nil];
         }];
         [alert addAction:action1];
@@ -387,7 +391,7 @@ static NSSet *kAllowedMainFileTypes() {
     [self.publishButton addTarget:self action:@selector(publishApp) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.publishButton];
     
-    self.progressView = [[UIProgressView alloc] init];
+    self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, 0, kWidth, 5)];
     [self.view addSubview:self.progressView];
     
     
@@ -626,19 +630,19 @@ static NSSet *kAllowedMainFileTypes() {
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
     [alert addAction:[UIAlertAction actionWithTitle:@"网络搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        ImageGridSearchViewController *vc = [ImageGridSearchViewController new];
-        vc.delegate = self;
-        vc.maxiMum = 1;
-        vc.searchKeyword = self.appNameField.text;
-        vc.view.tag = 2;//区分头像还是相册
-        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        self.imageGridSearchViewController = [ImageGridSearchViewController sharedInstance];
+        self.imageGridSearchViewController.delegate = self;
+        self.imageGridSearchViewController.maxiMum = 1;
+        self.imageGridSearchViewController.searchKeyword = self.appNameField.text;
+        self.imageGridSearchViewController.view.tag = 2;//区分头像还是相册
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:self.imageGridSearchViewController];
         [self presentViewController:navVC animated:YES completion:nil];
         
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"AppStore" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        self.appSaearchViewController = [AppSearchViewController new];
+        self.appSaearchViewController = [AppSearchViewController sharedInstance];
         self.appSaearchViewController.delegate = self;
         if(self.appNameField.text.length>0){
             self.appSaearchViewController.keyword = self.appNameField.text;
@@ -791,6 +795,7 @@ static NSSet *kAllowedMainFileTypes() {
         [SVProgressHUD dismissWithDelay:2];
     }
 }
+
 //打开文件选择图片
 - (void)openFileApp {
     self.selectMainFile = NO;
@@ -814,6 +819,7 @@ static NSSet *kAllowedMainFileTypes() {
     // 显示文件选择器
     [self presentViewController:documentPicker animated:YES completion:nil];
 }
+
 //标签点击
 - (void)tagButtonTapped:(UIButton *)sender {
     sender.selected = !sender.selected;
@@ -1305,7 +1311,7 @@ static NSSet *kAllowedMainFileTypes() {
     if(!model)return;
     self.iTunesAppModel = model;
     self.app_info.track_id = self.iTunesAppModel.trackId?:[TimeTool getTimeStampWith:[NSDate date]];
-    UIViewController *topVc = [self.view getTopViewController];
+    
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用此App数据填充"
                                                                    message:nil
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
@@ -1324,9 +1330,7 @@ static NSSet *kAllowedMainFileTypes() {
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
                     [SVProgressHUD dismissWithDelay:1 completion:^{
-                        if([topVc isKindOfClass:[AppSearchViewController class]]){
-                            [topVc dismissViewControllerAnimated:YES completion:nil];
-                        }
+                        [self.appSaearchViewController dismissViewControllerAnimated:YES completion:nil];
                         
                     }];
                    
@@ -1354,9 +1358,7 @@ static NSSet *kAllowedMainFileTypes() {
         }
         [SVProgressHUD showSuccessWithStatus:@"图标,应用名 已替换"];
         [SVProgressHUD dismissWithDelay:1 completion:^{
-            if([topVc isKindOfClass:[AppSearchViewController class]]){
-                [topVc dismissViewControllerAnimated:YES completion:nil];
-            }
+            [self.appSaearchViewController dismissViewControllerAnimated:YES completion:nil];
             
         }];
         
@@ -1395,9 +1397,7 @@ static NSSet *kAllowedMainFileTypes() {
                     self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
                     [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
                     [SVProgressHUD dismissWithDelay:1 completion:^{
-                        if([topVc isKindOfClass:[AppSearchViewController class]]){
-                            [topVc dismissViewControllerAnimated:YES completion:nil];
-                        }
+                        [self.appSaearchViewController dismissViewControllerAnimated:YES completion:nil];
                         
                     }];
                     
@@ -1405,7 +1405,9 @@ static NSSet *kAllowedMainFileTypes() {
             }];
         }
         [SVProgressHUD showSuccessWithStatus:@"数据已填充"];
-        [SVProgressHUD dismissWithDelay:1];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            [self.appSaearchViewController dismissViewControllerAnimated:YES completion:nil];
+        }];
         
         
     }]];
@@ -1418,20 +1420,6 @@ static NSSet *kAllowedMainFileTypes() {
 
 #pragma mark - ImageGridSearchViewControllerDelegate 图片搜索返回
 
-// 点击图片回调（返回图片对象和URL）
-- (void)imageGridSearch:(ImageGridSearchViewController *)controller didSelectImage:(ImageModel *)imageModel cell:(UICollectionViewCell*)cell{
-    NSLog(@"图片搜索返回:%@",imageModel.image);
-    NSLog(@"图片搜索返回imageUrl:%@",imageModel.url);
-    if(controller.view.tag ==2){
-        if(imageModel.image && imageModel.isSelected){
-            
-            [self showIconAlert:imageModel.image controller:controller];
-            
-        }
-    }
-   
-}
-
 /// 确认按钮点击后调用代理
 - (void)imageGridSearch:(ImageGridSearchViewController *)controller didSelectImages:(NSArray<ImageModel *> *)imageModels{
     NSLog(@"多选择模式下返回数组:%@",imageModels);
@@ -1440,6 +1428,7 @@ static NSSet *kAllowedMainFileTypes() {
             ImageModel *model = imageModels.firstObject;
             UIImage *image = model.image;
             [self showIconAlert:image controller:controller];
+            
         }
     }else{
         NSMutableArray *assets = @[].mutableCopy;
@@ -1447,7 +1436,7 @@ static NSSet *kAllowedMainFileTypes() {
             UIImage *image =obj.image;//图片对象
             NSString *url =obj.url;//网络图地址
             NSURL *localUrl =obj.localUrl;//本地图地址
-            NSLog(@"本地URL：%@",localUrl);
+            NSLog(@"本地URL：%@  url:%@  image:%@",localUrl,url,image);
             HXCustomAssetModel *model = [HXCustomAssetModel assetWithImagePath:localUrl selected:YES];
             
             [assets addObject:model];
@@ -1515,7 +1504,7 @@ static NSSet *kAllowedMainFileTypes() {
 
 
 #pragma mark - 保存图片到相册
--(void)showIconAlert:(UIImage*)image controller:(ImageGridSearchViewController*)vc{
+-(void)showIconAlert:(UIImage*)image controller:(UIViewController*)vc{
     // 创建弹窗控制器
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
                                                                    message:nil
@@ -1529,7 +1518,9 @@ static NSSet *kAllowedMainFileTypes() {
         self.appIconView.contentMode = UIViewContentModeScaleAspectFit;
         self.selectappIconImage = image;;
         [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-        [SVProgressHUD dismissWithDelay:1];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            [self.imageGridSearchViewController dismissViewControllerAnimated:YES completion:nil];
+        }];
         //读取顶层控制器
         //如果是 转为基类VC 关闭
         
@@ -1550,7 +1541,12 @@ static NSSet *kAllowedMainFileTypes() {
     UIAlertAction *cropAction = [UIAlertAction actionWithTitle:@"剪切尺寸"
                                                         style:UIAlertActionStyleDefault
                                                       handler:^(UIAlertAction * _Nonnull action) {
-        [self presentEditViewControllerWithImage:image];
+        [self.imageGridSearchViewController dismissViewControllerAnimated:YES completion:^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self presentEditViewControllerWithImage:image];
+            });
+        }];
+        
     }];
     [alert addAction:cropAction];
     
@@ -1601,11 +1597,8 @@ static NSSet *kAllowedMainFileTypes() {
         // 关闭编辑器
         [viewController dismissViewControllerAnimated:YES completion:^{
             [SVProgressHUD showSuccessWithStatus:@"图片已替换"];
-            [SVProgressHUD dismissWithDelay:1];
-            // 直接 dismiss 当前控制器（ImageGridSearchViewController）
-            if([topVc isKindOfClass:[HXPhotoEditViewController class]]){
-                [topVc dismissViewControllerAnimated:YES completion:nil];
-            }
+            [SVProgressHUD dismissWithDelay:1 completion:nil];
+            
             
         }];
     } cancel:^(HXPhotoEditViewController *viewController) {
@@ -1680,7 +1673,7 @@ static NSSet *kAllowedMainFileTypes() {
    
     // 8. 调整发布按钮文字
     if(self.category == CategoryTypePublish){
-        self.versionField.enabled = NO;
+        self.versionField.enabled = YES;
         self.versionField.text = @"1.0.0";
         self.releaseNotesTextView.text = @"这是首个版本";
         [self.publishButton setTitle:@"发布应用" forState:UIControlStateNormal];
@@ -2036,8 +2029,14 @@ static NSSet *kAllowedMainFileTypes() {
     self.app_info.idfv = [NewProfileViewController sharedInstance].userInfo.idfv;
     //生成一个上传任务ID
     self.app_info.task_id = self.uploadTask.task_id?:[[NSUUID UUID] UUIDString];
-    
     // 3. 完善软件信息 读取UI内容
+    if(self.category == CategoryTypePublish){
+        //发布新APP
+        self.app_info.app_status = 4;
+    }else{
+        //更新APP
+        self.app_info.app_status = 2;
+    }
     
     self.app_info.tags = self.selectedTags;//标签
     self.app_info.app_name = self.appNameField.text;//文件名

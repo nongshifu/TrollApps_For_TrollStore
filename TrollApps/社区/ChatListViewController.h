@@ -13,7 +13,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface CommunityViewController : RCConversationListViewController
+@interface ChatListViewController : RCConversationListViewController
 /*!
  数据模型
  */

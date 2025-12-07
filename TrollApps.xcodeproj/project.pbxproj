@@ -16,6 +16,7 @@
 		C26FF48B2EDED10500C3F195 /* YSMPayRequestModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */; };
 		C26FF48C2EDED10500C3F195 /* YSMPayResponseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4892EDED10500C3F195 /* YSMPayResponseModel.m */; };
 		C26FF4912EDED43F00C3F195 /* ShowOneOrderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */; };
+		C26FF4942EDF0FD900C3F195 /* CustomMoodStatusNavView.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */; };
 		C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C287212C2E28262400ABC6AE /* RootSign.entitlements */; };
 		C2E44C4C2EDAD35E00110348 /* ConfigField.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFA2EDAD35C00110348 /* ConfigField.m */; };
 		C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFC2EDAD35C00110348 /* SystemViewController.m */; };
@@ -33,7 +34,6 @@
 		C2E44C592EDAD35E00110348 /* UserModelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B1A2EDAD35C00110348 /* UserModelCell.m */; };
 		C2E44C5A2EDAD35E00110348 /* UserListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B1F2EDAD35C00110348 /* UserListViewController.m */; };
 		C2E44C5B2EDAD35E00110348 /* UserProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B202EDAD35C00110348 /* UserProfileViewController.m */; };
-		C2E44C5C2EDAD35E00110348 /* CustomMoodStatusNavView.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B222EDAD35C00110348 /* CustomMoodStatusNavView.m */; };
 		C2E44C5D2EDAD35E00110348 /* PublishMoodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B242EDAD35C00110348 /* PublishMoodViewController.m */; };
 		C2E44C5E2EDAD35E00110348 /* moodStatusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B252EDAD35C00110348 /* moodStatusViewController.m */; };
 		C2E44C5F2EDAD35E00110348 /* moodStatusCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B262EDAD35C00110348 /* moodStatusCell.m */; };
@@ -65,7 +65,6 @@
 		C2E44C792EDAD35E00110348 /* AppSearchCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B712EDAD35C00110348 /* AppSearchCell.m */; };
 		C2E44C7A2EDAD35E00110348 /* ITunesAppModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B732EDAD35C00110348 /* ITunesAppModel.m */; };
 		C2E44C7B2EDAD35E00110348 /* AppSearchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B752EDAD35C00110348 /* AppSearchViewController.m */; };
-		C2E44C7C2EDAD35E00110348 /* ChatListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B792EDAD35D00110348 /* ChatListViewController.m */; };
 		C2E44C7D2EDAD35E00110348 /* ToolMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B7A2EDAD35D00110348 /* ToolMessageCell.m */; };
 		C2E44C7E2EDAD35E00110348 /* ToolMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B7C2EDAD35D00110348 /* ToolMessage.m */; };
 		C2E44C7F2EDAD35E00110348 /* TTCHATViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B7F2EDAD35D00110348 /* TTCHATViewController.m */; };
@@ -106,7 +105,7 @@
 		C2E44CA62EDAD35E00110348 /* CellHeightCache.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BCA2EDAD35D00110348 /* CellHeightCache.m */; };
 		C2E44CA72EDAD35E00110348 /* TemplateCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BCD2EDAD35D00110348 /* TemplateCell.m */; };
 		C2E44CA82EDAD35E00110348 /* EmptyView.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BCE2EDAD35D00110348 /* EmptyView.m */; };
-		C2E44CA92EDAD35E00110348 /* CommunityViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BD12EDAD35D00110348 /* CommunityViewController.m */; };
+		C2E44CA92EDAD35E00110348 /* ChatListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BD12EDAD35D00110348 /* ChatListViewController.m */; };
 		C2E44CAA2EDAD35E00110348 /* FindFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BD22EDAD35D00110348 /* FindFriendsViewController.m */; };
 		C2E44CAB2EDAD35E00110348 /* HelpViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BD62EDAD35D00110348 /* HelpViewController.m */; };
 		C2E44CAC2EDAD35E00110348 /* FeedbackCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BDA2EDAD35D00110348 /* FeedbackCell.m */; };
@@ -198,6 +197,8 @@
 		C26FF48E2EDED1B300C3F195 /* MZFConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MZFConfig.h; sourceTree = "<group>"; };
 		C26FF48F2EDED43F00C3F195 /* ShowOneOrderViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShowOneOrderViewController.h; sourceTree = "<group>"; };
 		C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShowOneOrderViewController.m; sourceTree = "<group>"; };
+		C26FF4922EDF0FD800C3F195 /* CustomMoodStatusNavView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomMoodStatusNavView.h; sourceTree = "<group>"; };
+		C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomMoodStatusNavView.m; sourceTree = "<group>"; };
 		C28720712E25432100ABC6AE /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C287212C2E28262400ABC6AE /* RootSign.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = RootSign.entitlements; sourceTree = "<group>"; };
@@ -232,12 +233,10 @@
 		C2E44B1E2EDAD35C00110348 /* UserProfileViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserProfileViewController.h; sourceTree = "<group>"; };
 		C2E44B1F2EDAD35C00110348 /* UserListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserListViewController.m; sourceTree = "<group>"; };
 		C2E44B202EDAD35C00110348 /* UserProfileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserProfileViewController.m; sourceTree = "<group>"; };
-		C2E44B222EDAD35C00110348 /* CustomMoodStatusNavView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomMoodStatusNavView.m; sourceTree = "<group>"; };
 		C2E44B232EDAD35C00110348 /* MoodStatusModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoodStatusModel.h; sourceTree = "<group>"; };
 		C2E44B242EDAD35C00110348 /* PublishMoodViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PublishMoodViewController.m; sourceTree = "<group>"; };
 		C2E44B252EDAD35C00110348 /* moodStatusViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = moodStatusViewController.m; sourceTree = "<group>"; };
 		C2E44B262EDAD35C00110348 /* moodStatusCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = moodStatusCell.m; sourceTree = "<group>"; };
-		C2E44B272EDAD35C00110348 /* CustomMoodStatusNavView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomMoodStatusNavView.h; sourceTree = "<group>"; };
 		C2E44B282EDAD35C00110348 /* PublishMoodViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PublishMoodViewController.h; sourceTree = "<group>"; };
 		C2E44B292EDAD35C00110348 /* MoodStatusModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MoodStatusModel.m; sourceTree = "<group>"; };
 		C2E44B2A2EDAD35C00110348 /* moodStatusCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moodStatusCell.h; sourceTree = "<group>"; };
@@ -300,12 +299,10 @@
 		C2E44B752EDAD35C00110348 /* AppSearchViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppSearchViewController.m; sourceTree = "<group>"; };
 		C2E44B762EDAD35D00110348 /* loadData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = loadData.h; sourceTree = "<group>"; };
 		C2E44B782EDAD35D00110348 /* ToolMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToolMessage.h; sourceTree = "<group>"; };
-		C2E44B792EDAD35D00110348 /* ChatListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatListViewController.m; sourceTree = "<group>"; };
 		C2E44B7A2EDAD35D00110348 /* ToolMessageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ToolMessageCell.m; sourceTree = "<group>"; };
 		C2E44B7B2EDAD35D00110348 /* TTCHATViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTCHATViewController.h; sourceTree = "<group>"; };
 		C2E44B7C2EDAD35D00110348 /* ToolMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ToolMessage.m; sourceTree = "<group>"; };
 		C2E44B7D2EDAD35D00110348 /* ToolMessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToolMessageCell.h; sourceTree = "<group>"; };
-		C2E44B7E2EDAD35D00110348 /* ChatListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChatListViewController.h; sourceTree = "<group>"; };
 		C2E44B7F2EDAD35D00110348 /* TTCHATViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTCHATViewController.m; sourceTree = "<group>"; };
 		C2E44B812EDAD35D00110348 /* BaseBottomSheetVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseBottomSheetVC.m; sourceTree = "<group>"; };
 		C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoBaseViewController.m; sourceTree = "<group>"; };
@@ -374,10 +371,10 @@
 		C2E44BCD2EDAD35D00110348 /* TemplateCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TemplateCell.m; sourceTree = "<group>"; };
 		C2E44BCE2EDAD35D00110348 /* EmptyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmptyView.m; sourceTree = "<group>"; };
 		C2E44BCF2EDAD35D00110348 /* CellHeightCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CellHeightCache.h; sourceTree = "<group>"; };
-		C2E44BD12EDAD35D00110348 /* CommunityViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CommunityViewController.m; sourceTree = "<group>"; };
+		C2E44BD12EDAD35D00110348 /* ChatListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChatListViewController.m; sourceTree = "<group>"; };
 		C2E44BD22EDAD35D00110348 /* FindFriendsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FindFriendsViewController.m; sourceTree = "<group>"; };
 		C2E44BD32EDAD35D00110348 /* HelpViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelpViewController.h; sourceTree = "<group>"; };
-		C2E44BD42EDAD35D00110348 /* CommunityViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommunityViewController.h; sourceTree = "<group>"; };
+		C2E44BD42EDAD35D00110348 /* ChatListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChatListViewController.h; sourceTree = "<group>"; };
 		C2E44BD52EDAD35D00110348 /* FindFriendsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FindFriendsViewController.h; sourceTree = "<group>"; };
 		C2E44BD62EDAD35D00110348 /* HelpViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpViewController.m; sourceTree = "<group>"; };
 		C2E44BD82EDAD35D00110348 /* FeedbackViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FeedbackViewController.h; sourceTree = "<group>"; };
@@ -528,7 +525,6 @@
 				C2E44B772EDAD35D00110348 /* 融云 */,
 				C2E44BD02EDAD35D00110348 /* 社区 */,
 				C2E44B802EDAD35D00110348 /* 视图控制器模版ViewController */,
-				C2E44B6D2EDAD35C00110348 /* 图标商店搜索 */,
 				C2E44B682EDAD35C00110348 /* 网络 */,
 				C2E44AF92EDAD35C00110348 /* 系统设置 */,
 				C2E44BD72EDAD35D00110348 /* 用户反馈 */,
@@ -599,9 +595,18 @@
 			path = "易收米";
 			sourceTree = "<group>";
 		};
+		C26FF4952EDF107900C3F195 /* 公告 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "公告";
+			sourceTree = "<group>";
+		};
 		C2E44AF92EDAD35C00110348 /* 系统设置 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44B102EDAD35C00110348 /* 右侧菜单 */,
+				C26FF4952EDF107900C3F195 /* 公告 */,
 				C2E44AFD2EDAD35C00110348 /* ConfigField.h */,
 				C2E44AFA2EDAD35C00110348 /* ConfigField.m */,
 				C2E44AFB2EDAD35C00110348 /* ConfigItem.h */,
@@ -615,12 +620,13 @@
 		C2E44B012EDAD35C00110348 /* 用户中心 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44B1E2EDAD35C00110348 /* UserProfileViewController.h */,
+				C2E44B202EDAD35C00110348 /* UserProfileViewController.m */,
 				C2E44B342EDAD35C00110348 /* 编辑资料 */,
 				C2E44B1C2EDAD35C00110348 /* 主页列表 */,
 				C2E44B2C2EDAD35C00110348 /* 名片二维码 */,
 				C2E44B142EDAD35C00110348 /* 我的收藏 */,
 				C2E44B372EDAD35C00110348 /* 隐私政策 */,
-				C2E44B102EDAD35C00110348 /* 右侧菜单 */,
 				C2E44B212EDAD35C00110348 /* 状态说说 */,
 				C2E44B192EDAD35C00110348 /* cell */,
 				C2E44B312EDAD35C00110348 /* model */,
@@ -699,8 +705,6 @@
 			children = (
 				C2E44B1D2EDAD35C00110348 /* UserListViewController.h */,
 				C2E44B1F2EDAD35C00110348 /* UserListViewController.m */,
-				C2E44B1E2EDAD35C00110348 /* UserProfileViewController.h */,
-				C2E44B202EDAD35C00110348 /* UserProfileViewController.m */,
 			);
 			path = "主页列表";
 			sourceTree = "<group>";
@@ -708,8 +712,6 @@
 		C2E44B212EDAD35C00110348 /* 状态说说 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B272EDAD35C00110348 /* CustomMoodStatusNavView.h */,
-				C2E44B222EDAD35C00110348 /* CustomMoodStatusNavView.m */,
 				C2E44B2A2EDAD35C00110348 /* moodStatusCell.h */,
 				C2E44B262EDAD35C00110348 /* moodStatusCell.m */,
 				C2E44B232EDAD35C00110348 /* MoodStatusModel.h */,
@@ -885,9 +887,9 @@
 			isa = PBXGroup;
 			children = (
 				C2E44B6E2EDAD35C00110348 /* AppSearchViewController.h */,
+				C2E44B752EDAD35C00110348 /* AppSearchViewController.m */,
 				C2E44B6F2EDAD35C00110348 /* cell */,
 				C2E44B722EDAD35C00110348 /* model */,
-				C2E44B752EDAD35C00110348 /* AppSearchViewController.m */,
 			);
 			path = "图标商店搜索";
 			sourceTree = "<group>";
@@ -913,8 +915,6 @@
 		C2E44B772EDAD35D00110348 /* 融云 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B7E2EDAD35D00110348 /* ChatListViewController.h */,
-				C2E44B792EDAD35D00110348 /* ChatListViewController.m */,
 				C2E44B782EDAD35D00110348 /* ToolMessage.h */,
 				C2E44B7C2EDAD35D00110348 /* ToolMessage.m */,
 				C2E44B7D2EDAD35D00110348 /* ToolMessageCell.h */,
@@ -1090,8 +1090,10 @@
 		C2E44BD02EDAD35D00110348 /* 社区 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BD42EDAD35D00110348 /* CommunityViewController.h */,
-				C2E44BD12EDAD35D00110348 /* CommunityViewController.m */,
+				C26FF4922EDF0FD800C3F195 /* CustomMoodStatusNavView.h */,
+				C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */,
+				C2E44BD42EDAD35D00110348 /* ChatListViewController.h */,
+				C2E44BD12EDAD35D00110348 /* ChatListViewController.m */,
 				C2E44BD52EDAD35D00110348 /* FindFriendsViewController.h */,
 				C2E44BD22EDAD35D00110348 /* FindFriendsViewController.m */,
 				C2E44BD32EDAD35D00110348 /* HelpViewController.h */,
@@ -1250,6 +1252,7 @@
 		C2E44C142EDAD35D00110348 /* 组件 */ = {
 			isa = PBXGroup;
 			children = (
+				C2E44B6D2EDAD35C00110348 /* 图标商店搜索 */,
 				C2E44C312EDAD35E00110348 /* 弹窗小列表 */,
 				C2E44C252EDAD35E00110348 /* 动画效果按钮 */,
 				C2E44C232EDAD35D00110348 /* 读取IP图标 */,
@@ -1286,10 +1289,10 @@
 		C2E44C1B2EDAD35D00110348 /* 图片网络搜索 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44C1C2EDAD35D00110348 /* ImageModel.h */,
-				C2E44C1D2EDAD35D00110348 /* ImageGridSearchViewController.m */,
-				C2E44C1E2EDAD35D00110348 /* ImageModel.m */,
 				C2E44C1F2EDAD35D00110348 /* ImageGridSearchViewController.h */,
+				C2E44C1D2EDAD35D00110348 /* ImageGridSearchViewController.m */,
+				C2E44C1C2EDAD35D00110348 /* ImageModel.h */,
+				C2E44C1E2EDAD35D00110348 /* ImageModel.m */,
 			);
 			path = "图片网络搜索";
 			sourceTree = "<group>";
@@ -1598,6 +1601,7 @@
 				C2E44C6C2EDAD35E00110348 /* ToolViewCell.m in Sources */,
 				C2E44CA62EDAD35E00110348 /* CellHeightCache.m in Sources */,
 				C2E44CC02EDAD35E00110348 /* AppInfoModel.m in Sources */,
+				C26FF4942EDF0FD900C3F195 /* CustomMoodStatusNavView.m in Sources */,
 				C2E44CD72EDAD35F00110348 /* AppVersionHistoryCell.m in Sources */,
 				4F639DFF2272E94C00776206 /* main.m in Sources */,
 				C2E44CC42EDAD35F00110348 /* MiniButtonView.m in Sources */,
@@ -1636,7 +1640,7 @@
 				C2E44C6D2EDAD35E00110348 /* WebToolModel.m in Sources */,
 				C2E44C4E2EDAD35E00110348 /* ConfigItem.m in Sources */,
 				C2E44CCE2EDAD35F00110348 /* UIColor.m in Sources */,
-				C2E44CA92EDAD35E00110348 /* CommunityViewController.m in Sources */,
+				C2E44CA92EDAD35E00110348 /* ChatListViewController.m in Sources */,
 				C2E44C572EDAD35E00110348 /* MyFavoritesListViewController.m in Sources */,
 				C2E44C782EDAD35E00110348 /* TokenGenerator.m in Sources */,
 				C2E44CD52EDAD35F00110348 /* UIImage+Extensions.m in Sources */,
@@ -1682,7 +1686,6 @@
 				C2E44CB22EDAD35E00110348 /* MediaProcessor.m in Sources */,
 				C2E44C9A2EDAD35E00110348 /* InjectionHistoryController.m in Sources */,
 				C2E44CB92EDAD35E00110348 /* TipBarCell.m in Sources */,
-				C2E44C7C2EDAD35E00110348 /* ChatListViewController.m in Sources */,
 				C2E44C832EDAD35E00110348 /* BottomSheetPresentationController.m in Sources */,
 				C2E44C4C2EDAD35E00110348 /* ConfigField.m in Sources */,
 				C2E44CA12EDAD35E00110348 /* DownloadTaskModel.m in Sources */,
@@ -1708,7 +1711,6 @@
 				C2E44C502EDAD35E00110348 /* VipPurchaseHistoryViewController.m in Sources */,
 				C2E44C752EDAD35E00110348 /* CommentModel.m in Sources */,
 				C2E44C6F2EDAD35E00110348 /* MinWebToolViewCell.m in Sources */,
-				C2E44C5C2EDAD35E00110348 /* CustomMoodStatusNavView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -29,6 +29,18 @@
 
 @implementation AppSearchViewController
 
+
++ (instancetype)sharedInstance {
+    static AppSearchViewController *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[self alloc] init];
+        // 在这里进行初始化设置（如果需要的话）
+        
+    });
+    return sharedInstance;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor systemBackgroundColor];

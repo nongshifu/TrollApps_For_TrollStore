@@ -13,7 +13,135 @@
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED NO // 当前文件单独启用
 
+// 内存缓存字典（键：唯一标识，值：UserModel 实例）
+static NSMutableDictionary<NSString *, UserModel *> *_userCacheDict = nil;
+// 线程安全队列
+static dispatch_queue_t _cacheQueue;
+
+
 @implementation UserModel
+
+#pragma mark - 初始化缓存环境
++ (void)initialize {
+    if (self == [UserModel class]) {
+        // 创建串行队列（线程安全）
+        _cacheQueue = dispatch_queue_create("com.usermodel.cache.queue", DISPATCH_QUEUE_SERIAL);
+        // 初始化缓存字典
+        dispatch_sync(_cacheQueue, ^{
+            _userCacheDict = [NSMutableDictionary dictionary];
+        });
+    }
+}
+
+#pragma mark - 缓存键生成辅助方法
+/// 根据类型和值生成唯一缓存键
++ (NSString *)generateCacheKeyWithType:(NSString *)type value:(NSString *)value {
+    if (!type || !value) return nil;
+    return [NSString stringWithFormat:@"%@_%@", type, value];
+}
+
+/// 从 UserModel 实例中提取所有可能的缓存键
+- (NSArray<NSString *> *)allPossibleCacheKeys {
+    NSMutableArray<NSString *> *keys = [NSMutableArray array];
+    
+    // 根据 user_id 生成键
+    if (self.user_id > 0) {
+        [keys addObject:[UserModel generateCacheKeyWithType:@"user_id" value:@(self.user_id).stringValue]];
+    }
+    // 根据 udid 生成键
+    if (self.udid.length > 0) {
+        [keys addObject:[UserModel generateCacheKeyWithType:@"udid" value:self.udid]];
+    }
+    // 根据 idfv 生成键
+    if (self.idfv.length > 0) {
+        [keys addObject:[UserModel generateCacheKeyWithType:@"idfv" value:self.idfv]];
+    }
+    
+    return keys;
+}
+
+#pragma mark - 多用户缓存核心方法
+
+/// 缓存指定用户（自动关联所有可能的唯一键）
++ (void)cacheUserModel:(UserModel *)userModel {
+    if (!userModel) return;
+    
+    dispatch_sync(_cacheQueue, ^{
+        // 获取该用户的所有可能缓存键
+        NSArray<NSString *> *keys = [userModel allPossibleCacheKeys];
+        if (keys.count == 0) return;
+        
+        // 将用户模型关联到所有键（方便通过不同标识读取）
+        for (NSString *key in keys) {
+            _userCacheDict[key] = userModel;
+        }
+    });
+}
+
+/// 根据指定键读取缓存用户
++ (instancetype)cachedUserModelWithKey:(NSString *)key {
+    if (!key) return nil;
+    
+    __block UserModel *result = nil;
+    dispatch_sync(_cacheQueue, ^{
+        result = _userCacheDict[key];
+    });
+    return result;
+}
+
+/// 根据 user_id 读取缓存
++ (instancetype)cachedUserModelWithUserId:(NSString *)userId {
+    NSString *key = [self generateCacheKeyWithType:@"user_id" value:userId];
+    return [self cachedUserModelWithKey:key];
+}
+
+/// 根据 udid 读取缓存
++ (instancetype)cachedUserModelWithUdid:(NSString *)udid {
+    NSString *key = [self generateCacheKeyWithType:@"udid" value:udid];
+    return [self cachedUserModelWithKey:key];
+}
+
+/// 根据 idfv 读取缓存
++ (instancetype)cachedUserModelWithIdfv:(NSString *)idfv {
+    NSString *key = [self generateCacheKeyWithType:@"idfv" value:idfv];
+    return [self cachedUserModelWithKey:key];
+}
+
+/// 根据指定键清空缓存
++ (void)clearCachedUserModelWithKey:(NSString *)key {
+    if (!key) return;
+    
+    dispatch_sync(_cacheQueue, ^{
+        [_userCacheDict removeObjectForKey:key];
+    });
+}
+
+/// 根据 user_id 清空缓存
++ (void)clearCachedUserModelWithUserId:(NSString *)userId {
+    NSString *key = [self generateCacheKeyWithType:@"user_id" value:userId];
+    [self clearCachedUserModelWithKey:key];
+}
+
+/// 根据 udid 清空缓存
++ (void)clearCachedUserModelWithUdid:(NSString *)udid {
+    NSString *key = [self generateCacheKeyWithType:@"udid" value:udid];
+    [self clearCachedUserModelWithKey:key];
+}
+
+/// 根据 idfv 清空缓存
++ (void)clearCachedUserModelWithIdfv:(NSString *)idfv {
+    NSString *key = [self generateCacheKeyWithType:@"idfv" value:idfv];
+    [self clearCachedUserModelWithKey:key];
+}
+
+/// 清空所有用户缓存
++ (void)clearAllCachedUserModels {
+    dispatch_sync(_cacheQueue, ^{
+        [_userCacheDict removeAllObjects];
+    });
+}
+
+
 
 /**
  * 用于判断两个对象是否为同一实例（通常基于唯一标识符）
@@ -221,6 +349,8 @@
             if (code == 200) {
                 NSLog(@"查询用户数据返回：%@",jsonResult[@"data"]);
                 UserModel *userModel = [UserModel yy_modelWithDictionary:jsonResult[@"data"]];
+                // 关键修改：自动更新内存缓存
+                [self cacheUserModel:userModel];
                 if (success) success(userModel);
             } else {
                 NSError *error = [NSError errorWithDomain:@"UserInfoError" code:code userInfo:@{NSLocalizedDescriptionKey: msg}];
@@ -303,4 +433,128 @@
     }];
     
 }
+
+#pragma mark - 缓存优先获取用户信息（核心实现）
+
+/// 通用缓存优先逻辑（内部调用）
++ (void)getUserInfoWithTypeCacheFirst:(NSString *)type
+                           queryValue:(NSString *)queryValue
+                              success:(UserInfoSuccessBlock)success
+                              failure:(UserInfoFailureBlock)failure {
+    // 1. 参数验证
+    if (!type || !queryValue || queryValue.length == 0) {
+        NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"参数不能为空"}];
+        if (failure) failure(error, @"参数不能为空");
+        return;
+    }
+    
+    // 2. 尝试从缓存读取（优先使用内存缓存）
+    NSString *cacheKey = [self generateCacheKeyWithType:type value:queryValue];
+    UserModel *cachedModel = [self cachedUserModelWithKey:cacheKey];
+    if (cachedModel) {
+        // 缓存存在，直接返回（确保主线程回调，避免UI更新问题）
+        if (success) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                success(cachedModel);
+            });
+        }
+        return;
+    }
+    
+    // 3. 缓存不存在，发起网络请求（网络请求成功后会自动更新缓存）
+    [self getUserInfoWithType:type queryValue:queryValue success:success failure:failure];
+}
+
+/// 根据 user_id 缓存优先获取
++ (void)getUserInfoWithUserIdCacheFirst:(NSString *)userId
+                                success:(UserInfoSuccessBlock)success
+                                failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithTypeCacheFirst:@"user_id" queryValue:userId success:success failure:failure];
+}
+
+/// 根据 udid 缓存优先获取
++ (void)getUserInfoWithUdidCacheFirst:(NSString *)udid
+                               success:(UserInfoSuccessBlock)success
+                               failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithTypeCacheFirst:@"udid" queryValue:udid success:success failure:failure];
+}
+
+/// 根据 idfv 缓存优先获取
++ (void)getUserInfoWithIdfvCacheFirst:(NSString *)idfv
+                               success:(UserInfoSuccessBlock)success
+                               failure:(UserInfoFailureBlock)failure {
+    [self getUserInfoWithTypeCacheFirst:@"idfv" queryValue:idfv success:success failure:failure];
+}
+
+/// 设置用户在线状态
++ (void)setOnlineStatusWithTargetUdid:(NSString *)targetUdid
+                               status:(BOOL)status
+                               success:(void(^)(NSString *message))success
+                               failure:(UserInfoFailureBlock)failure {
+    // 1. 参数校验
+    if (!targetUdid || targetUdid.length < 5) {
+        NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"目标UDID无效"}];
+        if (failure) failure(error, @"目标UDID无效");
+        return;
+    }
+    
+    
+    // 2. 获取当前用户UDID（用于身份验证）
+    NSString *currentUdid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    if (currentUdid.length < 5) {
+        [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];
+        [SVProgressHUD dismissWithDelay:4];
+        NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"当前用户未登录"}];
+        if (failure) failure(error, @"当前用户未登录");
+        return;
+    }
+    
+    // 3. 构建请求参数
+    NSDictionary *params = @{
+        @"action" : @"setOnlineStatus", // 路由action：设置在线状态
+        @"target_udid" : targetUdid,          // 当前用户UDID（身份验证）
+        @"is_online" : @(status)
+        
+    };
+    NSLog(@"设置在线状态请求：%@", params);
+    
+    // 4. 发起网络请求
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url
+                                             parameters:params
+                                                   udid:currentUdid
+                                               progress:^(NSProgress *progress) {
+        // 进度回调（可选，当前无需处理）
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"设置在线状态返回jsonResult：%@", jsonResult);
+            NSLog(@"设置在线状态返回stringResult：%@", stringResult);
+            
+            // 5. 解析成功响应
+            if (!jsonResult && stringResult) {
+                NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-4 userInfo:@{NSLocalizedDescriptionKey: stringResult}];
+                if (failure) failure(error, stringResult);
+                return;
+            }
+            
+            NSInteger code = [jsonResult[@"code"] integerValue];
+            NSString *msg = jsonResult[@"msg"] ?: @"设置成功";
+            if (code == 200) {
+                // 成功：返回服务器提示信息
+                if (success) success(msg);
+            } else {
+                // 失败：返回错误信息
+                NSError *error = [NSError errorWithDomain:@"UserInfoError" code:code userInfo:@{NSLocalizedDescriptionKey: msg}];
+                if (failure) failure(error, msg);
+            }
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 网络请求失败：返回错误信息
+            if (failure) failure(error, [NSString stringWithFormat:@"网络错误：%@", error.localizedDescription]);
+        });
+    }];
+}
+
 @end

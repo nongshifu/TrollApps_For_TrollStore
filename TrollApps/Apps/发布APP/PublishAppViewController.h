@@ -24,6 +24,7 @@ typedef NS_ENUM(NSInteger, NewCategoryType) {
 @property (nonatomic, strong) ITunesAppModel *iTunesAppModel;//应用商店模型
 ///0发布新软件 1 更新软件 （更新时候务必带上appId）
 @property (nonatomic, assign) NewCategoryType category;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -19,7 +19,7 @@
 #import "ToolViewCell.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface UserListViewController ()<TemplateSectionControllerDelegate>
 
@@ -237,10 +237,8 @@
         @"action":@"get_user_comment",
         @"sort":@(self.sort),
         @"keyword":keyword,
-        
         @"pageSize":@(30),
         @"to_id":to_id,
-        
         @"page":@(self.page)
         
     };
@@ -260,25 +258,35 @@
                     return;
                 }
                 
-                NSLog(@"读取数据jsonResult: %@", jsonResult);
+                NSLog(@"评论读取数据jsonResult: %@", jsonResult);
                 
                 
                 NSString *message = jsonResult[@"msg"];
-                NSDictionary * data = jsonResult[@"data"];
+                NSDictionary *data = jsonResult[@"data"];
+                NSLog(@"评论读取数据data: %@", data);
+
+                // 关键：验证键名
+                NSLog(@"📌 data 所有键名：%@", data.allKeys);
+                [data enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+                    NSLog(@"🔑 键：%@ | 长度：%lu | 值：%@", key, (unsigned long)key, obj);
+                }];
+
                 NSInteger total = [data[@"pagination"][@"total"] intValue];
-                NSLog(@"共:%ld条评论",total);
-                NSArray * comments = data[@"comments"];
-                if(comments.count >0){
-                   
-                    NSLog(@"返回数量:%ld",comments.count);
+                NSLog(@"共:%ld条评论", total);
+
+                // 动态获取正确的键名（假设实际键名是 @"comments"，如果有特殊字符则需调整）
+                NSArray *comments = data[@"comments"]; // 若键名有特殊字符，需替换为实际键名
+                NSLog(@"评论读取数据comments: %@", comments);
+
+                if (comments.count > 0) {
+                    NSLog(@"返回数量:%ld", comments.count);
                     for (NSDictionary *dic in comments) {
-                        NSLog(@"赋值前:%@",dic);
+                        NSLog(@"赋值前:%@", dic);
                         CommentModel *model = [CommentModel yy_modelWithDictionary:dic];
-                        model.action_type = Comment_type_UserComment;//标记为用户评论
-                        NSLog(@"赋值后comment_type:%ld",model.action_type);
+                        model.action_type = Comment_type_UserComment;
+                        NSLog(@"赋值后comment_type:%ld", model.action_type);
                         [self.dataSource addObject:model];
                     }
-                    
                 }else{
                     NSLog(@"数据搜索失败出错: %@", message);
                     [SVProgressHUD showSuccessWithStatus:message];

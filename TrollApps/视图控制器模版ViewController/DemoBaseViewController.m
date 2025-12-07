@@ -471,4 +471,16 @@
     [viewController presentViewController:alert animated:YES completion:nil];
 }
 
+// 获取视图所属的视图控制器的方法
+- (UIViewController *)getviewController {
+    UIResponder *nextResponder = self;
+    while (nextResponder != nil) {
+        nextResponder = nextResponder.nextResponder;
+        if ([nextResponder isKindOfClass:[UIViewController class]]) {
+            return (UIViewController *)nextResponder;
+        }
+    }
+    return nil;
+}
+
 @end

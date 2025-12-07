@@ -93,7 +93,8 @@ NS_ASSUME_NONNULL_BEGIN
                                         cancelTitle:(NSString * _Nullable)cancelTitle
                                         onConfirmed:(void (^)(void))onConfirm
                                         onCancelled:(void (^)(void))onCancel;
-                                  
+
+- (UIViewController *)getviewController;
 @end
 
 NS_ASSUME_NONNULL_END

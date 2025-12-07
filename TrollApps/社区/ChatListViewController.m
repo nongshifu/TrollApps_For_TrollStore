@@ -5,7 +5,7 @@
 //  Created by 十三哥 on 2025/6/30.
 //
 
-#import "CommunityViewController.h"
+#import "ChatListViewController.h"
 #import "NewProfileViewController.h"
 #import "WebToolModel.h"
 #import "ToolViewCell.h"
@@ -22,7 +22,10 @@
 
 #define TITLES_SAVE_KEY @"TITLES_SAVE_KEY"
 
-@interface CommunityViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate,RCIMConnectionStatusDelegate,RCIMClientReceiveMessageDelegate,MiniButtonViewDelegate,MenuViewControllerDelegate>
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+
+@interface ChatListViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate,RCIMConnectionStatusDelegate,RCIMClientReceiveMessageDelegate,MiniButtonViewDelegate,MenuViewControllerDelegate>
 
 @property (nonatomic, strong)  NSString *keyword;
 @property (nonatomic, strong)  UIView *gradientNavigationView;
@@ -36,7 +39,7 @@
 @property (nonatomic, strong) UISearchController *searchController;
 @end
 
-@implementation CommunityViewController
+@implementation ChatListViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -596,6 +599,7 @@
 // 自定义 cell
 - (void)willDisplayConversationTableCell:(RCConversationBaseCell *)cell atIndexPath:(NSIndexPath *)indexPath {
     [super willDisplayConversationTableCell:cell atIndexPath:indexPath];
+    
     RCConversationCell *mycel = (RCConversationCell *)cell;
     mycel.backgroundColor = [UIColor clearColor];
     mycel.selectionStyle = UITableViewCellSelectionStyleNone;  // 禁用 cell 的点击效果
@@ -603,15 +607,17 @@
     RCConversationModel *model = self.conversationListDataSource[indexPath.row];
     
     //昵称
-    mycel.conversationTitle.font = [UIFont boldSystemFontOfSize:18];
+    mycel.conversationTitle.font = [UIFont boldSystemFontOfSize:16];
     
     //置顶的颜色
-    mycel.topCellBackgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.2];
+    mycel.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.05];
+   
     if(model.isTop){
-        mycel.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.2];
+        mycel.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3];
+       
     }
     //非置顶的颜色
-    mycel.cellBackgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.05];
+    
     //会话有新消息通知的时候显示数字提醒，设置为NO,不显示数字只显示红点
     mycel.isShowNotificationNumber = YES;
     
@@ -662,6 +668,21 @@
     }error:^(RCErrorCode status) {
         NSLog(@"查询免打扰状态RCErrorCode:%ld",status);
     }];
+    __block UserModel *user = [UserModel cachedUserModelWithUdid:targetId];
+    NSLog(@"打印user：%@",user);
+    if(!user) {
+        
+        [UserModel getUserInfoWithUdidCacheFirst:targetId success:^(UserModel * _Nonnull userModel) {
+            user = userModel;
+            [self updateCellUIWithUserId:user cell:mycel];
+        } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        }];
+    }else{
+        [self updateCellUIWithUserId:user cell:mycel];
+    }
+    
+    
+    
    
     
 }
@@ -680,6 +701,101 @@
     label.attributedText = attributedString;
 }
 
+- (void)updateCellUIWithUserId:(UserModel *)userModel cell:(RCConversationCell *)mycel {
+    //设置头像
+    UIImageView * avaView = (UIImageView *)mycel.headerImageView;
+    //设置头像
+    NSString *avaurl = [NSString stringWithFormat:@"%@",userModel.avatar];
+    NSLog(@"更新头像地址:%@",avaurl);
+    [avaView sd_setImageWithURL:[NSURL URLWithString:avaurl]];
+    
+   
+    if(mycel.model.conversationType == ConversationType_SYSTEM){
+        mycel.conversationTitle.text = @"互动消息";
+        avaView.image = [UIImage imageNamed:@"xingqiu99"];
+    }
+    
+    
+    mycel.conversationTagView.layer.masksToBounds =NO;
+   
+    
+    
+    /*!
+     会话标题右侧的标签view
+     */
+    mycel.conversationTagView.hidden = NO;
+    
+    UIButton *button = [mycel viewWithTag:1001];
+    if(!button){
+        button = [UIButton buttonWithType:UIButtonTypeCustom];
+        button.frame = CGRectMake(0, 0, 60, 18); // 或根据文字长度调整宽度
+        button.layer.cornerRadius = 9;
+        button.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
+        button.tag = 1001;
+        
+        // 核心优化：1. 减小字体 2. 简化边距设置
+        button.titleLabel.font = [UIFont systemFontOfSize:11]; // 关键：设置合适字体大小
+        button.contentEdgeInsets = UIEdgeInsetsMake(3, 1, 3, 1); // 仅保留 contentEdgeInsets
+        // 移除 titleEdgeInsets，避免重复压缩
+        
+        [mycel.conversationTagView addSubview:button];
+    }
+    NSLog(@"自定义标签:%@  mutualFollowStatus:%ld",button,userModel.mutualFollowStatus);
+    switch (userModel.mutualFollowStatus) {
+        case UserFollowMutualStatus_None:
+            mycel.conversationTagView.hidden = YES;
+            break;
+        case UserFollowMutualStatus_HimFollowMe:
+            mycel.conversationTagView.hidden = NO;
+            [button setTitle:@"粉丝" forState:UIControlStateNormal];
+            break;
+            
+        case UserFollowMutualStatus_IFollowHim:
+            mycel.conversationTagView.hidden = NO;
+            [button setTitle:@"已关注" forState:UIControlStateNormal];
+            button.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5];
+            break;
+            
+        case UserFollowMutualStatus_Mutual:
+            mycel.conversationTagView.hidden = NO;
+            [button setTitle:@"互关密友" forState:UIControlStateNormal];
+            button.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5];
+            break;
+            
+        default:
+            break;
+    }
+    UIButton *zxButton = [mycel viewWithTag:1002];
+    if(!zxButton){
+        CGFloat width = 8;
+        zxButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        zxButton.frame = CGRectMake(width/2, mycel.headerImageViewBackgroundView.frame.size.height - width, width, width); // 或根据文字长度调整宽度
+        zxButton.layer.cornerRadius = width/2;
+        zxButton.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.8];
+        zxButton.tag = 1002;
+        [mycel.headerImageViewBackgroundView addSubview:zxButton];
+    }
+    zxButton.hidden = userModel.is_online;
+    
+    UIButton *vipButton = [mycel viewWithTag:1003];
+    if(!vipButton){
+        CGFloat width = 20;
+        CGFloat size = 8;
+        vipButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        vipButton.frame = CGRectMake(0, 0, width, size + 3);
+        vipButton.layer.cornerRadius = 5;
+        vipButton.backgroundColor = [UIColor purpleColor];
+        vipButton.tag = 1003;
+        [vipButton setTitle:@"vip" forState:UIControlStateNormal];
+        vipButton.titleLabel.font = [UIFont boldSystemFontOfSize:size];
+        vipButton.contentEdgeInsets = UIEdgeInsetsMake(1, 2, 1, 2);
+        [mycel.headerImageViewBackgroundView addSubview:vipButton];
+        [vipButton addGlowEffectWithColor:[UIColor labelColor] shadowOpacity:1 shadowRadius:2];
+        
+    }
+    vipButton.hidden = userModel.vip_level == 0;
+    
+}
 
 #pragma mark - 表格代理
 

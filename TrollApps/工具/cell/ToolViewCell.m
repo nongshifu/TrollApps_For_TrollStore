@@ -16,7 +16,7 @@
 #import "LikeModel.h"
 #import "NewProfileViewController.h"
 #import "QRCodeGeneratorViewController.h"
-#import "CommunityViewController.h"
+#import "ChatListViewController.h"
 #import "ToolMessage.h"
 #import "ShowOneToolViewController.h"
 @interface ToolViewCell ()<MiniButtonViewDelegate>
@@ -680,7 +680,7 @@
     
     UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         // 修改后：包装导航栏 + 底部模态样式
-        CommunityViewController *vc = [CommunityViewController new];
+        ChatListViewController *vc = [ChatListViewController new];
         vc.isShare = YES;
         vc.shareModel = self.toolModel;
         vc.messageForType = MessageForTypeTool;

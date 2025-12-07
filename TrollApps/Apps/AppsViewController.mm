@@ -18,6 +18,7 @@
 #import "MyCollectionViewController.h"
 #import "ArrowheadMenu.h"
 #import "UserProfileViewController.h"
+#import "AppVersionHistoryViewController.h"
 #include <dlfcn.h>
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
@@ -87,6 +88,7 @@
     self.navigationController.navigationBarHidden = YES;
     self.tabBarController.tabBar.hidden = NO;
     [self setupNavigationBar];
+    [self setupVV];
 
 }
 
@@ -206,6 +208,8 @@
     
     [self setupSideMenuController];
     
+    [self setupVV];
+    
     
 }
 
@@ -214,12 +218,13 @@
 
 - (void)setupNavigationBar {
     NSLog(@"监听主题变化updateTabBarColor");
-    
+    NSString *localShortVersionStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     // 设置标题和副标题
     [self zx_setMultiTitle:@"TrollApps"
-                   subTitle:@"热门App应用 插件 应有尽有！"
+                  subTitle:[NSString stringWithFormat:@"热门App应用 插件 应有尽有！v%@",localShortVersionStr]
                 subTitleFont:[UIFont boldSystemFontOfSize:10]
              subTitleTextColor:[UIColor randomColorWithAlpha:1]];
+    
     
     
     // 设置导航栏基本属性
@@ -318,6 +323,31 @@
     
     NSLog(@"读取头像:%@", avatarImage);
     return avatarImage;
+}
+
+- (void)setupVV{
+    BOOL needUpdate = [[NSUserDefaults standardUserDefaults] boolForKey:NEED_UPDATE_KEY];
+    NSString *localShortVersionStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    // 设置标题和副标题
+    NSString *message = [NSString stringWithFormat:@"热门App应用 插件 应有尽有！v%@",localShortVersionStr];
+    if(needUpdate){
+        message = [NSString stringWithFormat:@"热门App应用 插件 应有尽有！(可更新!)v%@",[loadData sharedInstance].appVersionHistoryModel.version_name];
+    }
+    [self zx_setMultiTitle:@"TrollApps"
+                  subTitle:message
+                subTitleFont:[UIFont boldSystemFontOfSize:10]
+             subTitleTextColor:[UIColor randomColorWithAlpha:1]];
+    
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(zx_navTitleLabelTap:)];
+    tapGesture.cancelsTouchesInView = NO; // 确保不影响其他控件的事件
+    self.zx_navBar.zx_titleLabel.userInteractionEnabled = YES;
+    [self.zx_navBar.zx_titleLabel addGestureRecognizer:tapGesture];
+    
+}
+
+- (void)zx_navTitleLabelTap:(UITapGestureRecognizer *)gesture {
+    AppVersionHistoryViewController *vc = [AppVersionHistoryViewController new];
+    [self presentPanModal:vc];
 }
 
 #pragma mark -其他UI
@@ -499,14 +529,12 @@
 
 - (void)switchAppList:(UIButton*)button{
     self.showMyApp = !self.showMyApp;
-    
+    //设置自己还是全部
+    self.currentVC.showMyApp = self.showMyApp;
+    [self.currentVC.dataSource removeAllObjects];
+    [self.currentVC refreshTable];
+    [self.currentVC refreshLoadInitialData];
 
-    for (AppListViewController *vc in self.viewControllers) {
-        vc.showMyApp = self.showMyApp;
-        [vc.dataSource removeAllObjects];
-        [vc refreshTable];
-        [vc refreshLoadInitialData];
-    }
     NSString *title = self.showMyApp ? @"我的" :@"全部";
     
     [button setTitle:title forState:UIControlStateNormal];
@@ -803,8 +831,6 @@
     [DemoBaseViewController triggerVibration];
     //设置当前页面控制器
     self.currentVC = self.viewControllers[index];
-    //设置标题
-//    self.viewControllers[index].tag = self.titles[index];
     //设置当前下标属性
     self.currentPageIndex = index;
     //设置排序按钮背景
@@ -831,6 +857,16 @@
         //读取第一页数据
         [self.currentVC refreshLoadInitialData];
     }
+    if(self.showMyApp != self.currentVC.showMyApp){
+        self.currentVC.showMyApp = self.showMyApp;
+        [self.currentVC.dataSource removeAllObjects];
+        [self.currentVC refreshTable];
+        [self.currentVC refreshLoadInitialData];
+        NSString *msg = self.showMyApp ? @"切换为我的APP" :@"切换显示全部APP";
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"scribble"] status:msg];
+        [SVProgressHUD dismissWithDelay:2];
+    }
+   
     
 }
 

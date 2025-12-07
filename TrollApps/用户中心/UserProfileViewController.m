@@ -20,6 +20,7 @@
 #import "MoodStatusModel.h"
 #import "MyCollectionViewController.h"
 #import "loadData.h"
+#import "MultiIconButton.h"
 
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
@@ -35,6 +36,7 @@
 @property (nonatomic, strong) UILabel *jianjie;//简介
 @property (nonatomic, strong) UIButton *contact;//联系对方
 @property (nonatomic, strong) UIButton *followButtom;//关注按钮
+@property (nonatomic, strong) UIButton *vipButtom;//vip按钮
 @property (nonatomic, strong) UIButton *showFollowListButton;//显示粉丝列表
 
 @property (nonatomic, strong) UISegmentedControl *segmentedControl;
@@ -105,18 +107,25 @@
     self.followButtom.layer.masksToBounds = YES; // 确保圆角生效
     self.followButtom.titleLabel.font = [UIFont systemFontOfSize:13];
     self.followButtom.backgroundColor = [UIColor redColor];
-
-    // 3. 可选：设置按钮文字（如需要）
     [self.followButtom setTitle:@"关注" forState:UIControlStateNormal];
     [self.followButtom setTitle:@"已关注" forState:UIControlStateSelected];
     [self.followButtom setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
     self.followButtom.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
-
-
     // 绑定点击事件
     [self.followButtom addTarget:self action:@selector(followButtomTap:) forControlEvents:UIControlEventTouchUpInside];
-
     [self.view addSubview:self.followButtom];
+    
+    // 初始化关注按钮（使用自定义类型，避免系统默认样式干扰）
+    self.vipButtom = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.vipButtom.layer.cornerRadius = 10;
+    self.vipButtom.layer.masksToBounds = YES; // 确保圆角生效
+    self.vipButtom.titleLabel.font = [UIFont boldSystemFontOfSize:13];
+    self.vipButtom.backgroundColor = [UIColor purpleColor];
+    [self.vipButtom setTitle:@"SVIP" forState:UIControlStateNormal];
+    self.vipButtom.hidden = YES;
+    [self.vipButtom setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
+    self.vipButtom.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
+    [self.view addSubview:self.vipButtom];
     
     
     
@@ -294,6 +303,11 @@
 
     }];
     
+    [self.vipButtom mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.view).offset(25);
+        make.top.equalTo(self.view).offset(15);
+    }];
+    
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view).offset(25);
         make.centerX.equalTo(self.view);
@@ -304,7 +318,6 @@
         make.bottom.right.equalTo(self.avatarImageView);
         make.height.mas_equalTo(@25);
     }];
-    
     
     [self.nicknameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
@@ -623,8 +636,7 @@
     self.user_udid = self.userInfo.udid;
     NSString *userDic = [userModel yy_modelToJSONString];
     NSLog(@"userDic:%@",userDic);
-    [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley.fill"] status:userModel.mutualFollowStatusText];
-    [SVProgressHUD dismissWithDelay:1];
+    
     //读取数据
     for (int i = 0; i<self.viewControllers.count; i++) {
         UserListViewController *controller = self.viewControllers[i];
@@ -660,16 +672,35 @@
     NSString *total = [NSString stringWithFormat:@"APP: %ld 个 · 收到攒: %ld · 评论: %ld · 粉丝量：%ld\n", userModel.app_count,userModel.like_count,userModel.reply_count,userModel.follower_count];
     NSString *registerDate = [TimeTool getTimeformatDateForDay:userModel.register_time];
     self.jianjie.text = [NSString stringWithFormat:@"%@注册于 %@", total, registerDate];
-    if(userModel.isFollow){
-        self.followButtom.selected = YES;
-        self.followButtom.backgroundColor = [UIColor systemBlueColor];
+    
+    switch (userModel.mutualFollowStatus) {
+        case UserFollowMutualStatus_None:
+            [self.followButtom setTitle:@"关注" forState:UIControlStateNormal];
+            self.followButtom.backgroundColor = [UIColor systemBlueColor];
+            break;
+        case UserFollowMutualStatus_HimFollowMe:
+            [self.followButtom setTitle:@"回关" forState:UIControlStateNormal];
+            self.followButtom.backgroundColor = [UIColor systemPinkColor];
+            break;
+        case UserFollowMutualStatus_IFollowHim:
+            [self.followButtom setTitle:@"已关注" forState:UIControlStateNormal];
+            self.followButtom.backgroundColor = [UIColor systemGreenColor];
+            break;
+        case UserFollowMutualStatus_Mutual:
+            [self.followButtom setTitle:@"已互关" forState:UIControlStateNormal];
+            self.followButtom.backgroundColor = [UIColor systemPurpleColor];
+            break;
+            
+        default:
+            break;
     }
     if([userModel.udid isEqual:[NewProfileViewController sharedInstance].userInfo.udid]){
         self.followButtom.backgroundColor = [UIColor systemGrayColor];
         [self.followButtom setTitle:@"自己" forState:UIControlStateNormal];
-        [self.followButtom setTitle:@"自己" forState:UIControlStateSelected];
         self.followButtom.enabled = NO;
     }
+    self.vipButtom.hidden = userModel.vip_level == 0;
+    
 }
 
 /**
@@ -863,7 +894,7 @@
             if (code == 200) {
                 NSDictionary *data = jsonResult[@"data"];
                 BOOL isFollow = [data[@"isFollow"] boolValue];
-                self.followButtom.selected = isFollow;
+                
                 self.followButtom.backgroundColor = isFollow ? [UIColor systemBlueColor]:[UIColor systemPinkColor];
                 if(isFollow){
                     [SendMessage sendRCIMTextMessageToUDID:self.user_udid messageText:@"我关注你了" success:^{
@@ -944,6 +975,12 @@
                 self.commentInputView.textPromptLabel.alpha = 1;
                 // 刷新评论列表（重新加载第一页）
                 [self.currentVC loadDataWithPage:1];
+                //发送消息
+                [SendMessage sendRCIMTextMessageToUDID:self.user_udid messageText:[NSString stringWithFormat:@"我评论了你的主页:%@",commentContent] success:^{
+                    
+                } error:^(NSString * _Nonnull errorMsg) {
+                    
+                }];
             } else {
                 [SVProgressHUD showErrorWithStatus:msg];
             }

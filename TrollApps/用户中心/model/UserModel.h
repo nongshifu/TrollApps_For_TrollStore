@@ -104,6 +104,62 @@ typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
                                     success:(void(^)(UserFollowMutualStatus status, NSString *statusDesc))success
                                     failure:(UserInfoFailureBlock)failure;
 
+
+#pragma mark - 多用户内存缓存管理
+///获取内存缓存单例管理
++ (instancetype)cachedUserModel;
+
+/// 缓存指定用户（自动根据模型属性生成唯一键）
++ (void)cacheUserModel:(UserModel *)userModel;
+
+/// 根据 user_id 读取缓存用户
++ (instancetype)cachedUserModelWithUserId:(NSString *)userId;
+
+/// 根据 udid 读取缓存用户
++ (instancetype)cachedUserModelWithUdid:(NSString *)udid;
+
+/// 根据 idfv 读取缓存用户
++ (instancetype)cachedUserModelWithIdfv:(NSString *)idfv;
+
+/// 清空指定 user_id 的缓存
++ (void)clearCachedUserModelWithUserId:(NSString *)userId;
+
+/// 清空指定 udid 的缓存
++ (void)clearCachedUserModelWithUdid:(NSString *)udid;
+
+/// 清空指定 idfv 的缓存
++ (void)clearCachedUserModelWithIdfv:(NSString *)idfv;
+
+/// 清空所有用户缓存
++ (void)clearAllCachedUserModels;
+
+#pragma mark - 缓存优先获取用户信息
+/// 根据 user_id 缓存优先获取用户信息（缓存存在直接返回，否则网络请求）
++ (void)getUserInfoWithUserIdCacheFirst:(NSString *)userId
+                                success:(UserInfoSuccessBlock)success
+                                failure:(UserInfoFailureBlock)failure;
+
+/// 根据 udid 缓存优先获取用户信息（缓存存在直接返回，否则网络请求）
++ (void)getUserInfoWithUdidCacheFirst:(NSString *)udid
+                               success:(UserInfoSuccessBlock)success
+                               failure:(UserInfoFailureBlock)failure;
+
+/// 根据 idfv 缓存优先获取用户信息（缓存存在直接返回，否则网络请求）
++ (void)getUserInfoWithIdfvCacheFirst:(NSString *)idfv
+                               success:(UserInfoSuccessBlock)success
+                               failure:(UserInfoFailureBlock)failure;
+
+/// 设置用户在线状态
+/// @param targetUdid 目标用户UDID
+/// @param status 在线状态
+/// @param success 成功回调，返回服务器提示信息
+/// @param failure 失败回调，返回错误信息
++ (void)setOnlineStatusWithTargetUdid:(NSString *)targetUdid
+                               status:(BOOL)status
+                               success:(void(^)(NSString *message))success
+                               failure:(UserInfoFailureBlock)failure;
+
+
 @end
 
 NS_ASSUME_NONNULL_END

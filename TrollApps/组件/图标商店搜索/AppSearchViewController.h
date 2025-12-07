@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong)  NSString *keyword;
 // 新增地区属性
 @property (nonatomic, copy) NSString *selectedCountryCode; // 选中的地区代码（如"cn"代表中国）
++ (instancetype)sharedInstance;
 @end
 
 

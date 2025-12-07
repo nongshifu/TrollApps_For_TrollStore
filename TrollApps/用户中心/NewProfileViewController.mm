@@ -55,6 +55,7 @@
 
 @property (nonatomic, strong) UIButton *historicalOrdersButton;    //历史订单
 @property (nonatomic, strong) UIButton *contactHelperButton;       // 联系开发者
+@property (nonatomic, strong) UIButton *vipButton;                 // vip按钮
 
 @property (nonatomic, assign) PaymentType payType;
 
@@ -289,6 +290,18 @@
     [self.avatarImageView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeAvatar:)]];
     [self.view addSubview:self.avatarImageView];
     
+    // 初始化关注按钮（使用自定义类型，避免系统默认样式干扰）
+    self.vipButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.vipButton.layer.cornerRadius = 10;
+    self.vipButton.layer.masksToBounds = YES; // 确保圆角生效
+    self.vipButton.titleLabel.font = [UIFont boldSystemFontOfSize:15];
+    self.vipButton.backgroundColor = [UIColor purpleColor];
+    [self.vipButton setTitle:@"SVIP" forState:UIControlStateNormal];
+    self.vipButton.hidden = YES;
+    [self.vipButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
+    self.vipButton.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
+    [self.view addSubview:self.vipButton];
+    
     // 昵称
     self.nicknameLabel = [[UILabel alloc] init];
     self.nicknameLabel.text = @"未注册用户"; // 默认未注册
@@ -474,6 +487,12 @@
         make.centerX.equalTo(self.view);
         make.width.height.equalTo(@200);
     }];
+    [self.vipButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.avatarImageView.mas_top);
+        make.left.equalTo(self.avatarImageView);
+        make.width.equalTo(@60);
+        make.height.equalTo(@30);
+    }];
     
     // 昵称约束（加粗大字）
     [self.nicknameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -558,7 +577,17 @@
                 make.width.height.equalTo(@(avaWidth));
             }];
             self.avatarImageView.layer.cornerRadius = avaWidth/2;
+            
+            [self.vipButton mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(self.avatarImageView.mas_top);
+                make.left.equalTo(self.avatarImageView);
+                make.width.equalTo(@0);
+                make.height.equalTo(@0);
+            }];
+            
             self.bioTextView.text = self.userInfo.moodStatus;
+            
+            
             [self.nicknameLabel mas_updateConstraints:^(MASConstraintMaker *make) {
                 make.height.equalTo(@(0));
             }];
@@ -566,6 +595,12 @@
         }else if(!self.isScrollingUp && self.scrollY <=20){
             [self.avatarImageView mas_updateConstraints:^(MASConstraintMaker *make) {
                 make.width.height.equalTo(@200);
+            }];
+            [self.vipButton mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(self.avatarImageView.mas_top);
+                make.left.equalTo(self.avatarImageView);
+                make.width.equalTo(@60);
+                make.height.equalTo(@30);
             }];
             self.bioTextView.text = self.userInfo.bio;
             [self zx_setMultiTitle:@"" subTitle:@""];
@@ -700,6 +735,8 @@
     }
     
     self.vipExpireLabel.text = vipText;
+    
+    self.vipButton.hidden = userModel.vip_level == 0;
     
 }
 

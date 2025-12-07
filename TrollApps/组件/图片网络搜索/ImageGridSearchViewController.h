@@ -33,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSMutableArray<ImageModel *> *selectedImages;
 @property (nonatomic, strong) NSMutableSet<NSString *> *selectedUrlSet; // 用于快速判断是否选中（通过url去重）
 
++ (instancetype)sharedInstance;
 @end
 
 

@@ -18,7 +18,7 @@
 #import "PrivacyPolicyViewController.h"
 #import "AppVersionHistoryViewController.h"
 #import "SystemViewController.h"
-
+#import "loadData.h"
 @interface ProfileRightViewController ()<UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) UILabel *topTitle;
@@ -103,10 +103,15 @@
     NSMutableArray<NSString *> *cacheSubTitles = [@[[NSString stringWithFormat:@"当前占用 %.2f MB", (float)sdImageCacheSize / (1024 * 1024)],
                                                     [NSString stringWithFormat:@"下载占用 %.2f MB", (float)downloadSize / (1024 * 1024)],
                                                     [NSString stringWithFormat:@"已使用 %.2f MB", (float)usedMemory / (1024 * 1024)]] mutableCopy];
-    NSArray<NSString *> *testGroup = @[@""];
+    NSString *localShortVersionStr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    NSArray<NSString *> *testGroup = @[localShortVersionStr];
     NSMutableArray<NSString *> *testSubTitles = [@[@""] mutableCopy];
     
-    self.settingsGroups = @[accountSecurityGroup, privacyGroup, aboutAppGroup, cacheGroup, testGroup, testGroup];
+    BOOL needUpdate = [[NSUserDefaults standardUserDefaults] boolForKey:NEED_UPDATE_KEY];
+    NSArray<NSString *> *needUpdateGroup = @[needUpdate?@"有更新":@"暂无更新"];
+    
+    
+    self.settingsGroups = @[accountSecurityGroup, privacyGroup, aboutAppGroup, cacheGroup, testGroup, needUpdateGroup];
     self.settingsSubTitles = [@[accountSecuritySubTitles, privacySubTitles, aboutAppSubTitles, cacheSubTitles, testSubTitles, testSubTitles] mutableCopy];
     self.sectionTitles = @[@"账号与安全", @"隐私设置", @"关于应用", @"清理缓存", @"TrollApps", @""];
 }

@@ -8,9 +8,12 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "UserModel.h"
+#import "AppVersionHistoryModel.h"
+
 #import "config.h"
 #define SAVE_LOCAL_TAGS_KEY @"SAVE_LOCAL_TAGS_KEY"
 #define SAVE_SERVER_TAGS_KEY @"SAVE_SERVER_TAGS_KEY"
+#define NEED_UPDATE_KEY @"NEED_UPDATE_KEY"
 NS_ASSUME_NONNULL_BEGIN
 
 @interface loadData : NSObject
@@ -20,6 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UserModel *userModel; // 用户
 //刷新融云
 - (void)refreshUserInfoCache:(UserModel *)userModel;
+@property (nonatomic, assign) BOOL needUpdate;
+//服务器最新版本
+@property (nonatomic, strong) AppVersionHistoryModel *appVersionHistoryModel;
+
 @end
 
 NS_ASSUME_NONNULL_END

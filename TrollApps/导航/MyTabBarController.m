@@ -10,7 +10,7 @@
 #import "MyTabBarController.h"
 #import "AppsViewController.h"
 #import "ToolStoreListViewController.h"
-#import "CommunityViewController.h"
+#import "ChatListViewController.h"
 #import "PublishAppViewController.h"
 #import "DemoBaseNavigationController.h"
 #import "NewToolViewController.h"
@@ -18,7 +18,6 @@
 #import "EditUserProfileViewController.h"
 #import "config.h"
 #import "NewProfileViewController.h"
-#import "ChatListViewController.h"
 #import "UserProfileViewController.h"
 #import "loadData.h"
 #import "PublishMoodViewController.h"
@@ -289,7 +288,7 @@
                                                               imageName:@""
                                                           selectedImage:@""]
     ];
-    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[CommunityViewController new]
+    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[ChatListViewController new]
                                                                   title:@"广场"
                                                               imageName:@"message"
                                                           selectedImage:@"message.fill"]

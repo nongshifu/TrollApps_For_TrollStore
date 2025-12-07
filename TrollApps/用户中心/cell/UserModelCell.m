@@ -36,14 +36,11 @@
 @property (nonatomic, strong) UILabel *nicknameLabel;
 @property (nonatomic, strong) UILabel *vipTagLabel;
 
-// 个人简介
+// 个人简介（修改：最大3行）
 @property (nonatomic, strong) UILabel *bioLabel;
 
 // 辅助信息（下载量+注册时间）
 @property (nonatomic, strong) UILabel *statsLabel;
-
-// 分隔线
-@property (nonatomic, strong) UIView *separatorView;
 
 // 新增：关注按钮
 @property (nonatomic, strong) UIButton *followButton;
@@ -67,10 +64,8 @@ static UIImage *imageWithColor(UIColor *color) {
 }
 
 - (void)setupUI {
-    
     self.contentView.backgroundColor = [UIColor clearColor];
     
-
     // 卡片容器
     self.cardView = [[UIView alloc] init];
     self.cardView.backgroundColor = [UIColor.systemBackgroundColor colorWithAlphaComponent:0.7];
@@ -105,7 +100,6 @@ static UIImage *imageWithColor(UIColor *color) {
     self.lastSeenLabel.textColor = [UIColor whiteColor];
     self.lastSeenLabel.textAlignment = NSTextAlignmentCenter;
     self.lastSeenLabel.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
-    
     [self.cardView addSubview:self.lastSeenLabel];
 
     // --- 新增：关注按钮 ---
@@ -149,11 +143,12 @@ static UIImage *imageWithColor(UIColor *color) {
     self.vipTagLabel.textAlignment = NSTextAlignmentCenter;
     [self.infoContainer addSubview:self.vipTagLabel];
 
-    // 个人简介
+    // 个人简介（核心修改：最大3行）
     self.bioLabel = [[UILabel alloc] init];
     self.bioLabel.font = [UIFont systemFontOfSize:13];
     self.bioLabel.textColor = UIColor.secondaryLabelColor;
-    self.bioLabel.numberOfLines = 2;
+    self.bioLabel.numberOfLines = 3; // 从2行改为3行
+    self.bioLabel.lineBreakMode = NSLineBreakByTruncatingTail; // 超出3行时尾部截断
     [self.infoContainer addSubview:self.bioLabel];
 
     // 统计信息
@@ -161,52 +156,44 @@ static UIImage *imageWithColor(UIColor *color) {
     self.statsLabel.font = [UIFont systemFontOfSize:12];
     self.statsLabel.textColor = UIColor.tertiaryLabelColor;
     [self.infoContainer addSubview:self.statsLabel];
-
-    // 分隔线
-    self.separatorView = [[UIView alloc] init];
-    self.separatorView.backgroundColor = UIColor.systemGray3Color;
-    self.separatorView.alpha = 0.2;
-    [self.cardView addSubview:self.separatorView];
-    
     
     [self.followButton.superview bringSubviewToFront:self.followButton];
 }
 
-
-
 - (void)setupConstraints {
-    // 卡片容器
+    // 卡片容器（宽度固定，高度自适应）
     [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@(kWidth-20));
-        
-    }];
-    // 卡片容器
-    [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.edges.equalTo(self.contentView);
-       
+        make.width.equalTo(@(kWidth - 20));
+        // 移除固定高度约束，让contentView高度由子视图撑开
     }];
     
-    // 头像
+    // 卡片容器（ edges 绑定contentView，高度随子视图自适应）
+    [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.contentView).insets(UIEdgeInsetsMake(0, 0, 0, 0)); // 上下留8pt间距（可选，优化视觉）
+    }];
+    
+    // 头像（固定大小，不影响高度自适应）
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.cardView).offset(16);
         make.left.equalTo(self.cardView).offset(16);
         make.width.height.equalTo(@60);
-        make.bottom.lessThanOrEqualTo(self.cardView).offset(-16); // 避免内容过短时头像底部溢出
+        // 移除 bottom 约束，避免限制卡片高度
     }];
-    // --- 新增：VIP图标约束 ---
+    
+    // --- VIP图标约束 ---
     [self.vipIconView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.equalTo(self.avatarImageView).offset(2);
         make.width.height.equalTo(@16);
     }];
 
-    
+    // 最近登录时间
     [self.lastSeenLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.avatarImageView.mas_bottom).offset(-4);
         make.centerX.equalTo(self.avatarImageView);
+        make.width.greaterThanOrEqualTo(@30); // 宽度自适应文字
     }];
 
-    // --- 新增：关注按钮约束 ---
+    // 关注按钮约束
     [self.followButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.cardView).offset(16);
         make.right.equalTo(self.cardView).offset(-16);
@@ -214,12 +201,12 @@ static UIImage *imageWithColor(UIColor *color) {
         make.height.equalTo(@30);
     }];
     
-    // 信息容器
+    // 信息容器（核心修改：高度自适应，底部不绑定头像）
     [self.infoContainer mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.avatarImageView);
         make.left.equalTo(self.avatarImageView.mas_right).offset(12);
-        make.right.equalTo(self.cardView).offset(-16);
-        make.bottom.equalTo(self.avatarImageView);
+        make.right.equalTo(self.followButton.mas_left).offset(-12); // 与关注按钮间距12pt
+        // 移除 bottom 绑定avatar的约束，让infoContainer高度由内部子视图撑开
     }];
     
     // 昵称和VIP标签（水平排列）
@@ -237,33 +224,28 @@ static UIImage *imageWithColor(UIColor *color) {
         make.right.lessThanOrEqualTo(self.infoContainer);
     }];
 
-    
-    // 个人简介（昵称下方）
+    // 个人简介（昵称下方，高度自适应）
     [self.bioLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.nicknameLabel.mas_bottom).offset(6);
         make.left.right.equalTo(self.infoContainer);
+        // 不设置固定高度，由numberOfLines和文字内容决定高度
     }];
     
-    // 统计信息（简介下方）
+    // 统计信息（简介下方，底部对齐infoContainer）
     [self.statsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.bioLabel.mas_bottom).offset(8);
-        make.left.equalTo(self.infoContainer);
-        make.right.lessThanOrEqualTo(self.infoContainer);
+        make.left.right.equalTo(self.infoContainer);
+        make.bottom.equalTo(self.infoContainer).offset(-16); // 与infoContainer底部留16pt间距
     }];
     
-    // 分隔线（可选，用于区分不同类型的卡片）
-    [self.separatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.right.equalTo(self.cardView);
-        make.height.equalTo(@0.5);
-        make.bottom.equalTo(self.cardView);
+    // 卡片容器底部与infoContainer底部对齐（确保卡片高度随infoContainer撑开）
+    [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.infoContainer).offset(0); // 卡片底部比infoContainer底部多16pt内边距
     }];
 }
 
-
 #pragma mark - 事件处理
-
 - (void)followButtonTapped:(UIButton *)sender {
-    
     // 如果接口失败，需要将按钮状态还原：self.followButtom.selected = !isFollow;
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
     if (udid.length <= 5) {
@@ -277,7 +259,6 @@ static UIImage *imageWithColor(UIColor *color) {
         @"udid": udid,
         @"target_udid": self.userModel.udid,
         @"isFollow": @(!sender.selected),
-        
     };
     
     [SVProgressHUD showWithStatus:sender.selected?@"取关中":@"关注中"];
@@ -315,7 +296,6 @@ static UIImage *imageWithColor(UIColor *color) {
                                           direction:MessageDirection_SEND
                                           content:messageContent];
                     
-                    
                     [[RCIM sharedRCIM] sendMessage:message
                                        pushContent:messageContent.content
                                           pushData:messageContent.content
@@ -324,11 +304,7 @@ static UIImage *imageWithColor(UIColor *color) {
                     } errorBlock:^(RCErrorCode nErrorCode, RCMessage * _Nonnull errorMessage) {
                         
                     }];
-                     
                 }
-                
-                
-                
             }
             [SVProgressHUD showSuccessWithStatus:msg];
             [SVProgressHUD dismissWithDelay:1];
@@ -340,7 +316,6 @@ static UIImage *imageWithColor(UIColor *color) {
 }
 
 #pragma mark - 数据绑定
-
 - (void)configureWithModel:(id)model {
     self.userModel = (UserModel *)model;
     [self configureWithUserModel:self.userModel];
@@ -374,7 +349,7 @@ static UIImage *imageWithColor(UIColor *color) {
         self.vipTagLabel.hidden = YES;
     }
     
-    // --- 新增：头像左上角VIP小图标 ---
+    // 头像左上角VIP小图标
     self.vipIconView.hidden = !(model.vip_level > 0 && !isVipExpired);
 
     // 个人简介
@@ -385,35 +360,27 @@ static UIImage *imageWithColor(UIColor *color) {
     NSString *registerDate = [TimeTool getTimeformatDateForDay:model.register_time];
     self.statsLabel.text = [NSString stringWithFormat:@"%@ · 注册于 %@", app_count, registerDate];
 
-    // --- 新增：关注按钮状态 ---
+    // 关注按钮状态
     self.followButton.selected = model.isFollow;
-   
     [self.followButton setBackgroundColor:model.isFollow?UIColor.systemPinkColor:UIColor.systemBlueColor];
-    
 
-    // --- 新增：在线状态和最近登录时间 ---
+    // 在线状态和最近登录时间
     if (model.is_online) {
-       
         self.lastSeenLabel.text = @"在线";
         self.lastSeenLabel.textColor = [UIColor greenColor];
         self.avatarImageView.layer.borderColor = [UIColor greenColor].CGColor;
     } else {
-       
         self.avatarImageView.layer.borderColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5].CGColor;
         // 格式化最近登录时间
         if (model.login_time > 0) {
-            // 假设 TimeTool 有一个格式化更短时间的方法，例如 "HH:mm"
             self.lastSeenLabel.text = [TimeTool getTimeAgoStringFromPostDate:model.login_time];
         } else {
             self.lastSeenLabel.text = @"离线";
             self.lastSeenLabel.textColor = [UIColor labelColor];
-            
         }
     }
     
-    
-    
-    // 强制更新布局
+    // 强制更新布局（确保高度自适应生效）
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }

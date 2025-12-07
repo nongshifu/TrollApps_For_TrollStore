@@ -16,42 +16,33 @@
 }
 
 + (void)swizzleMethodForClass:(Class)cls {
-    // 获取原始方法
     SEL originalSelector = @selector(inputAccessoryView);
     SEL swizzledSelector = @selector(customInputAccessoryView);
     
-    // 确保两个方法都存在
     Method originalMethod = class_getInstanceMethod(cls, originalSelector);
-    Method swizzledMethod = class_getInstanceMethod(cls, swizzledSelector);
+    Method swizzledMethod = class_getInstanceMethod(self, swizzledSelector);
     
     if (!originalMethod || !swizzledMethod) {
-        NSLog(@"警告: %@ 类缺少 inputAccessoryView 或 customInputAccessoryView 方法", NSStringFromClass(cls));
+        NSLog(@"警告: %@ 类缺少 inputAccessoryView 方法", NSStringFromClass(cls));
         return;
     }
     
-    // 如果类没有实现原始方法（从父类继承），需要先添加方法
-    BOOL didAddMethod = class_addMethod(
-        cls,
-        originalSelector,
-        method_getImplementation(swizzledMethod),
-        method_getTypeEncoding(swizzledMethod)
-    );
-    
-    if (didAddMethod) {
-        // 添加成功，替换父类实现
-        class_replaceMethod(
-            cls,
-            swizzledSelector,
-            method_getImplementation(originalMethod),
-            method_getTypeEncoding(originalMethod)
-        );
-    } else {
-        // 类已实现该方法，直接交换
-        method_exchangeImplementations(originalMethod, swizzledMethod);
+    // 关键：检查 originalMethod 是否属于 cls 自身（而非父类继承）
+    if (class_getInstanceMethod(object_getClass(cls), originalSelector) != originalMethod) {
+        NSLog(@"跳过 %@：inputAccessoryView 方法来自父类", NSStringFromClass(cls));
+        return;
     }
+    
+    // 直接交换（仅当 cls 自身实现了该方法时）
+    method_exchangeImplementations(originalMethod, swizzledMethod);
 }
 
 - (UIToolbar *)customInputAccessoryView {
+    // 仅对 UITextField 和 UITextView 返回自定义工具栏，其他控件返回原始实现
+    if (![self isKindOfClass:[UITextField class]] && ![self isKindOfClass:[UITextView class]]) {
+        // 调用原始方法（注意：方法交换后，customInputAccessoryView 实际指向原始实现）
+        return [self customInputAccessoryView];
+    }
     // 获取屏幕宽度（适配不同设备）
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     // 使用屏幕宽度创建工具条
@@ -60,13 +51,13 @@
     toolbar.translucent = YES;
     
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"完成"
-                                                                       style:UIBarButtonItemStyleDone
-                                                                      target:self
-                                                                      action:@selector(resignFirstResponder)];
+                                                                   style:UIBarButtonItemStyleDone
+                                                                  target:self
+                                                                  action:@selector(resignFirstResponder)];
     
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
-                                                                                        target:nil
-                                                                                        action:nil];
+                                                                                   target:nil
+                                                                                   action:nil];
     
     toolbar.items = @[flexibleSpace, doneButton];
     [toolbar sizeToFit];

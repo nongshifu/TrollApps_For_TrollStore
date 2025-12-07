@@ -22,7 +22,7 @@
 #import "HXPhotoURLConverter.h"
 #import "QRCodeGeneratorViewController.h"
 #import "ToolMessage.h"
-#import "CommunityViewController.h"
+#import "ChatListViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -1022,7 +1022,7 @@
     
     UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         // 修改后：包装导航栏 + 底部模态样式
-        CommunityViewController *vc = [CommunityViewController new];
+        ChatListViewController *vc = [ChatListViewController new];
         vc.isShare = YES;
         vc.shareModel = self.appInfoModel;
         vc.messageForType = MessageForTypeApp;
