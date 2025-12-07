@@ -128,6 +128,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) MJRefreshFooter *refreshFooter; // 上拉加载控件
 @property (nonatomic, strong) NSString *uniqueIdentifier;//生成的控制器唯一标识符 负责缓存高度冲突
 @property (nonatomic, assign) BOOL isScrollingUp;//滚动方向
+
 #pragma mark - 公共方法
 
 /**

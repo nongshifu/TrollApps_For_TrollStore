@@ -23,7 +23,7 @@
 #define TITLES_SAVE_KEY @"TITLES_SAVE_KEY"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface ChatListViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate,RCIMConnectionStatusDelegate,RCIMClientReceiveMessageDelegate,MiniButtonViewDelegate,MenuViewControllerDelegate>
 

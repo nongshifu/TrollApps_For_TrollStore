@@ -536,7 +536,7 @@
     [self.currentVC refreshLoadInitialData];
 
     NSString *title = self.showMyApp ? @"我的" :@"全部";
-    
+   
     [button setTitle:title forState:UIControlStateNormal];
     button.alpha = !self.searchBar.alpha;
     NSString *msg = self.showMyApp ? @"切换为我的APP" :@"切换显示全部APP";

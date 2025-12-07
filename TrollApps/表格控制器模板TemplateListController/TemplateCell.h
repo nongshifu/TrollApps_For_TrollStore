@@ -29,6 +29,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic, weak) UICollectionView *collectionView;
 /**
+ 弱引用数据源
+ */
+@property (nonatomic, weak) NSMutableArray *dataSource;
+/**
  缓存高度
  */
 @property (nonatomic, assign) CGFloat cachedHeight;

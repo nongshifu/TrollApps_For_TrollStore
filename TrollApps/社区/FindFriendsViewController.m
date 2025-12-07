@@ -314,6 +314,7 @@
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     // 显示历史搜索视图，并刷新历史搜索数据
     self.miniButtonView.hidden = NO;
+    
     [self.miniButtonView updateButtonsWithStrings:self.searchTitles icons:nil];
     [self updateViewConstraints];
     // 刷新约束（确保视图位置正确）
@@ -342,6 +343,7 @@
 // 4. 点击搜索按钮（键盘Done键），执行搜索
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     [searchBar resignFirstResponder];
+    self.keyword = searchBar.text;
     [self performSearchWithText:searchBar.text]; // 调用完善后的搜索方法
     [self updateViewConstraints];
 }
@@ -394,7 +396,7 @@
     
     // 1. 判断关键词非空 + 未存在于数组中
     if (self.keyword && self.keyword.length > 0 ) {
-        
+        self.page = 1;
         [self loadDataWithPage:self.page];
     }
     // 1. 判断关键词非空 + 未存在于数组中

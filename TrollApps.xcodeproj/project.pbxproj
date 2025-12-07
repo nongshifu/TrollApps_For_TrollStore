@@ -832,12 +832,12 @@
 		C2E44B542EDAD35C00110348 /* 网页管理器 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B552EDAD35C00110348 /* MinWebToolViewCell.m */,
-				C2E44B562EDAD35C00110348 /* WebToolManager.m */,
-				C2E44B572EDAD35C00110348 /* WebViewController.m */,
-				C2E44B582EDAD35C00110348 /* WebToolManager.h */,
 				C2E44B592EDAD35C00110348 /* MinWebToolViewCell.h */,
+				C2E44B552EDAD35C00110348 /* MinWebToolViewCell.m */,
+				C2E44B582EDAD35C00110348 /* WebToolManager.h */,
+				C2E44B562EDAD35C00110348 /* WebToolManager.m */,
 				C2E44B5A2EDAD35C00110348 /* WebViewController.h */,
+				C2E44B572EDAD35C00110348 /* WebViewController.m */,
 			);
 			path = "网页管理器";
 			sourceTree = "<group>";

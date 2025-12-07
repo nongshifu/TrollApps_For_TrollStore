@@ -186,6 +186,7 @@
         templateCell.collectionView = self.collectionView;
         templateCell.tag = self.section;
         templateCell.idObjc = self.idObjc;
+        templateCell.dataSource = self.dataSource;
     }
     
     // 绑定数据（如果cell实现了bindViewModel:方法）

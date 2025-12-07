@@ -13,12 +13,16 @@
 #import "config.h"
 #import "WebViewController.h"
 #import "NewProfileViewController.h"
+#import "MiniButtonView.h"
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 
-
-@interface LeftViewController ()<TemplateSectionControllerDelegate>
+@interface LeftViewController ()<TemplateSectionControllerDelegate, MiniButtonViewDelegate>
 
 @property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) MiniButtonView *miniButtonView;
 
 @end
 
@@ -41,6 +45,14 @@
     //移除约束重新添加
     [self.collectionView removeFromSuperview];
     [self.view addSubview:self.collectionView];
+    
+    NSArray *titles = @[@"刷新全部",@"删除全部"];
+    NSArray *icons = @[@"goforward",@"trash.circle"];
+    self.miniButtonView = [[MiniButtonView alloc] initWithStrings:titles icons:icons fontSize:12];
+    self.miniButtonView.frame = CGRectMake(0, kHeight - get_BOTTOM_TAB_BAR_HEIGHT - 30, 150, 30);
+    self.miniButtonView.buttonDelegate = self;
+    [self.view addSubview:self.miniButtonView];
+    [self.view bringSubviewToFront:self.miniButtonView];
 }
 
 #pragma mark - 约束
@@ -58,10 +70,22 @@
         make.top.equalTo(self.titleLabel.mas_bottom);
         make.bottom.equalTo(self.view);
     }];
+    [self.miniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.width.equalTo(self.view);
+        make.height.equalTo(@30);
+        make.left.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-100);
+    }];
 }
 
 - (void)updateViewConstraints {
     [super updateViewConstraints];
+    [self.miniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.width.equalTo(self.view);
+        make.height.equalTo(@30);
+        make.left.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-100);
+    }];
 }
 
 // 显示后
@@ -93,7 +117,10 @@
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if([object isKindOfClass:[WebToolModel class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[MinWebToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 0, 2, 0) usingCacheHeight:NO];
+        TemplateSectionController *vc = [[TemplateSectionController alloc] initWithCellClass:[MinWebToolViewCell class] modelClass:[WebToolModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 0, 2, 0) usingCacheHeight:NO];
+        vc.dataSource = self.dataSource;
+        vc.collectionView = self.collectionView;
+        return vc;
     }
     return nil;
 }
@@ -156,4 +183,28 @@
      }];
 
 }
+
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
+    if(tag ==0){
+        [SVProgressHUD showWithStatus:@"刷新中"];
+        NSArray<WebToolModel *> *array = [[WebToolManager sharedManager] getAllWebTools];
+        for (WebToolModel *model in array) {
+            [[WebToolManager sharedManager] removeWebToolWithId:model.tool_id];
+        }
+        [SVProgressHUD dismissWithDelay:0.5 completion:^{
+            [SVProgressHUD showImage:[UIImage systemImageNamed:@"goforward"] status:@"刷新完成"];
+            [SVProgressHUD dismissWithDelay:1];
+        }];
+        
+    }else{
+        [[WebToolManager sharedManager] removeAllWebTools];
+        [self loadDataWithPage:1];
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"trash.circle"] status:@"删除完成"];
+        [SVProgressHUD dismissWithDelay:1];
+        
+    }
+    
+}
+
+
 @end

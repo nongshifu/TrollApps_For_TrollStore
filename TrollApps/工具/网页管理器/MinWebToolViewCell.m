@@ -6,6 +6,10 @@
 //
 
 #import "MinWebToolViewCell.h"
+#import "WebToolManager.h"
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface MinWebToolViewCell ()
 
@@ -17,7 +21,7 @@
 @property (nonatomic, strong) UILabel *updateTimeLabel;    // 更新日期
 
 @property (nonatomic, strong) UILabel *descLabel;          // 简介（最多4行）
-
+@property (nonatomic, strong) UIButton * refreshButton;    // 刷新按钮
 @end
 
 @implementation MinWebToolViewCell
@@ -61,6 +65,10 @@
     self.descLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     [self.contentView addSubview:self.descLabel];
     
+    self.refreshButton = [UIButton systemButtonWithImage:[UIImage systemImageNamed:@"goforward"] target:self action:@selector(refreshButtonAction:)];
+    self.refreshButton.userInteractionEnabled = YES;
+    [self.contentView addSubview:self.refreshButton];
+    
 }
 
 #pragma mark - 约束设置
@@ -78,6 +86,7 @@
         make.top.equalTo(self.contentView).offset(10);
         make.width.height.equalTo(@30); // 头像大小60x60（圆角15，视觉上更协调）
     }];
+    
     
     // 工具名称：左接头像，右接使用按钮，顶部与头像对齐
     [self.toolNameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -101,12 +110,19 @@
         make.right.equalTo(self.contentView.mas_right).offset(-10);
         make.bottom.lessThanOrEqualTo(self.contentView.mas_bottom).offset(-10);
     }];
+    // 右下角刷新按钮
+    [self.refreshButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.contentView.mas_right).offset(-10);
+        make.bottom.equalTo(self.contentView.mas_bottom).offset(-10);
+        make.width.height.equalTo(@20); // 头像大小60x60（圆角15，视觉上更协调）
+    }];
 
 }
 
 #pragma mark - 数据绑定
 
 - (void)bindViewModel:(id)viewModel {
+    self.model = viewModel;
     if (![viewModel isKindOfClass:[WebToolModel class]]) return;
     self.webToolModel = (WebToolModel *)viewModel;
     
@@ -122,4 +138,21 @@
     
     
 }
+
+#pragma mark - Action
+
+- (void)refreshButtonAction:(UIButton *)action{
+    NSLog(@"点击了右下角刷新按钮: %@  %@ collectionView:%@", self.model,self.dataSource,self.collectionView);
+    [[WebToolManager sharedManager] removeWebToolWithId:self.webToolModel.tool_id];
+    [SVProgressHUD showWithStatus:@"刷新中"];
+    [SVProgressHUD dismissWithDelay:1 completion:^{
+        [SVProgressHUD showSuccessWithStatus:@"刷新完成"];
+        [SVProgressHUD dismissWithDelay:1 completion:^{
+            
+        }];
+    }];
+    
+
+}
+
 @end

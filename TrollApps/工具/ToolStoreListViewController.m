@@ -14,6 +14,10 @@
 #import "NewProfileViewController.h"
 #import "LeftViewController.h"
 #import "ArrowheadMenu.h"
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+
 // 定义排序类型枚举
 typedef NS_ENUM(NSInteger, SortType) {
     SortTypeRecentUpdate = 0,    // 最近更新
@@ -32,6 +36,7 @@ typedef NS_ENUM(NSInteger, SortType) {
 @property (nonatomic, strong)  UIBarButtonItem * rightItem;
 @property (nonatomic, assign)  SortType sortType;
 @property (nonatomic, strong)  UISearchController *searchController;
+@property (nonatomic, strong)  UILabel *subTitle;
 @end
 
 @implementation ToolStoreListViewController
@@ -118,6 +123,21 @@ typedef NS_ENUM(NSInteger, SortType) {
     
     // 设置自定义左侧按钮
     self.navigationItem.leftBarButtonItems = @[leftItem,myItem];
+    
+    self.subTitle = [UILabel new];
+    self.subTitle.font = [UIFont boldSystemFontOfSize:8];
+    self.subTitle.text = @"-- 最近更新 --";
+    self.subTitle.textColor = [UIColor randomColorWithAlpha:1];
+    self.subTitle.textAlignment = NSTextAlignmentCenter;
+    [self.subTitle sizeToFit];
+    [self.navigationController.navigationBar addSubview:self.subTitle];
+    NSLog(@"self.navigationController.tabBarController.view:%@ self.subTitle:%@",self.navigationController.navigationBar,self.subTitle);
+    [self.subTitle mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self.subTitle.superview);
+        make.bottom.equalTo(self.subTitle.superview.mas_bottom).offset(-53);
+        make.width.equalTo(@(self.subTitle.superview.bounds.size.width));
+        make.height.equalTo(@10);
+    }];
 }
 
 
@@ -505,6 +525,9 @@ typedef NS_ENUM(NSInteger, SortType) {
     self.sortType = tag;
     self.rightItem.title = title;
     [self refreshLoadInitialData];
+    
+    self.subTitle.text = [NSString stringWithFormat:@"-- %@ --",title];
+    self.subTitle.textColor = [UIColor randomColorWithAlpha:1];
     
 }
 

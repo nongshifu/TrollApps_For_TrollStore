@@ -61,6 +61,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 预期的Model类型（可选，用于类型检查）
 @property (nonatomic, strong, readonly) Class modelClass;
 
+/// 弱引用数据源
+@property (nonatomic, weak) NSMutableArray *dataSource;
+
 #pragma mark - 初始化方法
 /// 基础初始化方法
 - (instancetype)initWithCellClass:(Class)cellClass;

@@ -16,7 +16,7 @@
 #import <YYModel/YYModel.h> // 用于JSON转模型（若未集成，可替换为手动解析）
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 // 颜色配置（现代化配色，可按需修改）
 #define kMainColor [UIColor colorWithRed:0.22 green:0.66 blue:0.96 alpha:1.0]     // 主色（蓝）

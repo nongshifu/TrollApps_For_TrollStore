@@ -25,7 +25,7 @@
 #import "ChatListViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+#define MY_NSLog_ENABLED NO // .M当前文件单独启用
 
 @interface AppInfoCell ()<MiniButtonViewDelegate,HXPhotoViewDelegate>
 

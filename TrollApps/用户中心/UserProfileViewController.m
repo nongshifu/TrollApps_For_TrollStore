@@ -24,7 +24,7 @@
 
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED YES // 当前文件单独启用
+#define MY_NSLog_ENABLED NO // 当前文件单独启用
 
 @interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
@@ -117,14 +117,14 @@
     
     // 初始化关注按钮（使用自定义类型，避免系统默认样式干扰）
     self.vipButtom = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.vipButtom.layer.cornerRadius = 10;
+    self.vipButtom.layer.cornerRadius = 8;
     self.vipButtom.layer.masksToBounds = YES; // 确保圆角生效
     self.vipButtom.titleLabel.font = [UIFont boldSystemFontOfSize:13];
     self.vipButtom.backgroundColor = [UIColor purpleColor];
     [self.vipButtom setTitle:@"SVIP" forState:UIControlStateNormal];
     self.vipButtom.hidden = YES;
     [self.vipButtom setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
-    self.vipButtom.contentEdgeInsets = UIEdgeInsetsMake(5, 10, 5, 10); // 整体内边距
+    self.vipButtom.contentEdgeInsets = UIEdgeInsetsMake(1, 10, 1, 10); // 整体内边距
     [self.view addSubview:self.vipButtom];
     
     
@@ -304,8 +304,9 @@
     }];
     
     [self.vipButtom mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.view).offset(25);
+        make.left.equalTo(self.view).offset(20);
         make.top.equalTo(self.view).offset(15);
+        make.height.mas_equalTo(@25);
     }];
     
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -428,7 +429,7 @@
         
         
         [self.followButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.bottom.equalTo(self.avatarImageView.mas_bottom).offset(15);
+            make.top.equalTo(self.avatarImageView.mas_bottom).offset(-10);
             make.height.mas_equalTo(@20);
             make.centerX.equalTo(self.avatarImageView);
         }];
@@ -440,6 +441,12 @@
             make.height.mas_equalTo(25);
         }];
         
+        [self.vipButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.centerX.equalTo(self.followButtom);
+            make.top.equalTo(self.followButtom.mas_bottom).offset(5);
+            make.width.equalTo(self.followButtom);
+        }];
+        
     }else if(!self.currentVC.isScrollingUp && self.currentVC.scrollY <=20){
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.view).offset(25);
@@ -447,7 +454,15 @@
             make.width.height.equalTo(@140);
             
         }];
+        
         self.avatarImageView.layer.cornerRadius = 70;
+        
+        [self.vipButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(self.view).offset(20);
+            make.top.equalTo(self.view).offset(15);
+        }];
+        
+        
         [self.followButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.bottom.right.equalTo(self.avatarImageView);
             make.height.mas_equalTo(@25);
