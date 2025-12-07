@@ -865,6 +865,7 @@
         NSString *msg = self.showMyApp ? @"切换为我的APP" :@"切换显示全部APP";
         [SVProgressHUD showImage:[UIImage systemImageNamed:@"scribble"] status:msg];
         [SVProgressHUD dismissWithDelay:2];
+        
     }
    
     
