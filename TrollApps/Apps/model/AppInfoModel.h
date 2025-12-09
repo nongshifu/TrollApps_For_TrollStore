@@ -8,8 +8,11 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "ITunesAppModel.h"
+#import "config.h"
 #import "UserModel.h"
 #import <IGListKit/IGListKit.h>
+#import "NewProfileViewController.h"
+#import "DownloadRecordModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -66,6 +69,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UserModel*userModel;
 
+/// 获取 App 下载链接（异步）
+/// @param app_id App 的唯一标识
+/// @param success 成功回调：返回下载链接 NSURL
+/// @param failure 失败回调：返回错误信息 NSError
++ (void)getDownloadLinkWithAppId:(NSInteger)app_id
+                         success:(void(^)(NSURL *downloadURL, NSDictionary *json))success
+                         failure:(void(^)(NSError *error))failure;
+
+/// 获取 App 下载链接（异步）
+/// @param app_id App 的唯一标识
+/// @param success 成功回调：返回下载链接 NSURL
+/// @param failure 失败回调：返回错误信息 NSError
++ (void)getDownloadLinkAndRecordHistoryWithAppId:(NSInteger)app_id
+                                         success:(void(^)(DownloadRecordModel *recordModel, NSDictionary *json))success
+                                         failure:(void(^)(NSError *error))failure;
 @end
 
 NS_ASSUME_NONNULL_END

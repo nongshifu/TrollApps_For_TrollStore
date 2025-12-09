@@ -26,6 +26,21 @@ typedef void(^WebFailureBlock)(NSError *error);
 @property (nonatomic, weak) id<NetworkClientDelegate> delegate;
 
 + (instancetype)sharedClient;
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
+ * @param urlString 请求URL
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                    urlString:(NSString *)urlString
+                   parameters:(NSDictionary *)parameters
+                     progress:(WebProgressBlock)progressBlock
+                      success:(WebSuccessBlock)successBlock
+                      failure:(WebFailureBlock)failureBlock;
 
 /**
  * 发送网络请求
@@ -44,6 +59,7 @@ typedef void(^WebFailureBlock)(NSError *error);
                      progress:(WebProgressBlock)progressBlock
                       success:(WebSuccessBlock)successBlock
                       failure:(WebFailureBlock)failureBlock;
+
 
 /**
  * 上传文件

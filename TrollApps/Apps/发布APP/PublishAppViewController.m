@@ -25,11 +25,12 @@
 #import "NetworkClient.h"
 #import "ImageGridSearchViewController.h"
 #import "HXPhotoURLConverter.h"
+
 //草稿字符串
 #define kPublishAppDraft @"PublishAppDraft"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 #pragma mark - 宏定义（统一配置，便于维护）
 // 最大文件大小（建议放在.h或全局常量文件中，这里临时定义）
@@ -50,7 +51,7 @@ static NSSet *kAllowedMainFileTypes() {
 }
 
 
-@interface PublishAppViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate, UITextFieldDelegate, HXPhotoViewDelegate,AppSearchViewControllerDelegate,UIDocumentPickerDelegate,ImageGridSearchViewControllerDelegate>
+@interface PublishAppViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate, UITextFieldDelegate, HXPhotoViewDelegate,AppSearchViewControllerDelegate,UIDocumentPickerDelegate,ImageGridSearchViewControllerDelegate, SandboxFileBrowserVCDelegate>
 
 #pragma mark - 主UI元素
 @property (nonatomic, strong) UILabel *titleLabel;
@@ -630,26 +631,13 @@ static NSSet *kAllowedMainFileTypes() {
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
     [alert addAction:[UIAlertAction actionWithTitle:@"网络搜索" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        self.imageGridSearchViewController = [ImageGridSearchViewController sharedInstance];
-        self.imageGridSearchViewController.delegate = self;
-        self.imageGridSearchViewController.maxiMum = 1;
-        self.imageGridSearchViewController.searchKeyword = self.appNameField.text;
-        self.imageGridSearchViewController.view.tag = 2;//区分头像还是相册
-        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:self.imageGridSearchViewController];
-        [self presentViewController:navVC animated:YES completion:nil];
+        [self openInGridSearch];
         
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"AppStore" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        self.appSaearchViewController = [AppSearchViewController sharedInstance];
-        self.appSaearchViewController.delegate = self;
-        if(self.appNameField.text.length>0){
-            self.appSaearchViewController.keyword = self.appNameField.text;
-        }
-        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:self.appSaearchViewController];
-        [self presentViewController:navVC animated:YES completion:nil];
-        
+        [self openInAppStore];
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"拍照" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -659,8 +647,12 @@ static NSSet *kAllowedMainFileTypes() {
     [alert addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self openPhotoLibrary];
     }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"从文件选择" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self openFileApp];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Files" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        self.selectMainFile = NO;
+        [self openImageApp];
+    }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"APP沙盒文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self openFileInDocuments];
     }]];
     
     
@@ -676,29 +668,21 @@ static NSSet *kAllowedMainFileTypes() {
     
     
     // 添加确定按钮
-    UIAlertAction *loacal = [UIAlertAction actionWithTitle:@"本地文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+    UIAlertAction *loacal = [UIAlertAction actionWithTitle:@"Files" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         self.selectMainFile = YES;
-        //系统导航遮挡问题
-        UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
-        // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
-        NSArray *documentTypes = @[(NSString *)kUTTypeItem]; // 所有文件类型
-        
-        
-        // 创建文件选择控制器
-        DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
-        
-        // 设置代理
-        documentPicker.delegate = self;
-        
-        // 允许选择多个文件 (可选)
-        documentPicker.allowsMultipleSelection = NO;
-        // 设置全屏显示
-        documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
-        
-        // 显示文件选择器
-        [self presentViewController:documentPicker animated:YES completion:nil];
+        [self openFileApp];
+       
     }];
     [alertController addAction:loacal];
+    
+    // 添加确定按钮
+    UIAlertAction *loacalDocuments = [UIAlertAction actionWithTitle:@"APP沙盒文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        self.selectMainFile = YES;
+        
+        [self openFileInDocuments];
+        
+    }];
+    [alertController addAction:loacalDocuments];
     
     // 添加确定按钮
     UIAlertAction *webFile = [UIAlertAction actionWithTitle:@"网络文件" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -767,6 +751,7 @@ static NSSet *kAllowedMainFileTypes() {
     
 }
 
+#pragma mark - 事件点击函数处理
 //相机点击
 - (void)openCamera {
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
@@ -798,7 +783,30 @@ static NSSet *kAllowedMainFileTypes() {
 
 //打开文件选择图片
 - (void)openFileApp {
-    self.selectMainFile = NO;
+    
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
+    NSArray *documentTypes = @[(NSString *)kUTTypeItem]; // 所有图片文件类型
+    
+    
+    // 创建文件选择控制器
+    DocumentPickerViewController *documentPicker = [[DocumentPickerViewController alloc] initWithDocumentTypes:documentTypes inMode:UIDocumentPickerModeImport];
+    
+    // 设置代理
+    documentPicker.delegate = self;
+    
+    // 允许选择多个文件 (可选)
+    documentPicker.allowsMultipleSelection = NO;
+    // 设置全屏显示
+    documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+    
+    // 显示文件选择器
+    [self presentViewController:documentPicker animated:YES completion:nil];
+}
+//打开文件选择图片
+- (void)openImageApp {
+    
     //系统导航遮挡问题
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     // 支持的文件类型 (这里以所有文件类型为例，实际应根据需求设置)
@@ -818,6 +826,41 @@ static NSSet *kAllowedMainFileTypes() {
     
     // 显示文件选择器
     [self presentViewController:documentPicker animated:YES completion:nil];
+}
+
+//从沙盒文件
+- (void)openFileInDocuments {
+    // 创建浏览器并设置单选模式+代理
+    SandboxFileBrowserVC *browserVC = [SandboxFileBrowserVC browserWithDefaultPath];
+    browserVC.singleSelectionMode = YES;
+    browserVC.delegate = self; // 需遵循 SandboxFileBrowserVCDelegate 协议
+
+    // 弹出浏览器
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:browserVC];
+    [self presentViewController:nav animated:YES completion:nil];
+}
+
+//从AppStore
+- (void)openInAppStore {
+    self.appSaearchViewController = [AppSearchViewController sharedInstance];
+    self.appSaearchViewController.delegate = self;
+    if(self.appNameField.text.length>0){
+        self.appSaearchViewController.keyword = self.appNameField.text;
+    }
+    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:self.appSaearchViewController];
+    [self presentViewController:navVC animated:YES completion:nil];
+    
+}
+
+//从GridSearch
+- (void)openInGridSearch {
+    self.imageGridSearchViewController = [ImageGridSearchViewController sharedInstance];
+    self.imageGridSearchViewController.delegate = self;
+    self.imageGridSearchViewController.maxiMum = 1;
+    self.imageGridSearchViewController.searchKeyword = self.appNameField.text;
+    self.imageGridSearchViewController.view.tag = 2;//区分头像还是相册
+    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:self.imageGridSearchViewController];
+    [self presentViewController:navVC animated:YES completion:nil];
 }
 
 //标签点击
@@ -1038,7 +1081,6 @@ static NSSet *kAllowedMainFileTypes() {
     [SVProgressHUD showSuccessWithStatus:@"草稿保存成功"];
     [SVProgressHUD dismissWithDelay:1.0];
 }
-
 
 // 删除草稿
 - (void)deleteDraft {
@@ -2057,13 +2099,13 @@ static NSSet *kAllowedMainFileTypes() {
             self.app_info.app_type = [NewAppFileModel fileTypeForFileName:fileName];
         }
     }
-    
-    // 4. 构建服务器附件保存路径 类型/年/月/日/用户ID
-    if(!self.app_info.save_path){
-            NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
-            NSString *publishDate = [TimeTool stringFromDate:[NSDate date]];
-            self.app_info.save_path = [NSString stringWithFormat:@"%@/%ld", publishDate, userId];
-    }
+//
+//    // 4. 构建服务器附件保存路径 类型/年/月/日/用户ID
+//    if(!self.app_info.save_path){
+//            NSInteger userId = [NewProfileViewController sharedInstance].userInfo.user_id;
+//            NSString *publishDate = [TimeTool stringFromDate:[NSDate date]];
+//            self.app_info.save_path = [NSString stringWithFormat:@"%@/%ld", publishDate, userId];
+//    }
 
     //转为字典
     NSDictionary *app_info = [self.app_info yy_modelToJSONObject];
@@ -2515,6 +2557,37 @@ static NSSet *kAllowedMainFileTypes() {
     [controller dismissViewControllerAnimated:YES completion:nil];
     NSLog(@"用户取消文件选择");
 }
+
+#pragma mark - 沙盒文件导入
+- (void)sandboxFileBrowserVC:(SandboxFileBrowserVC *)browserVC
+             didSelectFileCell:(UITableViewCell *)cell
+                     fileModel:(NewAppFileModel *)fileModel {
+    // 处理选中的文件，例如：
+    NSLog(@"选中文件：%@，路径：%@", fileModel.file_name, fileModel.filePath);
+    // 可根据 fileModel 进行后续操作（如上传、解析等）
+    [browserVC dismissViewControllerAnimated:YES completion:nil];
+    
+    // 空判断（简化逻辑，统一提示）
+    if (!fileModel.filePath) {
+        [self showErrorHUDWithMessage:@"未选择任何文件"];
+        return;
+    }
+    
+    // 单选模式：直接取第一个URL（符合业务逻辑）
+    NSURL *selectedURL = [NSURL fileURLWithPath:fileModel.filePath];
+    if (!selectedURL) {
+        [self showErrorHUDWithMessage:@"未选择有效文件"];
+        return;
+    }
+
+    // 按业务类型分支处理（主文件/头像）
+    if (self.selectMainFile) {
+        [self handleMainFileSelectionWithURL:selectedURL];
+    } else {
+        [self handleAvatarImageSelectionWithURL:selectedURL];
+    }
+}
+
 
 #pragma mark - 业务处理：主文件上传（IPA/ZIP等）
 - (void)handleMainFileSelectionWithURL:(NSURL *)fileURL {

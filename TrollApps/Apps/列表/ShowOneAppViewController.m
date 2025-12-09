@@ -19,7 +19,7 @@
 #import "ContactHelper.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface ShowOneAppViewController () <TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
@@ -381,7 +381,7 @@
                 // 确保应用信息有效
                 if (self.appInfo && self.appInfo.app_name) {
                     self.appInfo.isShowAll = YES;
-                    
+                    NSLog(@"请求查看帖子成功，返回数据fileNames: %@", self.appInfo.fileNames);
                     // 如果是第一页，替换原有应用信息；否则忽略（避免重复添加）
                     if (currentPage <= 1) {
                         if (self.dataSource.count > 0 && [self.dataSource[0] isKindOfClass:[AppInfoModel class]]) {

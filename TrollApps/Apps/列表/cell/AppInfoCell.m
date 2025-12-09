@@ -110,7 +110,7 @@
     self.appTypeButton.layer.cornerRadius = 3;
     self.appTypeButton.tag = 100;
     [self.appTypeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
-            
+    
     
     //版本
     self.appVersionButton = [[UIButton alloc] init];
@@ -252,7 +252,7 @@
         make.left.equalTo(self.appIconImageView.mas_right).offset(12);
         make.width.equalTo(@200);
     }];
-
+    
     // 应用类型约束
     [self.appTypeButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.appNameLabel.mas_bottom).offset(10);
@@ -356,7 +356,7 @@
         //时间
         NSString *appUpdateTimeTitle = [NSString stringWithFormat:@"更新: %@",[TimeTool getTimeDiyWithString:appInfo.update_date]];
         [self.appUpdateTimeButton setTitle:appUpdateTimeTitle forState:UIControlStateNormal];
-
+        
         // 配置标签
         [self configureTagsWithArray:appInfo.tags];
         
@@ -365,13 +365,13 @@
         
         //更新说明（TextView版本）
         [self configureReleaseNotesTextViewWith:appInfo.release_notes];
-
+        
         // 配置统计按钮
         [self configureStatsButtonsWithAppInfo:appInfo];
         
         //视频图片
         [self configureFilesWithAppInfo:appInfo];
-
+        
     }
 }
 
@@ -502,9 +502,9 @@
     } else {
         // 有行数限制：计算单行高度，乘以行数
         CGFloat singleLineHeight = [@"测试" boundingRectWithSize:CGSizeMake(width, CGFLOAT_MAX)
-                                                         options:NSStringDrawingUsesLineFragmentOrigin
-                                                      attributes:@{NSFontAttributeName:font}
-                                                         context:nil].size.height;
+                                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                                    attributes:@{NSFontAttributeName:font}
+                                                       context:nil].size.height;
         CGFloat limitHeight = singleLineHeight * lineLimit;
         
         // 返回「实际高度」和「限制高度」的最小值
@@ -659,155 +659,183 @@
         }];
         return;
     }
-    NSLog(@"点击了右侧下载按钮mainFileUrl:%@",self.appInfoModel.mainFileUrl);
-    NSString *mainURL = nil;
-    
-    for (NSString *url in self.appInfoModel.fileNames) {
-        if([url containsString:MAIN_File_KEY]){
-            mainURL = url;
-            break;
-        }
-    }
-    if(self.appInfoModel.is_cloud) mainURL = self.appInfoModel.mainFileUrl;
-    NSLog(@"主文件安装下载地址:%@",mainURL);
-    NSString * message =  self.appInfoModel.is_cloud ? @"当前为云端网盘\n自行拷贝连接下载" :@"可在下载管理中管理历史下载文件";
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"下载提示" message:message preferredStyle:UIAlertControllerStyleActionSheet];
-    if(self.appInfoModel.is_cloud){
-        // 假设 mainURL 是已定义的字符串（如 @"https://example.com"）
-        NSURL *url = [NSURL URLWithString:mainURL];
-        
-        // 1. 拷贝链接按钮
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"拷贝链接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            // 将链接拷贝到剪贴板
-            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-            pasteboard.string = mainURL; // 直接拷贝字符串（确保链接完整）
+    [SVProgressHUD showWithStatus:@"请求下载地址中"];
+    [AppInfoModel getDownloadLinkWithAppId:self.appInfoModel.app_id
+                                   success:^(NSURL * _Nonnull downloadURL, NSDictionary *json) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
+            if(!downloadURL){
+                [SVProgressHUD showErrorWithStatus:@"读取下载链接失败"];
+                [SVProgressHUD dismissWithDelay:2];
+                return;
+            }
             
-            // 显示拷贝成功提示
-            UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"成功" message:@"链接已拷贝到剪贴板" preferredStyle:UIAlertControllerStyleAlert];
-            [successAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-            [[self getTopViewController] presentViewController:successAlert animated:YES completion:nil];
-        }];
-        [alert addAction:cancelAction];
-
-        // 2. 在Safari中打开按钮
-        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Safari中打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            // 检查URL是否有效
-            if ([mainURL containsString:@"http://"] || [mainURL containsString:@"https://"]) {
-                // 用Safari打开链接
-                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
-                    if (!success) {
-                        // 打开失败提示
-                        UIAlertController *failAlert = [UIAlertController alertControllerWithTitle:@"失败" message:@"无法打开链接，请检查URL是否有效" preferredStyle:UIAlertControllerStyleAlert];
-                        [failAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-                        [[self getTopViewController] presentViewController:failAlert animated:YES completion:nil];
+            NSString * mainURL = [NSString stringWithFormat:@"%@",downloadURL];
+            NSString * title = json[@"app_name"]?:@"下载提示";
+            NSString * message =  self.appInfoModel.is_cloud ? @"当前为云端网盘\n自行拷贝连接下载\n" :@"可在下载管理中管理历史下载文件\n";
+            NSString * version_name = json[@"version_name"];
+            NSString * file_size = json[@"file_size"];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                           message:[NSString stringWithFormat:@"%@ 版本:%@ 大小:%@",message,version_name,file_size]
+                                                                    preferredStyle:UIAlertControllerStyleActionSheet];
+            if(self.appInfoModel.is_cloud){
+                
+                // 1. 拷贝链接按钮
+                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"拷贝链接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    // 将链接拷贝到剪贴板
+                    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+                    pasteboard.string = [NSString stringWithFormat:@"%@",downloadURL]; // 直接拷贝字符串（确保链接完整）
+                    
+                    // 显示拷贝成功提示
+                    UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"成功" message:@"链接已拷贝到剪贴板" preferredStyle:UIAlertControllerStyleAlert];
+                    [successAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                    [[self getTopViewController] presentViewController:successAlert animated:YES completion:nil];
+                }];
+                [alert addAction:cancelAction];
+                
+                // 2. 在Safari中打开按钮
+                UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Safari中打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    // 检查URL是否有效
+                    if ([mainURL containsString:@"http://"] || [mainURL containsString:@"https://"]) {
+                        [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                            
+                        } failure:^(NSError * _Nonnull error) {
+                            
+                        }];
+                        // 用Safari打开链接
+                        [[UIApplication sharedApplication] openURL:downloadURL options:@{} completionHandler:^(BOOL success) {
+                            if (!success) {
+                                // 打开失败提示
+                                UIAlertController *failAlert = [UIAlertController alertControllerWithTitle:@"失败" message:@"无法打开链接，请检查URL是否有效" preferredStyle:UIAlertControllerStyleAlert];
+                                [failAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                                [[self getTopViewController] presentViewController:failAlert animated:YES completion:nil];
+                            }
+                        }];
+                    } else {
+                        // URL无效提示
+                        UIAlertController *invalidAlert = [UIAlertController alertControllerWithTitle:@"无效链接" message:@"链接格式不正确，请检查" preferredStyle:UIAlertControllerStyleAlert];
+                        [invalidAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                        [[self getTopViewController] presentViewController:invalidAlert animated:YES completion:nil];
                     }
                 }];
-            } else {
-                // URL无效提示
-                UIAlertController *invalidAlert = [UIAlertController alertControllerWithTitle:@"无效链接" message:@"链接格式不正确，请检查" preferredStyle:UIAlertControllerStyleAlert];
-                [invalidAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-                [[self getTopViewController] presentViewController:invalidAlert animated:YES completion:nil];
-            }
-        }];
-        [alert addAction:confirmAction];
-    }else{
-        // 添加取消按钮
-        UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[FileInstallManager sharedManager] downloadFileWithURLString:mainURL completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
-                if (error) {
-                    // 判断错误类型并显示友好提示
-                    switch (error.code) {
-                        case NSURLErrorCancelled: // -999
-                            NSLog(@"下载已取消（用户主动操作）");
-                            break;
-                        case NSURLErrorTimedOut: // -1001
-                            [self showAlertFromViewController:[self getTopViewController]
-                                                       title:@"下载超时"
-                                                      message:@"连接超时，请检查网络连接后重试"];
-                            break;
-                        case NSURLErrorCannotFindHost: // -1003
-                        case NSURLErrorCannotConnectToHost: // -1004
-                            [self showAlertFromViewController:[self getTopViewController]
-                                                       title:@"连接失败"
-                                                      message:@"无法连接到服务器，请检查URL或网络连接"];
-                            break;
-                        case NSURLErrorNetworkConnectionLost: // -1005
-                            [self showAlertFromViewController:[self getTopViewController]
-                                                       title:@"网络中断"
-                                                      message:@"下载过程中网络连接丢失，请重试"];
-                            break;
-                        case NSURLErrorFileDoesNotExist: // -1100
-                            [self showAlertFromViewController:[self getTopViewController]
-                                                       title:@"文件不存在"
-                                                      message:@"请求的文件不存在或已被删除"];
-                            break;
-                        default:
-                            [self showAlertFromViewController:[self getTopViewController]
-                                                       title:@"下载失败"
-                                                      message:[NSString stringWithFormat:@"错误代码: %ld\n%@", (long)error.code, error.localizedDescription]];
-                            break;
-                    }
-                    return;
-                }
-                // 获取当前顶层视图控制器
-                UIViewController *topVC = [self getTopViewController];
-
-                // 如果顶层是UIAlertController，先dismiss它
-                if ([topVC isKindOfClass:[UIAlertController class]]) {
-                    [topVC dismissViewControllerAnimated:YES completion:^{
-                        // 在dismiss完成后，重新获取顶层控制器
-                        UIViewController *newTopVC = [self getTopViewController];
+                [alert addAction:confirmAction];
+            }else{
+                // 添加取消按钮
+                UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
                         
-                        // 检查新的顶层控制器是否是DownloadManagerViewController
-                        if (![newTopVC isKindOfClass:[DownloadManagerViewController class]]) {
-                            // 如果不是，创建并present DownloadManagerViewController
-                            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-                            [newTopVC presentPanModal:vc];
+                    } failure:^(NSError * _Nonnull error) {
+                        
+                    }];
+                    [[FileInstallManager sharedManager] downloadFileWithURLString:mainURL completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
+                        if (error) {
+                            // 判断错误类型并显示友好提示
+                            switch (error.code) {
+                                case NSURLErrorCancelled: // -999
+                                    NSLog(@"下载已取消（用户主动操作）");
+                                    break;
+                                case NSURLErrorTimedOut: // -1001
+                                    [self showAlertFromViewController:[self getTopViewController]
+                                                                title:@"下载超时"
+                                                              message:@"连接超时，请检查网络连接后重试"];
+                                    break;
+                                case NSURLErrorCannotFindHost: // -1003
+                                case NSURLErrorCannotConnectToHost: // -1004
+                                    [self showAlertFromViewController:[self getTopViewController]
+                                                                title:@"连接失败"
+                                                              message:@"无法连接到服务器，请检查URL或网络连接"];
+                                    break;
+                                case NSURLErrorNetworkConnectionLost: // -1005
+                                    [self showAlertFromViewController:[self getTopViewController]
+                                                                title:@"网络中断"
+                                                              message:@"下载过程中网络连接丢失，请重试"];
+                                    break;
+                                case NSURLErrorFileDoesNotExist: // -1100
+                                    [self showAlertFromViewController:[self getTopViewController]
+                                                                title:@"文件不存在"
+                                                              message:@"请求的文件不存在或已被删除"];
+                                    break;
+                                default:
+                                    [self showAlertFromViewController:[self getTopViewController]
+                                                                title:@"下载失败"
+                                                              message:[NSString stringWithFormat:@"错误代码: %ld\n%@", (long)error.code, error.localizedDescription]];
+                                    break;
+                            }
+                            return;
+                        }
+                        // 获取当前顶层视图控制器
+                        UIViewController *topVC = [self getTopViewController];
+                        
+                        // 如果顶层是UIAlertController，先dismiss它
+                        if ([topVC isKindOfClass:[UIAlertController class]]) {
+                            [topVC dismissViewControllerAnimated:YES completion:^{
+                                // 在dismiss完成后，重新获取顶层控制器
+                                UIViewController *newTopVC = [self getTopViewController];
+                                
+                                // 检查新的顶层控制器是否是DownloadManagerViewController
+                                if (![newTopVC isKindOfClass:[DownloadManagerViewController class]]) {
+                                    // 如果不是，创建并present DownloadManagerViewController
+                                    DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                                    [newTopVC presentPanModal:vc];
+                                } else {
+                                    // 如果是，调用更新方法
+                                    DownloadManagerViewController *vc = (DownloadManagerViewController *)newTopVC;
+                                    [vc handleTaskStatusChanged];
+                                }
+                            }];
                         } else {
-                            // 如果是，调用更新方法
-                            DownloadManagerViewController *vc = (DownloadManagerViewController *)newTopVC;
-                            [vc handleTaskStatusChanged];
+                            // 如果顶层不是UIAlertController，直接处理
+                            if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
+                                DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                                [topVC presentPanModal:vc];
+                            } else {
+                                DownloadManagerViewController *vc = (DownloadManagerViewController *)topVC;
+                                [vc handleTaskStatusChanged];
+                            }
                         }
                     }];
-                } else {
-                    // 如果顶层不是UIAlertController，直接处理
-                    if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
-                        DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-                        [topVC presentPanModal:vc];
-                    } else {
-                        DownloadManagerViewController *vc = (DownloadManagerViewController *)topVC;
-                        [vc handleTaskStatusChanged];
-                    }
-                }
+                }];
+                [alert addAction:cancelAction];
+                
+                UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                        
+                    } failure:^(NSError * _Nonnull error) {
+                        
+                    }];
+                    [[FileInstallManager sharedManager] installFileWithURLString:mainURL completion:^(BOOL success, NSError * _Nullable error) {
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if(error){
+                                NSLog(@"安装失败：%@",error);
+                                [self showAlertFromViewController:[self getviewController] title:@"安装失败" message:[NSString stringWithFormat:@"%@",error]];
+                                return;
+                            }
+                        });
+                    }];
+                }];
+                [alert addAction:confirmAction];
+                
+                UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                    [[self getTopViewController] presentPanModal:vc];
+                }];
+                [alert addAction:edit];
+            }
+            
+            UIAlertAction*noAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                
             }];
-        }];
-        [alert addAction:cancelAction];
+            [alert addAction:noAction];
+            [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+        });
         
-        UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[FileInstallManager sharedManager] installFileWithURLString:mainURL completion:^(BOOL success, NSError * _Nullable error) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if(error){
-                        NSLog(@"安装失败：%@",error);
-                        [self showAlertFromViewController:[self getviewController] title:@"安装失败" message:[NSString stringWithFormat:@"%@",error]];
-                        return;
-                    }
-                });
-            }];
-        }];
-        [alert addAction:confirmAction];
         
-        UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-            [[self getTopViewController] presentPanModal:vc];
-        }];
-        [alert addAction:edit];
-    }
-    
-    UIAlertAction*noAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        
+    } failure:^(NSError * _Nonnull error) {
+        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"读取下载链接失败\n%@",error]];
+        [SVProgressHUD dismissWithDelay:2];
     }];
-    [alert addAction:noAction];
-    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+    
+    
 }
 
 - (void)collectButtonTapped:(NSString *)action successMessage:(NSString *)message button:(UIButton *)button {
@@ -1042,7 +1070,7 @@
 
 - (void)buttonClicked:(UIButton*)button{
     NSLog(@"点击了按钮tag:%ld",button.tag);
-
+    
     ShowOneAppViewController *vc = [ShowOneAppViewController new];
     vc.app_id = self.appInfoModel.app_id;
     UIViewController *topVc = [self getTopViewController];
@@ -1121,7 +1149,7 @@
     NSLog(@"共享单例udid：%@",udid);
     params[@"udid"] = udid;
     NSLog(@"请求操作字典：%@",params);
-   
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:urlString
                                              parameters:params
@@ -1241,11 +1269,11 @@
                                // 图片格式
                                @"jpg", @"jpeg", @"png", @"gif", @"bmp", @"heic", @"heif",
                                // 视频格式
-//                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
+                               //                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
                                // 其他指定格式
-//                               @"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh",
+                               //                               @"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh",
                                nil];
-
+    
     for (NSString *file in appFileModels) {
         //排除头像 缩略图 和主程序文件
         if ([file containsString:@"thumbnail"] || [file containsString:ICON_KEY]  || [file containsString:MAIN_File_KEY]) {
@@ -1263,10 +1291,10 @@
     
     NSLog(@"排除后的媒体数量:%ld",count);
     if(count ==0) return;
-
+    
     // 最大宽度（左右预留16pt，总32pt）
     CGFloat maxWidth = CGRectGetWidth(self.contentView.frame) - 32;
-
+    
     // 高度
     CGFloat totalHeight = 0;
     
@@ -1302,7 +1330,7 @@
     [self.photoView refreshView];
     
     [self.imageStackView addSubview:self.photoView];
-
+    
     // 图片容器
     [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.width.equalTo(@(maxWidth));

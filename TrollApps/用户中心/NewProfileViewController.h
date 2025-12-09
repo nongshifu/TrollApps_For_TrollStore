@@ -19,6 +19,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NewProfileViewController : TemplateListController
+
 @property (nonatomic, strong) UserModel *userInfo;
 @property (nonatomic, strong) UIImage *minImage;
 + (instancetype)sharedInstance;

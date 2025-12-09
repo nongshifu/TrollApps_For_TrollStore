@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
+#import <MobileCoreServices/MobileCoreServices.h>
 NS_ASSUME_NONNULL_BEGIN
 
 // 文件类型枚举
@@ -32,18 +32,29 @@ typedef NS_ENUM(NSInteger, FileType) {
     FileTypeZIP = 10,            // ZIP压缩文件
     
     FileTypeOther = 11,    // 其他
+    FileTypeFile = 12,    // 文件
+    FileTypeFolder = 13   // 文件夹
     
 };
 
 @interface NewAppFileModel : NSObject
+/// 文件路径（完整路径）
+@property (nonatomic, copy, readonly) NSString *filePath;
 
 @property (nonatomic, copy) NSString *file_name;
-@property (nonatomic, copy) NSNumber  *file_size;
+/// 文件大小（字节）
+@property (nonatomic, assign, readonly) uint64_t  file_size;
 @property (nonatomic, copy) NSString *suffix;
 @property (nonatomic, copy) NSURL *file_url;
 @property (nonatomic, strong) NSData *file_Data;
 @property (nonatomic, strong) UIImage *fileIcon;
 @property (nonatomic, assign) FileType file_type;
+/// 修改日期
+@property (nonatomic, strong, readonly) NSDate *modifyDate;
+/// 文件图标名称（系统图标）
+@property (nonatomic, copy, readonly) NSString *iconName;
+/// 格式化文件大小（B/KB/MB/GB）
+- (NSString *)formattedFileSize;
 
 
 /// 通过文件名检测文件类型
@@ -103,6 +114,20 @@ typedef NS_ENUM(NSInteger, FileType) {
  @return 编码后的NSURL（nil表示转换失败）
  */
 + (NSURL *)encodedURLFromString:(NSString *)urlString;
+
+/**
+ * 解码URL字符串中的Unicode转义字符（如 \U542c 转换为 听）
+ * @param urlString 包含Unicode转义字符的URL字符串
+ * @return 解码后的URL字符串
+ */
++ (NSString *)decodeUnicodeEscapesInURLString:(NSString *)urlString;
+
+
+/// 初始化文件模型
+/// @param filePath 文件完整路径
+- (instancetype)initWithFilePath:(NSString *)filePath;
+
+
 
 @end
 

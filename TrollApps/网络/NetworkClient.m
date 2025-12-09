@@ -5,7 +5,7 @@
 
 #import "NetworkClient.h"
 #import "TokenGenerator.h"
-
+#import "NewProfileViewController.h"
 
 @interface NetworkClient ()
 
@@ -34,6 +34,28 @@
     return self;
 }
                 
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
+ * @param urlString 请求URL
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                    urlString:(NSString *)urlString
+                   parameters:(NSDictionary *)parameters
+                     progress:(WebProgressBlock)progressBlock
+                      success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock {
+    NSString *udid = [[NewProfileViewController sharedInstance] getUDID]?[[NewProfileViewController sharedInstance] getUDID]:[[NewProfileViewController sharedInstance] getIDFV];
+    return [self sendRequestWithMethod:method
+                             urlString:urlString
+                            parameters:parameters
+                                  udid:udid
+                              progress:progressBlock success:successBlock failure:failureBlock];
+}
 
 - (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
                                       urlString:(NSString *)urlString

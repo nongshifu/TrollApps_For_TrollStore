@@ -9,6 +9,59 @@
 
 @implementation NewAppFileModel
 
+
+- (instancetype)initWithFilePath:(NSString *)filePath {
+    self = [super init];
+    if (self) {
+        _filePath = [filePath copy];
+        
+        // 获取文件属性（添加错误打印，方便调试）
+        NSError *attrError = nil;
+        NSDictionary<NSFileAttributeKey, id> *fileAttr = [[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:&attrError];
+        if (!fileAttr) {
+            NSLog(@"[FileModel] ❌ 获取文件属性失败：路径=%@，错误=%@", filePath, attrError.localizedDescription);
+            return nil;
+        }
+        NSLog(@"[FileModel] ✅ 文件属性：%@", fileAttr);
+        
+        // 文件名
+        _file_name = [filePath lastPathComponent];
+        
+        // 🔥 修复 1：文件类型判断（Key 用 NSFileType，Value 比较 NSFileTypeDirectory）
+        NSString *fileTypeStr = fileAttr[NSFileType]; // Key 是 NSFileType（字符串类型）
+        if ([fileTypeStr isEqualToString:NSFileTypeDirectory]) {
+            _file_type = FileTypeFolder;
+        } else if ([fileTypeStr isEqualToString:NSFileTypeRegular]) {
+            _file_type = FileTypeFile;
+        } else {
+            _file_type = FileTypeFile; // 其他类型（如链接、socket）默认按文件处理
+        }
+        NSLog(@"[FileModel] 📁 文件类型：%@（原始类型字符串：%@）",
+              _file_type == FileTypeFolder ? @"文件夹" : @"文件",
+              fileTypeStr);
+        
+        // 文件大小（文件夹大小需要递归计算）
+        if (_file_type == FileTypeFile) {
+            _file_size = [fileAttr[NSFileSize] unsignedLongLongValue];
+        } else {
+            _file_size = [self calculateFolderSizeAtPath:filePath];
+        }
+        NSLog(@"[FileModel] 📏 文件大小：%llu 字节（格式化后：%@）", _file_size, self.formattedFileSize);
+        
+        // 🔥 修复 2：修改日期 Key（用 NSFileModificationDate，对应 fileAttr 里的 NSFileModificationDate）
+        _modifyDate = fileAttr[NSFileModificationDate];
+        if (!_modifyDate) {
+            _modifyDate = [NSDate date]; // 容错：如果没有修改日期，用当前日期
+        }
+        NSLog(@"[FileModel] 📅 修改日期：%@", _modifyDate);
+        
+        // 图标名称
+        _iconName = [self getSystemIconName];
+        NSLog(@"[FileModel] 🖼️ 图标名称：%@", _iconName);
+    }
+    return self;
+}
+
 + (BOOL)isImageFileWithURL:(NSURL *)url {
     if (!url) return NO;
     // 常见图片扩展名
@@ -281,5 +334,187 @@ static NSDictionary<NSString *, NSNumber *> *fileExtensionMap;
     return [pathPart stringByAddingPercentEncodingWithAllowedCharacters:allowedChars];
 }
 
+
+
+/// 递归计算文件夹大小
+- (uint64_t)calculateFolderSizeAtPath:(NSString *)folderPath {
+    uint64_t totalSize = 0;
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    // 🔥 修复 3：获取子路径时添加错误处理（原代码没有错误判断）
+    NSError *subpathError = nil;
+    NSArray *subpaths = [fm subpathsOfDirectoryAtPath:folderPath error:&subpathError];
+    if (subpathError) {
+        NSLog(@"[FileModel] ❌ 获取文件夹子路径失败：路径=%@，错误=%@", folderPath, subpathError.localizedDescription);
+        return 0;
+    }
+    if (subpaths.count == 0) {
+        NSLog(@"[FileModel] 📂 文件夹为空：%@", folderPath);
+        return 0;
+    }
+    
+    NSLog(@"[FileModel] 📂 计算文件夹大小：%@（包含 %ld 个子项目）", folderPath, subpaths.count);
+    for (NSString *subpath in subpaths) {
+        NSString *fullPath = [folderPath stringByAppendingPathComponent:subpath];
+        NSError *subAttrError = nil;
+        NSDictionary *subAttr = [fm attributesOfItemAtPath:fullPath error:&subAttrError];
+        
+        if (!subAttr) {
+            NSLog(@"[FileModel] ❌ 获取子项目属性失败：路径=%@，错误=%@", fullPath, subAttrError.localizedDescription);
+            continue;
+        }
+        
+        // 🔥 修复 4：子项目类型判断（同样用 NSFileType 作为 Key）
+        NSString *subTypeStr = subAttr[NSFileType];
+        if (![subTypeStr isEqualToString:NSFileTypeDirectory]) { // 不是文件夹才计算大小
+            uint64_t subSize = [subAttr[NSFileSize] unsignedLongLongValue];
+            totalSize += subSize;
+            NSLog(@"[FileModel] 📄 子文件大小：%@ = %llu 字节", subpath, subSize);
+        }
+    }
+    NSLog(@"[FileModel] 📊 文件夹总大小：%@ = %llu 字节", folderPath, totalSize);
+    return totalSize;
+}
+
+/// 格式化文件大小
+- (NSString *)formattedFileSize {
+    if (_file_size < 1024) {
+        return [NSString stringWithFormat:@"%llu B", _file_size];
+    } else if (_file_size < 1024 * 1024) {
+        return [NSString stringWithFormat:@"%.1f KB", _file_size / 1024.0];
+    } else if (_file_size < 1024 * 1024 * 1024) {
+        return [NSString stringWithFormat:@"%.1f MB", _file_size / (1024.0 * 1024.0)];
+    } else {
+        return [NSString stringWithFormat:@"%.1f GB", _file_size / (1024.0 * 1024.0 * 1024.0)];
+    }
+}
+
+/// 获取系统图标名称
+- (NSString *)getSystemIconName {
+    if (_file_type == FileTypeFolder) {
+        return @"folder.fill"; // 文件夹图标
+    }
+    
+    // 根据文件后缀获取UTI，匹配系统图标
+    NSString *extension = [_file_name pathExtension];
+    CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)extension, NULL);
+    NSString *iconName = @"doc.fill"; // 默认文件图标
+    
+    if (uti) {
+        if (UTTypeConformsTo(uti, kUTTypeImage)) {
+            iconName = @"photo.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypeMovie)) {
+            iconName = @"film.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypeAudio)) {
+            iconName = @"music.note.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypeText)) {
+            iconName = @"textdoc.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypeSpreadsheet)) {
+            iconName = @"tablecells.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypePresentation)) {
+            iconName = @"slides.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypePDF)) {
+            iconName = @"doc.pdf.fill";
+        } else if (UTTypeConformsTo(uti, kUTTypeArchive)) {
+            iconName = @"archivebox.fill";
+        }
+        CFRelease(uti); // 避免内存泄漏
+    }
+    
+    return iconName;
+}
+
+
+
+/**
+ * 解码URL字符串中的Unicode转义字符（如 \U542c 转换为 听）
+ * @param urlString 包含Unicode转义字符的URL字符串
+ * @return 解码后的URL字符串
+ */
++ (NSString *)decodeUnicodeEscapesInURLString:(NSString *)urlString {
+    if (!urlString || urlString.length == 0) {
+        return urlString;
+    }
+    
+    // 检测是否包含Unicode转义字符（\U开头，后跟8个十六进制字符）
+    if ([urlString rangeOfString:@"\\U"].location == NSNotFound) {
+        return urlString; // 没有转义字符，直接返回
+    }
+    
+    NSMutableString *decodedString = [urlString mutableCopy];
+    
+    // 正则表达式匹配 \UXXXXXXXX 格式的Unicode转义字符
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\\\U([0-9a-fA-F]{8})"
+                                                                           options:0
+                                                                             error:nil];
+    
+    // 从后往前替换，避免替换后影响后续匹配位置
+    NSArray<NSTextCheckingResult *> *matches = [regex matchesInString:decodedString
+                                                              options:NSMatchingReportCompletion
+                                                                range:NSMakeRange(0, decodedString.length)];
+    
+    for (NSTextCheckingResult *match in [matches reverseObjectEnumerator]) {
+        if (match.numberOfRanges >= 2) {
+            // 获取十六进制字符串部分
+            NSString *hexString = [decodedString substringWithRange:[match rangeAtIndex:1]];
+            
+            // 转换为UTF-32字符
+            uint32_t codePoint = strtoul([hexString UTF8String], NULL, 16);
+            
+            // 转换为NSString字符
+            if (codePoint <= 0x10FFFF) {
+                UTF32Char utf32Char = codePoint;
+                NSString *unicodeChar = [[NSString alloc] initWithBytes:&utf32Char
+                                                                 length:sizeof(UTF32Char)
+                                                               encoding:NSUTF32LittleEndianStringEncoding];
+                
+                if (unicodeChar) {
+                    // 替换转义序列为实际字符
+                    [decodedString replaceCharactersInRange:match.range withString:unicodeChar];
+                }
+            }
+        }
+    }
+    
+    // 同时处理 \uXXXX 格式的转义字符（4个十六进制字符）
+    regex = [NSRegularExpression regularExpressionWithPattern:@"\\\\u([0-9a-fA-F]{4})"
+                                                      options:0
+                                                        error:nil];
+    matches = [regex matchesInString:decodedString
+                              options:NSMatchingReportCompletion
+                                range:NSMakeRange(0, decodedString.length)];
+    
+    for (NSTextCheckingResult *match in [matches reverseObjectEnumerator]) {
+        if (match.numberOfRanges >= 2) {
+            NSString *hexString = [decodedString substringWithRange:[match rangeAtIndex:1]];
+            uint32_t codePoint = strtoul([hexString UTF8String], NULL, 16);
+            
+            if (codePoint <= 0xFFFF) {
+                unichar unicodeChar = (unichar)codePoint;
+                NSString *charString = [NSString stringWithCharacters:&unicodeChar length:1];
+                [decodedString replaceCharactersInRange:match.range withString:charString];
+            }
+        }
+    }
+    
+    return decodedString;
+}
+
+/**
+ * 安全处理下载URL，自动解码Unicode转义字符
+ * @param urlString 原始URL字符串
+ * @return 处理后的安全URL
+ */
++ (NSURL *)safeDownloadURLFromString:(NSString *)urlString {
+    if (!urlString) {
+        return nil;
+    }
+    
+    // 1. 解码Unicode转义字符
+    NSString *decodedUrlString = [self decodeUnicodeEscapesInURLString:urlString];
+    
+    // 2. 确保URL编码正确
+    return [self encodedURLFromString:decodedUrlString];
+}
 
 @end

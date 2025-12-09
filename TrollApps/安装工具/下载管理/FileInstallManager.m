@@ -464,22 +464,32 @@
 #pragma mark - 文件下载实现
 
 - (void)downloadFileWithURLString:(NSString *)urlString completion:(DownloadCompletionBlock)completion {
-    // 处理URL编码（如中文、空格等）
-    NSString *encodedURLString = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    NSURL *url = [NSURL URLWithString:encodedURLString];
-    
-    if (!url) {
-        if(completion){
-            completion(nil, [NSError errorWithDomain:@"FileInstallManager"
-                                                 code:1016
-                                             userInfo:@{NSLocalizedDescriptionKey: @"无效的URL字符串"}]);
-        }
-        
+    // 1. 先检查原始URL字符串是否已经是有效的URL格式
+    NSURL *originalURL = [NSURL URLWithString:urlString];
+    if (originalURL && originalURL.scheme && originalURL.host) {
+        // 如果原始URL已经有效，直接使用
+        [self downloadFileWithURL:originalURL completion:completion];
         return;
     }
     
-    [self downloadFileWithURL:url completion:completion];
+    // 2. 处理URL编码问题（针对包含中文/特殊字符的情况）
+    NSError *error = nil;
+    NSURL *encodedURL = [self safeEncodeURLWithString:urlString error:&error];
+    
+    if (!encodedURL) {
+        if (completion) {
+            NSError *finalError = error ?: [NSError errorWithDomain:@"FileInstallManager"
+                                                              code:1016
+                                                          userInfo:@{NSLocalizedDescriptionKey: @"无效的URL字符串"}];
+            completion(nil, finalError);
+        }
+        return;
+    }
+    
+    // 3. 调用实际下载方法
+    [self downloadFileWithURL:encodedURL completion:completion];
 }
+
 
 - (void)downloadFileWithURL:(NSURL *)url completion:(DownloadCompletionBlock)completion {
     // 创建下载任务模型
@@ -674,6 +684,73 @@
         case FileTypePLIST: return @"PLIST配置";
         default: return @"未知类型";
     }
+}
+
+/// 安全编码URL的辅助方法
+- (NSURL *)safeEncodeURLWithString:(NSString *)urlString error:(NSError **)error {
+    // 方法1：使用NSURLComponents分段编码（推荐）
+    NSURLComponents *components = [NSURLComponents componentsWithString:urlString];
+    if (!components.scheme || !components.host) {
+        // 方法2：针对完整URL字符串的安全编码
+        NSString *encodedURLString = [self encodeFullURLString:urlString];
+        NSURL *url = [NSURL URLWithString:encodedURLString];
+        if (url) {
+            return url;
+        }
+        
+        // 方法3：终极方案：手动处理中文编码
+        NSString *manualEncodedString = [urlString stringByAddingPercentEncodingWithAllowedCharacters:
+                                         [NSCharacterSet URLFragmentAllowedCharacterSet]];
+        NSURL *manualURL = [NSURL URLWithString:manualEncodedString];
+        if (manualURL) {
+            return manualURL;
+        }
+        
+        // 所有方法都失败，返回错误
+        if (error) {
+            *error = [NSError errorWithDomain:@"FileInstallManager"
+                                         code:1017
+                                     userInfo:@{NSLocalizedDescriptionKey: @"URL编码失败"}];
+        }
+        return nil;
+    }
+    
+    // 分段编码路径（如果有）
+    if (components.path) {
+        components.path = [components.path stringByAddingPercentEncodingWithAllowedCharacters:
+                          [NSCharacterSet URLPathAllowedCharacterSet]];
+    }
+    
+    
+    
+    return components.URL;
+}
+
+/// 完整URL字符串的安全编码
+- (NSString *)encodeFullURLString:(NSString *)urlString {
+    // 先将URL按/分割，分别编码各段，再重新拼接
+    NSArray *parts = [urlString componentsSeparatedByString:@"/"];
+    NSMutableArray *encodedParts = [NSMutableArray array];
+    
+    for (NSString *part in parts) {
+        if (part.length == 0) {
+            [encodedParts addObject:part];
+            continue;
+        }
+        
+        // 跳过协议部分（如https:）
+        if ([part hasSuffix:@":"]) {
+            [encodedParts addObject:part];
+            continue;
+        }
+        
+        // 编码路径段
+        NSString *encodedPart = [part stringByAddingPercentEncodingWithAllowedCharacters:
+                                [NSCharacterSet URLPathAllowedCharacterSet]];
+        [encodedParts addObject:encodedPart ?: part];
+    }
+    
+    return [encodedParts componentsJoinedByString:@"/"];
 }
 
 #pragma mark - 判断URL方法

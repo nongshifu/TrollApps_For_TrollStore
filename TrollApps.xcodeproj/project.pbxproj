@@ -18,6 +18,9 @@
 		C26FF4912EDED43F00C3F195 /* ShowOneOrderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4902EDED43F00C3F195 /* ShowOneOrderViewController.m */; };
 		C26FF4942EDF0FD900C3F195 /* CustomMoodStatusNavView.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */; };
 		C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C287212C2E28262400ABC6AE /* RootSign.entitlements */; };
+		C2A4D2712EE873400091CF05 /* DownloadRecordModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2702EE8733F0091CF05 /* DownloadRecordModel.m */; };
+		C2A4D2742EE87E850091CF05 /* DownloadRecordViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */; };
+		C2A4D2782EE8808A0091CF05 /* DownloadRecordCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */; };
 		C2E44C4C2EDAD35E00110348 /* ConfigField.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFA2EDAD35C00110348 /* ConfigField.m */; };
 		C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFC2EDAD35C00110348 /* SystemViewController.m */; };
 		C2E44C4E2EDAD35E00110348 /* ConfigItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFE2EDAD35C00110348 /* ConfigItem.m */; };
@@ -154,7 +157,6 @@
 		C2E44CD82EDAD35F00110348 /* AppVersionHistoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4A2EDAD35E00110348 /* AppVersionHistoryViewController.m */; };
 		C2E44CD92EDAD35F00110348 /* AppVersionHistoryModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44C4B2EDAD35E00110348 /* AppVersionHistoryModel.m */; };
 		C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CDF2EDAE3F200110348 /* SendMessage.m */; };
-		C2E44CEA2EDAFB8C00110348 /* FileModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CE92EDAFB8C00110348 /* FileModel.m */; };
 		C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEC2EDAFCA200110348 /* FileUtils.m */; };
 		C2E44CF02EDAFCCD00110348 /* SandboxFileBrowserVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */; };
 		C2E44CF12EDC197700110348 /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; };
@@ -202,6 +204,12 @@
 		C28720712E25432100ABC6AE /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		C28720CE2E27D87900ABC6AE /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C287212C2E28262400ABC6AE /* RootSign.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = RootSign.entitlements; sourceTree = "<group>"; };
+		C2A4D26F2EE8733F0091CF05 /* DownloadRecordModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadRecordModel.h; sourceTree = "<group>"; };
+		C2A4D2702EE8733F0091CF05 /* DownloadRecordModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordModel.m; sourceTree = "<group>"; };
+		C2A4D2722EE87E850091CF05 /* DownloadRecordViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadRecordViewController.h; sourceTree = "<group>"; };
+		C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordViewController.m; sourceTree = "<group>"; };
+		C2A4D2762EE8808A0091CF05 /* DownloadRecordCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadRecordCell.h; sourceTree = "<group>"; };
+		C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordCell.m; sourceTree = "<group>"; };
 		C2E44AFA2EDAD35C00110348 /* ConfigField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConfigField.m; sourceTree = "<group>"; };
 		C2E44AFB2EDAD35C00110348 /* ConfigItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigItem.h; sourceTree = "<group>"; };
 		C2E44AFC2EDAD35C00110348 /* SystemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SystemViewController.m; sourceTree = "<group>"; };
@@ -470,8 +478,6 @@
 		C2E44CDA2EDAD3E100110348 /* Root.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Root.entitlements; sourceTree = "<group>"; };
 		C2E44CDE2EDAE3F200110348 /* SendMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SendMessage.h; sourceTree = "<group>"; };
 		C2E44CDF2EDAE3F200110348 /* SendMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SendMessage.m; sourceTree = "<group>"; };
-		C2E44CE82EDAFB8C00110348 /* FileModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileModel.h; sourceTree = "<group>"; };
-		C2E44CE92EDAFB8C00110348 /* FileModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileModel.m; sourceTree = "<group>"; };
 		C2E44CEB2EDAFCA200110348 /* FileUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileUtils.h; sourceTree = "<group>"; };
 		C2E44CEC2EDAFCA200110348 /* FileUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileUtils.m; sourceTree = "<group>"; };
 		C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFileBrowserVC.h; sourceTree = "<group>"; };
@@ -600,6 +606,37 @@
 			children = (
 			);
 			path = "公告";
+			sourceTree = "<group>";
+		};
+		C2A4D26D2EE865AF0091CF05 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				C2E44C092EDAD35D00110348 /* AppInfoModel.h */,
+				C2E44C0E2EDAD35D00110348 /* AppInfoModel.m */,
+				C2E44C0B2EDAD35D00110348 /* AppVersionModel.h */,
+				C2E44C122EDAD35D00110348 /* AppVersionModel.m */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		C2A4D26E2EE8732C0091CF05 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				C2E44BC22EDAD35D00110348 /* DownloadTaskModel.h */,
+				C2E44BBE2EDAD35D00110348 /* DownloadTaskModel.m */,
+				C2A4D26F2EE8733F0091CF05 /* DownloadRecordModel.h */,
+				C2A4D2702EE8733F0091CF05 /* DownloadRecordModel.m */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		C2A4D2752EE880640091CF05 /* cell */ = {
+			isa = PBXGroup;
+			children = (
+				C2A4D2762EE8808A0091CF05 /* DownloadRecordCell.h */,
+				C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */,
+			);
+			path = cell;
 			sourceTree = "<group>";
 		};
 		C2E44AF92EDAD35C00110348 /* 系统设置 */ = {
@@ -1058,14 +1095,16 @@
 		C2E44BBB2EDAD35D00110348 /* 下载管理 */ = {
 			isa = PBXGroup;
 			children = (
+				C2A4D2752EE880640091CF05 /* cell */,
+				C2A4D26E2EE8732C0091CF05 /* model */,
 				C2E44BBD2EDAD35D00110348 /* DownloadManagerViewController.h */,
 				C2E44BC02EDAD35D00110348 /* DownloadManagerViewController.m */,
 				C2E44BC12EDAD35D00110348 /* DownloadProgressView.h */,
 				C2E44BBC2EDAD35D00110348 /* DownloadProgressView.m */,
-				C2E44BC22EDAD35D00110348 /* DownloadTaskModel.h */,
-				C2E44BBE2EDAD35D00110348 /* DownloadTaskModel.m */,
 				C2E44BBF2EDAD35D00110348 /* FileInstallManager.h */,
 				C2E44BC32EDAD35D00110348 /* FileInstallManager.m */,
+				C2A4D2722EE87E850091CF05 /* DownloadRecordViewController.h */,
+				C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */,
 			);
 			path = "下载管理";
 			sourceTree = "<group>";
@@ -1134,6 +1173,7 @@
 		C2E44BE02EDAD35D00110348 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
+				C2A4D26D2EE865AF0091CF05 /* model */,
 				C2E44BE22EDAD35D00110348 /* 发布APP */,
 				C2E44C042EDAD35D00110348 /* 分类管理 */,
 				C2E44BF72EDAD35D00110348 /* 列表 */,
@@ -1233,10 +1273,6 @@
 		C2E44C072EDAD35D00110348 /* model */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44C092EDAD35D00110348 /* AppInfoModel.h */,
-				C2E44C0E2EDAD35D00110348 /* AppInfoModel.m */,
-				C2E44C0B2EDAD35D00110348 /* AppVersionModel.h */,
-				C2E44C122EDAD35D00110348 /* AppVersionModel.m */,
 				C2E44C102EDAD35D00110348 /* Demo9Model.h */,
 				C2E44C0A2EDAD35D00110348 /* Demo9Model.m */,
 				C2E44C0D2EDAD35D00110348 /* LikeModel.h */,
@@ -1391,8 +1427,6 @@
 		C2E44CE12EDAECD600110348 /* 文件浏览器 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44CE82EDAFB8C00110348 /* FileModel.h */,
-				C2E44CE92EDAFB8C00110348 /* FileModel.m */,
 				C2E44CEB2EDAFCA200110348 /* FileUtils.h */,
 				C2E44CEC2EDAFCA200110348 /* FileUtils.m */,
 				C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */,
@@ -1585,6 +1619,7 @@
 				C2E44C5E2EDAD35E00110348 /* moodStatusViewController.m in Sources */,
 				C2E44CA52EDAD35E00110348 /* TemplateSectionController.m in Sources */,
 				C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */,
+				C2A4D2712EE873400091CF05 /* DownloadRecordModel.m in Sources */,
 				C2E44CBC2EDAD35E00110348 /* AppsViewController.mm in Sources */,
 				C2E44CB12EDAD35E00110348 /* HXPhotoURLConverter.m in Sources */,
 				C2E44CC72EDAD35F00110348 /* ImageModel.m in Sources */,
@@ -1656,11 +1691,11 @@
 				C2E44C522EDAD35E00110348 /* vip_purchase_historyCell.m in Sources */,
 				C2E44C622EDAD35E00110348 /* QRCodeScannerViewController.m in Sources */,
 				C2E44CB72EDAD35E00110348 /* AppListViewController.m in Sources */,
+				C2A4D2742EE87E850091CF05 /* DownloadRecordViewController.m in Sources */,
 				C2E44CA02EDAD35E00110348 /* DownloadProgressView.m in Sources */,
 				C2E44CA82EDAD35E00110348 /* EmptyView.m in Sources */,
 				C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */,
 				C2E44CBA2EDAD35E00110348 /* AppInfoCell.m in Sources */,
-				C2E44CEA2EDAFB8C00110348 /* FileModel.m in Sources */,
 				C2E44C662EDAD35E00110348 /* RunInBackground.mm in Sources */,
 				C2E44C9B2EDAD35E00110348 /* DylibHistoryController.m in Sources */,
 				C2E44C652EDAD35E00110348 /* PrivacyPolicyViewController.m in Sources */,
@@ -1710,6 +1745,7 @@
 				C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */,
 				C2E44C502EDAD35E00110348 /* VipPurchaseHistoryViewController.m in Sources */,
 				C2E44C752EDAD35E00110348 /* CommentModel.m in Sources */,
+				C2A4D2782EE8808A0091CF05 /* DownloadRecordCell.m in Sources */,
 				C2E44C6F2EDAD35E00110348 /* MinWebToolViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

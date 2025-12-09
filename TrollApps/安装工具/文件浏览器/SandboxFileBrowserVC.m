@@ -7,7 +7,7 @@
 //
 
 #import "SandboxFileBrowserVC.h"
-#import "FileModel.h"
+#import "NewAppFileModel.h"
 #import "FileUtils.h"
 #import "config.h"
 
@@ -22,11 +22,11 @@ typedef NS_ENUM(NSInteger, OperationMode) {
 /// 当前目录路径
 @property (nonatomic, copy) NSString *currentDirPath;
 /// 所有文件模型
-@property (nonatomic, strong) NSMutableArray<FileModel *> *allFileModels;
+@property (nonatomic, strong) NSMutableArray<NewAppFileModel *> *allFileModels;
 /// 搜索过滤后的文件模型
-@property (nonatomic, strong) NSMutableArray<FileModel *> *filteredFileModels;
+@property (nonatomic, strong) NSMutableArray<NewAppFileModel *> *filteredFileModels;
 /// 选中的文件路径（key: IndexPath字符串, value: FileModel）
-@property (nonatomic, strong) NSMutableDictionary<NSString *, FileModel *> *selectedFiles;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NewAppFileModel *> *selectedFiles;
 /// 操作模式（拷贝/剪切）
 @property (nonatomic, assign) OperationMode operationMode;
 /// 搜索框
@@ -36,7 +36,7 @@ typedef NS_ENUM(NSInteger, OperationMode) {
 /// 导航栈（记录目录访问历史，用于返回上级）
 @property (nonatomic, strong) NSMutableArray<NSString *> *navStack;
 /// 保存当前要预览的文件模型（解决返回后路径不更新问题）
-@property (nonatomic, strong) FileModel *currentPreviewModel;
+@property (nonatomic, strong) NewAppFileModel *currentPreviewModel;
 
 @end
 
@@ -215,10 +215,10 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
         NSArray *threeCorePaths = [FileUtils getSandboxRootPaths];
         for (NSString *corePath in threeCorePaths) {
             NSLog(@"[SandboxFileBrowserVC] 正在初始化核心目录模型：%@", corePath);
-            FileModel *model = [[FileModel alloc] initWithFilePath:corePath];
+            NewAppFileModel *model = [[NewAppFileModel alloc] initWithFilePath:corePath];
             if (model) {
                 [self.allFileModels addObject:model];
-                NSLog(@"[SandboxFileBrowserVC] ✅ 核心目录模型初始化成功：文件名=%@，类型=%@", model.fileName, model.fileType == FileTypeFolder ? @"文件夹" : @"文件");
+                NSLog(@"[SandboxFileBrowserVC] ✅ 核心目录模型初始化成功：文件名=%@，类型=%@", model.file_name, model.file_type == FileTypeFolder ? @"文件夹" : @"文件");
             } else {
                 NSLog(@"[SandboxFileBrowserVC] ❌ 核心目录模型初始化失败：路径=%@", corePath);
             }
@@ -247,13 +247,13 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
                     NSLog(@"[SandboxFileBrowserVC] ... 剩余 %ld 个文件省略打印 ...", subpaths.count - 5);
                 }
                 
-                FileModel *model = [[FileModel alloc] initWithFilePath:fullPath];
+                NewAppFileModel *model = [[NewAppFileModel alloc] initWithFilePath:fullPath];
                 if (model) {
                     [self.allFileModels addObject:model];
                     if (needPrintAll || i < 5) {
                         NSLog(@"[SandboxFileBrowserVC] ✅ 子文件模型初始化成功：文件名=%@，类型=%@，大小=%@，修改时间=%@",
-                              model.fileName,
-                              model.fileType == FileTypeFolder ? @"文件夹" : @"文件",
+                              model.file_name,
+                              model.file_type == FileTypeFolder ? @"文件夹" : @"文件",
                               model.formattedFileSize,
                               [FileUtils formatDate:model.modifyDate]);
                     }
@@ -266,23 +266,23 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
     
     // 排序：文件夹在前，文件在后；按名称升序
     NSLog(@"[SandboxFileBrowserVC] 👉 开始排序文件（规则：文件夹在前，文件在后；名称不区分大小写升序）");
-    [self.allFileModels sortUsingComparator:^NSComparisonResult(FileModel *a, FileModel *b) {
-        if (a.fileType != b.fileType) {
-            return a.fileType < b.fileType ? NSOrderedAscending : NSOrderedDescending;
+    [self.allFileModels sortUsingComparator:^NSComparisonResult(NewAppFileModel *a, NewAppFileModel *b) {
+        if (a.file_type != b.file_type) {
+            return a.file_type < b.file_type ? NSOrderedAscending : NSOrderedDescending;
         }
-        return [a.fileName compare:b.fileName options:NSCaseInsensitiveSearch];
+        return [a.file_name compare:b.file_name options:NSCaseInsensitiveSearch];
     }];
     NSLog(@"[SandboxFileBrowserVC] ✅ 排序完成，最终文件列表共 %ld 个项目", self.allFileModels.count);
     
     // 打印排序后的前3个项目（预览排序结果）
     NSInteger previewCount = MIN(3, self.allFileModels.count);
     for (NSInteger i = 0; i < previewCount; i++) {
-        FileModel *model = self.allFileModels[i];
+        NewAppFileModel *model = self.allFileModels[i];
         NSLog(@"[SandboxFileBrowserVC] 排序后预览（%ld/%ld）：%@（%@）",
               i+1,
               self.allFileModels.count,
-              model.fileName,
-              model.fileType == FileTypeFolder ? @"文件夹" : @"文件");
+              model.file_name,
+              model.file_type == FileTypeFolder ? @"文件夹" : @"文件");
     }
     
     // 初始过滤（无搜索关键词时显示全部）
@@ -314,11 +314,11 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
         NSLog(@"[SandboxFileBrowserVC] 👉 按关键词模糊匹配（不区分大小写）：%@", lowerKeyword);
         
         NSMutableArray<NSString *> *matchedFileNames = [NSMutableArray array];
-        for (FileModel *model in self.allFileModels) {
-            if ([model.fileName.lowercaseString containsString:lowerKeyword]) {
+        for (NewAppFileModel *model in self.allFileModels) {
+            if ([model.file_name.lowercaseString containsString:lowerKeyword]) {
                 [self.filteredFileModels addObject:model];
-                [matchedFileNames addObject:model.fileName];
-                NSLog(@"[SandboxFileBrowserVC] ✅ 匹配成功：文件名=%@（路径=%@）", model.fileName, model.filePath);
+                [matchedFileNames addObject:model.file_name];
+                NSLog(@"[SandboxFileBrowserVC] ✅ 匹配成功：文件名=%@（路径=%@）", model.file_name, model.filePath);
             } else {
                 // 可选：打印未匹配的文件（调试时开启，默认关闭）
                 // NSLog(@"[SandboxFileBrowserVC] ❌ 未匹配：文件名=%@（路径=%@）", model.fileName, model.filePath);
@@ -343,6 +343,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
     if (!path || path.length == 0) return @"";
     return [path stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]];
 }
+
 #pragma mark - 表格数据源 & 代理
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return self.filteredFileModels.count;
@@ -353,14 +354,14 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
     
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
     
-    FileModel *model = self.filteredFileModels[indexPath.row];
+    NewAppFileModel *model = self.filteredFileModels[indexPath.row];
     
     // 图标
     
     // 🔥 1. 定义常见图片格式后缀（根据需求扩展）
     NSSet *imageSuffixSet = [NSSet setWithObjects:@"png", @"jpg", @"jpeg", @"gif", @"bmp", @"tiff", @"heic", nil];
     // 获取文件扩展名（转小写，避免大小写差异）
-    NSString *fileExtension = [model.fileName pathExtension].lowercaseString;
+    NSString *fileExtension = [model.file_name pathExtension].lowercaseString;
     // 判断是否为图片文件
     BOOL isImageFile = [imageSuffixSet containsObject:fileExtension];
     
@@ -393,14 +394,14 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
     } else {
         // 🔥 3. 非图片文件：保持原逻辑（系统图标）
         cell.imageView.image = [UIImage systemImageNamed:model.iconName];
-        cell.imageView.tintColor = model.fileType == FileTypeFolder ? [UIColor systemBlueColor] : [UIColor systemGrayColor];
+        cell.imageView.tintColor = model.file_type == FileTypeFolder ? [UIColor systemBlueColor] : [UIColor systemGrayColor];
         cell.imageView.contentMode = UIViewContentModeScaleToFill; // 恢复默认模式
     }
     
-    cell.imageView.tintColor = model.fileType == FileTypeFolder ? [UIColor systemBlueColor] : [UIColor systemGrayColor];
+    cell.imageView.tintColor = model.file_type == FileTypeFolder ? [UIColor systemBlueColor] : [UIColor systemGrayColor];
     
     // 标题（文件名）
-    cell.textLabel.text = model.fileName;
+    cell.textLabel.text = model.file_name;
     cell.textLabel.font = [UIFont systemFontOfSize:16];
     cell.textLabel.textColor = [UIColor labelColor];
     
@@ -420,18 +421,29 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    FileModel *model = self.filteredFileModels[indexPath.row];
+    NewAppFileModel *model = self.filteredFileModels[indexPath.row];
     
     if (self.selectedFiles.count > 0) {
         // 多选模式：切换选中状态
         [self toggleFileSelectionAtIndexPath:indexPath];
     } else {
-        if (model.fileType == FileTypeFolder) {
+        if (model.file_type == FileTypeFolder) {
             // 文件夹：进入下一级目录
             [self pushToSubDir:model.filePath];
         } else {
-            // 文件：预览
-            [self previewFile:model];
+            // 文件：判断是否为单选模式
+            if (self.singleSelectionMode) {
+                // 🔥 3. 单选模式：触发代理回调
+                if ([self.delegate respondsToSelector:@selector(sandboxFileBrowserVC:didSelectFileCell:fileModel:)]) {
+                    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+                    [self.delegate sandboxFileBrowserVC:self didSelectFileCell:cell fileModel:model];
+                }
+                // 可选：自动关闭浏览器（根据业务需求调整）
+                [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+            } else {
+                // 非单选模式：预览文件
+                [self previewFile:model];
+            }
         }
     }
 }
@@ -439,7 +451,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 /// 左滑删除
 - (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {
     UIContextualAction *deleteAction = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:@"删除" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
-        FileModel *model = self.filteredFileModels[indexPath.row];
+        NewAppFileModel *model = self.filteredFileModels[indexPath.row];
         [self showDeleteConfirmAlertForFile:model completion:^(BOOL confirmed) {
             if (confirmed) {
                 NSError *error = nil;
@@ -462,6 +474,9 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 #pragma mark - 多选相关
 /// 长按进入多选模式
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
+    // 🔥 单选模式下禁用长按多选
+    if (self.singleSelectionMode) return;
+    
     if (gesture.state != UIGestureRecognizerStateBegan) return;
     
     CGPoint point = [gesture locationInView:self.tableView];
@@ -475,7 +490,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 /// 切换文件选中状态
 - (void)toggleFileSelectionAtIndexPath:(NSIndexPath *)indexPath {
     NSString *indexPathKey = [self indexPathToString:indexPath];
-    FileModel *model = self.filteredFileModels[indexPath.row];
+    NewAppFileModel *model = self.filteredFileModels[indexPath.row];
     
     if (self.selectedFiles[indexPathKey]) {
         [self.selectedFiles removeObjectForKey:indexPathKey];
@@ -518,7 +533,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 
 /// 删除选中文件
 - (void)actionDeleteSelectedFiles {
-    NSArray<FileModel *> *selectedModels = self.selectedFiles.allValues;
+    NSArray<NewAppFileModel *> *selectedModels = self.selectedFiles.allValues;
     if (selectedModels.count == 0) return;
     
     [self showDeleteConfirmAlertForFiles:selectedModels completion:^(BOOL confirmed) {
@@ -526,7 +541,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
             NSError *error = nil;
             BOOL allSuccess = YES;
             
-            for (FileModel *model in selectedModels) {
+            for (NewAppFileModel *model in selectedModels) {
                 BOOL success = [FileUtils deleteItemAtPath:model.filePath error:&error];
                 if (!success) {
                     allSuccess = NO;
@@ -549,7 +564,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 
 /// 粘贴文件
 - (void)actionPasteFiles {
-    NSArray<FileModel *> *sourceModels = self.selectedFiles.allValues;
+    NSArray<NewAppFileModel *> *sourceModels = self.selectedFiles.allValues;
     if (sourceModels.count == 0) {
         [self showToast:@"无待粘贴文件"];
         return;
@@ -558,7 +573,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
     BOOL allSuccess = YES;
     NSError *error = nil;
     
-    for (FileModel *model in sourceModels) {
+    for (NewAppFileModel *model in sourceModels) {
         BOOL success = NO;
         if (self.operationMode == OperationModeCopy) {
             // 拷贝
@@ -637,7 +652,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 }
 
 #pragma mark - 文件预览
-- (void)previewFile:(FileModel *)model {
+- (void)previewFile:(NewAppFileModel *)model {
     self.previewVC = [[QLPreviewController alloc] init];
     self.previewVC.dataSource = self;
     self.previewVC.delegate = self;
@@ -672,8 +687,8 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 
 #pragma mark - 弹窗提示
 /// 删除确认弹窗
-- (void)showDeleteConfirmAlertForFile:(FileModel *)model completion:(void(^)(BOOL confirmed))completion {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认删除" message:[NSString stringWithFormat:@"是否删除 %@？", model.fileName] preferredStyle:UIAlertControllerStyleAlert];
+- (void)showDeleteConfirmAlertForFile:(NewAppFileModel *)model completion:(void(^)(BOOL confirmed))completion {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认删除" message:[NSString stringWithFormat:@"是否删除 %@？", model.file_name] preferredStyle:UIAlertControllerStyleAlert];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         completion(NO);
@@ -687,7 +702,7 @@ static SandboxFileBrowserVC *_sharedInstance = nil;
 }
 
 /// 批量删除确认弹窗
-- (void)showDeleteConfirmAlertForFiles:(NSArray<FileModel *> *)models completion:(void(^)(BOOL confirmed))completion {
+- (void)showDeleteConfirmAlertForFiles:(NSArray<NewAppFileModel *> *)models completion:(void(^)(BOOL confirmed))completion {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认删除" message:[NSString stringWithFormat:@"是否删除选中的 %ld 个项目？", models.count] preferredStyle:UIAlertControllerStyleAlert];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {

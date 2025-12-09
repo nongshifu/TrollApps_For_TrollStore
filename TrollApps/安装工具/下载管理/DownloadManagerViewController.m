@@ -7,7 +7,7 @@
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"
 #import "SandboxFileBrowserVC.h"
-
+#import "DownloadRecordViewController.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 
 @interface DownloadManagerViewController ()<UITableViewDataSource, UITableViewDelegate, UIDocumentInteractionControllerDelegate>
@@ -27,7 +27,7 @@
 @property (nonatomic, strong) UIButton *deleteBtn;             // 删除按钮
 @property (nonatomic, strong) UIButton *cancelBtn;             // 取消按钮
 @property (nonatomic, strong) UIButton *directoryBtn;          // 目录选择按钮
-
+@property (nonatomic, strong) UIButton *recordBtn;          // 历史下载按钮
 
 
 /**
@@ -80,7 +80,11 @@
     // 初始化底部操作栏（默认隐藏）
     [self setupBottomToolBar];
     
+    [self setupRecordBtnView];
+    
     [self setupViewConstraints];
+    
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -133,6 +137,14 @@
     
     // 动态添加筛选按钮（根据FilterType枚举）
     [self setupFilterButtons];
+}
+
+- (void)setupRecordBtnView{
+    self.recordBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.recordBtn setTitle:@"历史下载" forState:UIControlStateNormal];
+    self.recordBtn.backgroundColor = [UIColor systemBackgroundColor];
+    [self.recordBtn addTarget:self action:@selector(recordButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.recordBtn];
 }
 
 #pragma mark - 核心：目录选择弹窗（新方法）
@@ -334,6 +346,14 @@
     
     // 滚动到选中的按钮位置
     [self.filterScrollView scrollRectToVisible:self.filterButtons[index].frame animated:YES];
+}
+
+- (void)recordButtonTapped:(UIButton *)sender {
+    [self dismissViewControllerAnimated:YES completion:^{
+        DownloadRecordViewController *vc = [DownloadRecordViewController new];
+        [[self.view getTopViewController] presentPanModal:vc];
+    }];
+    
 }
 
 
@@ -573,6 +593,14 @@
         make.width.height.equalTo(@300);
         make.centerX.equalTo(self.view);
     }];
+    
+    // 底部按钮
+    [self.recordBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
+        make.width.equalTo(@80);
+        make.height.equalTo(@30);
+        make.centerX.equalTo(self.view);
+    }];
 }
 
 - (void)updateViewConstraints{
@@ -600,6 +628,14 @@
     }];
     
     self.emptyView.alpha = self.fileList.count == 0;
+    
+    // 底部按钮
+    [self.recordBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
+        make.width.equalTo(@80);
+        make.height.equalTo(@30);
+        make.centerX.equalTo(self.view);
+    }];
 }
 
 #pragma mark - 加载文件列表（不变，基于self.downloadDir动态读取）
