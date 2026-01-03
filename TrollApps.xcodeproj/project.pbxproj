@@ -11,6 +11,13 @@
 		4F639DF92272E94C00776206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DF82272E94C00776206 /* Assets.xcassets */; };
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
 		4F639DFF2272E94C00776206 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DFE2272E94C00776206 /* main.m */; };
+		C2531F372F055D8400966086 /* PostModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F362F055D8400966086 /* PostModel.m */; };
+		C2531F3A2F0562F800966086 /* PostPublishViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F392F0562F800966086 /* PostPublishViewController.m */; };
+		C2531F3D2F05806100966086 /* PostPublisher.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F3C2F05806100966086 /* PostPublisher.m */; };
+		C2531F402F05B1EA00966086 /* PostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F3F2F05B1EA00966086 /* PostCell.m */; };
+		C2531F432F05B37000966086 /* PostListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F422F05B37000966086 /* PostListViewController.m */; };
+		C2531F4D2F062CE600966086 /* ImageSelectCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F4C2F062CE600966086 /* ImageSelectCell.m */; };
+		C2531F502F0633A600966086 /* MediaItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F4F2F0633A600966086 /* MediaItem.m */; };
 		C26FF4812EDDF67A00C3F195 /* YSMPaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */; };
 		C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4852EDEB38300C3F195 /* PaymentManager.m */; };
 		C26FF48B2EDED10500C3F195 /* YSMPayRequestModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */; };
@@ -21,6 +28,7 @@
 		C2A4D2712EE873400091CF05 /* DownloadRecordModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2702EE8733F0091CF05 /* DownloadRecordModel.m */; };
 		C2A4D2742EE87E850091CF05 /* DownloadRecordViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */; };
 		C2A4D2782EE8808A0091CF05 /* DownloadRecordCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */; };
+		C2C639742F0910190056FFF1 /* PostAttachmentModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2C639732F0910190056FFF1 /* PostAttachmentModel.m */; };
 		C2E44C4C2EDAD35E00110348 /* ConfigField.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFA2EDAD35C00110348 /* ConfigField.m */; };
 		C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFC2EDAD35C00110348 /* SystemViewController.m */; };
 		C2E44C4E2EDAD35E00110348 /* ConfigItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44AFE2EDAD35C00110348 /* ConfigItem.m */; };
@@ -187,6 +195,21 @@
 		4F639DFB2272E94C00776206 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F639DFD2272E94C00776206 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F639DFE2272E94C00776206 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		C2531F352F055D8400966086 /* PostModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostModel.h; sourceTree = "<group>"; };
+		C2531F362F055D8400966086 /* PostModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostModel.m; sourceTree = "<group>"; };
+		C2531F382F0562F800966086 /* PostPublishViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostPublishViewController.h; sourceTree = "<group>"; };
+		C2531F392F0562F800966086 /* PostPublishViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostPublishViewController.m; sourceTree = "<group>"; };
+		C2531F3B2F05806100966086 /* PostPublisher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostPublisher.h; sourceTree = "<group>"; };
+		C2531F3C2F05806100966086 /* PostPublisher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostPublisher.m; sourceTree = "<group>"; };
+		C2531F3E2F05B1EA00966086 /* PostCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostCell.h; sourceTree = "<group>"; };
+		C2531F3F2F05B1EA00966086 /* PostCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostCell.m; sourceTree = "<group>"; };
+		C2531F412F05B37000966086 /* PostListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostListViewController.h; sourceTree = "<group>"; };
+		C2531F422F05B37000966086 /* PostListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostListViewController.m; sourceTree = "<group>"; };
+		C2531F472F0628D700966086 /* post_api.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = post_api.php; sourceTree = "<group>"; };
+		C2531F4B2F062CE600966086 /* ImageSelectCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageSelectCell.h; sourceTree = "<group>"; };
+		C2531F4C2F062CE600966086 /* ImageSelectCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageSelectCell.m; sourceTree = "<group>"; };
+		C2531F4E2F0633A600966086 /* MediaItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaItem.h; sourceTree = "<group>"; };
+		C2531F4F2F0633A600966086 /* MediaItem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaItem.m; sourceTree = "<group>"; };
 		C26FF4782EDDF5AB00C3F195 /* YSMPaymentConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentConfig.h; sourceTree = "<group>"; };
 		C26FF47F2EDDF67A00C3F195 /* YSMPaymentManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentManager.h; sourceTree = "<group>"; };
 		C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YSMPaymentManager.m; sourceTree = "<group>"; };
@@ -210,6 +233,9 @@
 		C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordViewController.m; sourceTree = "<group>"; };
 		C2A4D2762EE8808A0091CF05 /* DownloadRecordCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadRecordCell.h; sourceTree = "<group>"; };
 		C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordCell.m; sourceTree = "<group>"; };
+		C2C639712F0695B00056FFF1 /* posts.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = posts.sql; sourceTree = "<group>"; };
+		C2C639722F0910180056FFF1 /* PostAttachmentModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostAttachmentModel.h; sourceTree = "<group>"; };
+		C2C639732F0910190056FFF1 /* PostAttachmentModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostAttachmentModel.m; sourceTree = "<group>"; };
 		C2E44AFA2EDAD35C00110348 /* ConfigField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConfigField.m; sourceTree = "<group>"; };
 		C2E44AFB2EDAD35C00110348 /* ConfigItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigItem.h; sourceTree = "<group>"; };
 		C2E44AFC2EDAD35C00110348 /* SystemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SystemViewController.m; sourceTree = "<group>"; };
@@ -520,6 +546,7 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
+				C2531F312F055D0400966086 /* 帖子 */,
 				C26FF4822EDEB37300C3F195 /* 支付 */,
 				C2E44B8C2EDAD35D00110348 /* 安装工具 */,
 				C2E44C452EDAD35E00110348 /* 版本管理 */,
@@ -565,6 +592,31 @@
 				068050F3072675203E6A8899 /* Pods_TrollApps.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C2531F312F055D0400966086 /* 帖子 */ = {
+			isa = PBXGroup;
+			children = (
+				C2C639712F0695B00056FFF1 /* posts.sql */,
+				C2531F472F0628D700966086 /* post_api.php */,
+				C2C639722F0910180056FFF1 /* PostAttachmentModel.h */,
+				C2C639732F0910190056FFF1 /* PostAttachmentModel.m */,
+				C2531F352F055D8400966086 /* PostModel.h */,
+				C2531F362F055D8400966086 /* PostModel.m */,
+				C2531F382F0562F800966086 /* PostPublishViewController.h */,
+				C2531F392F0562F800966086 /* PostPublishViewController.m */,
+				C2531F3B2F05806100966086 /* PostPublisher.h */,
+				C2531F3C2F05806100966086 /* PostPublisher.m */,
+				C2531F3E2F05B1EA00966086 /* PostCell.h */,
+				C2531F3F2F05B1EA00966086 /* PostCell.m */,
+				C2531F412F05B37000966086 /* PostListViewController.h */,
+				C2531F422F05B37000966086 /* PostListViewController.m */,
+				C2531F4B2F062CE600966086 /* ImageSelectCell.h */,
+				C2531F4C2F062CE600966086 /* ImageSelectCell.m */,
+				C2531F4E2F0633A600966086 /* MediaItem.h */,
+				C2531F4F2F0633A600966086 /* MediaItem.m */,
+			);
+			path = "帖子";
 			sourceTree = "<group>";
 		};
 		C26FF4822EDEB37300C3F195 /* 支付 */ = {
@@ -1616,6 +1668,7 @@
 				4F639DF42272E94500776206 /* ViewController.m in Sources */,
 				C2E44CB32EDAD35E00110348 /* PublishAppViewController.m in Sources */,
 				C2E44CC52EDAD35F00110348 /* CustomScrollView.m in Sources */,
+				C2531F502F0633A600966086 /* MediaItem.m in Sources */,
 				C2E44C5E2EDAD35E00110348 /* moodStatusViewController.m in Sources */,
 				C2E44CA52EDAD35E00110348 /* TemplateSectionController.m in Sources */,
 				C2E44C4D2EDAD35E00110348 /* SystemViewController.m in Sources */,
@@ -1649,6 +1702,7 @@
 				C2E44C682EDAD35E00110348 /* NewToolViewController.m in Sources */,
 				C2E44C712EDAD35E00110348 /* WebViewController.m in Sources */,
 				C2E44CCB2EDAD35F00110348 /* UIResponder+SearchHistoryToolbar.m in Sources */,
+				C2531F402F05B1EA00966086 /* PostCell.m in Sources */,
 				C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */,
 				C2E44C532EDAD35E00110348 /* VIPPackage.m in Sources */,
 				C2E44C632EDAD35E00110348 /* UserModel.m in Sources */,
@@ -1689,6 +1743,8 @@
 				C2E44CAB2EDAD35E00110348 /* HelpViewController.m in Sources */,
 				C2E44CD02EDAD35F00110348 /* CenterMenu.m in Sources */,
 				C2E44C522EDAD35E00110348 /* vip_purchase_historyCell.m in Sources */,
+				C2C639742F0910190056FFF1 /* PostAttachmentModel.m in Sources */,
+				C2531F432F05B37000966086 /* PostListViewController.m in Sources */,
 				C2E44C622EDAD35E00110348 /* QRCodeScannerViewController.m in Sources */,
 				C2E44CB72EDAD35E00110348 /* AppListViewController.m in Sources */,
 				C2A4D2742EE87E850091CF05 /* DownloadRecordViewController.m in Sources */,
@@ -1700,6 +1756,7 @@
 				C2E44C9B2EDAD35E00110348 /* DylibHistoryController.m in Sources */,
 				C2E44C652EDAD35E00110348 /* PrivacyPolicyViewController.m in Sources */,
 				C2E44C762EDAD35E00110348 /* AppCommentCell.m in Sources */,
+				C2531F3D2F05806100966086 /* PostPublisher.m in Sources */,
 				C2E44CC82EDAD35F00110348 /* BubbleTipManager.m in Sources */,
 				C2E44C5F2EDAD35E00110348 /* moodStatusCell.m in Sources */,
 				C2E44CAD2EDAD35E00110348 /* UserFeedbackModel.m in Sources */,
@@ -1707,6 +1764,7 @@
 				C2E44C672EDAD35E00110348 /* ContactHelper.m in Sources */,
 				C2E44CC22EDAD35E00110348 /* AppVersionModel.m in Sources */,
 				C2E44CD22EDAD35F00110348 /* UIView+DrawGraphics.m in Sources */,
+				C2531F3A2F0562F800966086 /* PostPublishViewController.m in Sources */,
 				C26FF4812EDDF67A00C3F195 /* YSMPaymentManager.m in Sources */,
 				C2E44CD32EDAD35F00110348 /* BaseMenuViewController.m in Sources */,
 				C2E44C7B2EDAD35E00110348 /* AppSearchViewController.m in Sources */,
@@ -1714,6 +1772,7 @@
 				C2E44C692EDAD35E00110348 /* ShowOneToolViewController.m in Sources */,
 				C2E44CAE2EDAD35E00110348 /* FeedbackViewController.m in Sources */,
 				C2E44C592EDAD35E00110348 /* UserModelCell.m in Sources */,
+				C2531F4D2F062CE600966086 /* ImageSelectCell.m in Sources */,
 				C2E44C772EDAD35E00110348 /* NetworkClient.m in Sources */,
 				C2E44C7F2EDAD35E00110348 /* TTCHATViewController.m in Sources */,
 				C2E44C7D2EDAD35E00110348 /* ToolMessageCell.m in Sources */,
@@ -1741,6 +1800,7 @@
 				C2E44C842EDAD35E00110348 /* DemoBaseNavigationController.m in Sources */,
 				C2E44CAF2EDAD35E00110348 /* UploadTask.m in Sources */,
 				C2E44CD62EDAD35F00110348 /* QRCodeGeneratorViewController.m in Sources */,
+				C2531F372F055D8400966086 /* PostModel.m in Sources */,
 				C2E44CB42EDAD35E00110348 /* DocumentPickerViewController.m in Sources */,
 				C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */,
 				C2E44C502EDAD35E00110348 /* VipPurchaseHistoryViewController.m in Sources */,

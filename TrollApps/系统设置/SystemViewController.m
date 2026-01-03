@@ -7,24 +7,86 @@
 //
 
 #import "SystemViewController.h"
-#import "ConfigItem.h"
-#import "ConfigField.h"
-#import "config.h"
-#import "NetworkClient.h"
-#import "NewProfileViewController.h"
-#import "loadData.h"
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface SystemViewController ()<UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate,UIPickerViewDelegate,UIPickerViewDataSource>
 @property (nonatomic, strong) UITableView *tableView;
-@property (nonatomic, strong) NSMutableArray<ConfigItem *> *configItems; // 所有配置项
+
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, NSMutableArray<NSMutableArray<ConfigField *> *> *> *sectionData;
 @property (nonatomic, strong) UIView *footerView;
 @property (nonatomic, strong) UIButton *addButton;
 @property (nonatomic, strong) UIButton *submitButton;
 @end
+// 静态单例实例（线程安全）
+static SystemViewController *_sharedInstance = nil;
+static dispatch_once_t _onceToken;
 
 @implementation SystemViewController
+#pragma mark - 单例实现（核心）
++ (instancetype)sharedInstance {
+    dispatch_once(&_onceToken, ^{
+        // 初始化单例（手动初始化视图，避免依赖UIKit的initWithNibName）
+        _sharedInstance = [[self alloc] init];
+        // 初始化时自动加载配置数据（确保首次调用就能获取数据）
+        [_sharedInstance loadConfigData];
+        // 手动触发视图加载（可选，若需提前初始化UI）
+        [_sharedInstance view];
+    });
+    return _sharedInstance;
+}
 
+// 重写allocWithZone，防止重复创建实例
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [super allocWithZone:zone];
+    });
+    return _sharedInstance;
+}
+
+// 禁用copy方法（避免单例被复制）
+- (id)copyWithZone:(NSZone *)zone {
+    return self;
+}
+
+// 禁用mutableCopy方法
+- (id)mutableCopyWithZone:(NSZone *)zone {
+    return self;
+}
+
+#pragma mark - 按Key查询ConfigItem（核心方法）
+- (ConfigItem *)configItemForKey:(NSString *)key {
+    // 边界校验
+    if (!key || key.length == 0) {
+        NSLog(@"[SystemVC] 配置键不能为空");
+        return nil;
+    }
+    
+    // 检查数据是否已加载
+    if (!self.configItems || self.configItems.count == 0) {
+        NSLog(@"[SystemVC] 配置数据未加载，正在自动刷新...");
+        [self refreshConfigData];
+        return nil;
+    }
+    
+    // 遍历配置项，匹配config_key
+    for (ConfigItem *item in self.configItems) {
+        if ([item.config_key isEqualToString:key]) {
+            NSLog(@"[SystemVC] 找到配置项：key=%@, value=%@", key, item.config_value);
+            return item;
+        }
+    }
+    
+    // 未找到匹配项
+    NSLog(@"[SystemVC] 未找到配置项：key=%@", key);
+    return nil;
+}
+
+#pragma mark - 主动刷新配置数据（供外部调用）
+- (void)refreshConfigData {
+    [self loadConfigData];
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     

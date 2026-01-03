@@ -31,4 +31,5 @@ target 'TrollApps' do
   pod 'HXPhotoPickerObjC/SDWebImage'
   pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
 
+
 end

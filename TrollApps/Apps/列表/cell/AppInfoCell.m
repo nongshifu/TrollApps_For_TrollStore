@@ -1342,6 +1342,7 @@
 }
 
 #pragma mark - 工具方法（原代码中缺失，补充以避免编译错误）
+
 - (UIViewController *)getTopViewController {
     // 实现获取顶层VC的逻辑（根据项目实际情况调整）
     UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;

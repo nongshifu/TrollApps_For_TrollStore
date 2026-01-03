@@ -23,6 +23,8 @@
 #import "PublishMoodViewController.h"
 #import "moodStatusViewController.h"
 #import "MyCollectionViewController.h"
+#import "PostPublishViewController.h"
+#import "PostListViewController.h"
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -180,12 +182,20 @@
             
             return;
         case 3:{
-            NSString *udid = [loadData sharedInstance].userModel.udid;
-            if(!udid || udid.length<5)return;
-            UserProfileViewController *publishVC = [[UserProfileViewController alloc] init];
-            publishVC.user_udid = [loadData sharedInstance].userModel.udid;
-            publishVC.title = @"我的关注";
-            [self presentPanModal:publishVC];
+//            NSString *udid = [loadData sharedInstance].userModel.udid;
+//            if(!udid || udid.length<5)return;
+//            UserProfileViewController *publishVC = [[UserProfileViewController alloc] init];
+//            publishVC.user_udid = [loadData sharedInstance].userModel.udid;
+//            publishVC.title = @"我的关注";
+//            [self presentPanModal:publishVC];
+//
+            
+            PostPublishViewController *publishVC = [[PostPublishViewController alloc] init];
+            publishVC.title = @"发帖";
+            UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:publishVC];
+            [self presentViewController:nc animated:YES completion:nil];
+//            [self presentPanModal:publishVC];
+            
         }
             
             return;
@@ -288,7 +298,7 @@
                                                               imageName:@""
                                                           selectedImage:@""]
     ];
-    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[ChatListViewController new]
+    [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[PostListViewController new]
                                                                   title:@"广场"
                                                               imageName:@"message"
                                                           selectedImage:@"message.fill"]
