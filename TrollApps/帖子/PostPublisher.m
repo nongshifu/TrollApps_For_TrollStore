@@ -43,7 +43,7 @@
             completion(NO, message, nil);
             return;
         }
-        
+        NSLog(@"上传基本信息成功返回:%@",updatedPost.post_images);
         // 第二步：上传附件
         [self uploadAttachments:updatedPost progress:progress completion:^(BOOL attachSuccess, NSString *attachMsg ,PostModel *newModel) {
             if (!attachSuccess) {
@@ -52,6 +52,7 @@
             }
             
             // 第三步：更新帖子状态为已发布（状态2表示发布成功）
+            NSLog(@"第三步：更新帖子状态为已发布（状态2表示发布成功）:%@",newModel.post_images);
             [self updatePostStatus:2 postModel:newModel completion:^(BOOL statusSuccess, NSString *statusMsg, PostModel *finalPost) {
                 completion(statusSuccess, statusMsg, finalPost);
             }];
@@ -62,6 +63,7 @@
 #pragma mark - 私有方法：上传基本信息
 - (void)uploadBasicInfo:(PostModel *)postModel
              completion:(void(^)(BOOL success, NSString *message, PostModel *updatedPost))completion {
+    NSLog(@"上传基本信息中的图片列表：%@",postModel.post_images);
     // 1. PostModel转字典
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithDictionary:[postModel yy_modelToJSONObject]];
     
@@ -134,6 +136,11 @@
     CGFloat singleProgressUnit = 1.0 / self.mediaItems.count;
     
     for (MediaItem *item in self.mediaItems) {
+        NSLog(@"遍历附件:%@",item.fileName);
+        if(item.type == MediaTypeRemoteImage || item.type == MediaTypeRemoteFile || item.type == MediaTypeRemoteAudio|| item.type == MediaTypeRemoteVideo){
+            successCount++;
+            continue;
+        }
         dispatch_group_enter(group);
         [self uploadSingleMedia:item
                       postModel:postModel

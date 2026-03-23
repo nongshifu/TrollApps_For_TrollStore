@@ -19,6 +19,8 @@ typedef NS_ENUM(NSInteger, Action_type) {
     Comment_type_UserSecondComment = 3 ,    // 用户评论二级评论
     Comment_type_ToolComment = 4,     // Tool评论
     Comment_type_ToolSecondComment = 5,     // Tool二级评论评论
+    Comment_type_PostComment = 6,     // 帖子评论
+    Comment_type_PostSecondComment = 7,     // Tool二级评论评论
 };
 
 @interface CommentModel : NSObject <IGListDiffable,YYModel>

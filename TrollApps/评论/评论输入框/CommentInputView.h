@@ -29,6 +29,9 @@
 /// 清空输入框
 - (void)clearInputText;
 
+/// @用户
+- (void)highlightAtUserInTextView:(UITextView *)textView;
+
 
 /// 输入框
 @property (nonatomic, strong) UITextView *textView;
@@ -43,5 +46,8 @@
 @property (nonatomic, assign) CGFloat originalHeight;
 /// 展开高度
 @property (nonatomic, assign) CGFloat expandedHeight;
+
+/// 拓展数据
+@property (nonatomic, strong) NSDictionary *expandData;
 
 @end

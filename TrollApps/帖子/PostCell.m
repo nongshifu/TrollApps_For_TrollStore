@@ -83,7 +83,8 @@
 - (void)setupUI {
     // 1. 卡片容器
     self.cardView = [[UIView alloc] init];
-    self.cardView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7];
+    self.cardView.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7]
+                                                       darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3]];
     self.cardView.layer.cornerRadius = kCardCornerRadius;
     self.cardView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.cardView.layer.shadowOffset = kCardShadowOffset;
@@ -169,7 +170,7 @@
     // 1. 卡片容器约束
     [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.contentView).insets(UIEdgeInsetsMake(0, 0, 0, 0));
-        make.width.equalTo(@(kWidth - 20));
+        make.width.equalTo(@(kWidth - 10));
     }];
     
     // 2. 状态按钮约束（与原来的标签约束一致）
@@ -266,6 +267,7 @@
     self.userLabel.text = [NSString stringWithFormat:@"发布者:%@",model.author_name ?: @"匿名用户"];
     
     // 4. 正文
+    self.contentLabel.numberOfLines = self.postModel.showAllData ? 0 :kMaxContentLines;
     self.contentLabel.text = model.post_content ?: @"无内容";
     
     // 5. 合并媒体数据（图片+视频）
@@ -289,9 +291,11 @@
     [self clearMediaGrid];
     
     NSInteger mediaCount = model.post_images.count;
-    if (model.post_video_url){
+    NSLog(@"帖子视频地址:%@", model.post_video_url);
+    if (model.post_video_url.length>0){
         mediaCount += 1;
     }
+    
     if (mediaCount == 0) {
         self.mediaContainerView.hidden = YES;
         [self.mediaContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
@@ -302,21 +306,16 @@
     
     self.mediaContainerView.hidden = NO;
     CGFloat gap = kSpacing;
-    CGFloat itemSize = 0;
+    CGFloat containerWidth = kWidth - 40; // 卡片左右间距10
+    CGFloat itemSize = (containerWidth - 2 * gap) / 3;
     CGFloat containerHeight = 0;
-    
-    // 计算尺寸
-    if (mediaCount == 1) {
-        // 单张：200x200
-        itemSize = kSingleImageSize;
-        containerHeight = itemSize;
-    } else {
-        // 九宫格：计算item尺寸（适配容器宽度）
-        CGFloat containerWidth = kWidth - 40; // 卡片左右间距10
-        itemSize = (containerWidth - 2 * gap) / 3;
-        NSInteger rowCount = (mediaCount + 2) / 3;
+    NSInteger rowCount = 0;
+    if(mediaCount>0){
+        rowCount = (mediaCount + 2) / 3;
         containerHeight = rowCount * (itemSize + gap) - gap;
     }
+    
+   
     
     // 更新容器高度
     [self.mediaContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
@@ -330,7 +329,7 @@
     [self addAssModelToManagerWith:newArray];
     
     //判断是否有视频
-    if(model.post_video_url && model.post_video_thumb_url){
+    if(model.post_video_url.length >0 && model.post_video_thumb_url.length >0 ){
         
         // 视频（使用找到的缩略图URL和提取的时长）
         HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkVideoURL:[NSURL URLWithString:model.post_video_url]
@@ -364,6 +363,7 @@
     [self.mediaContainerView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.height.equalTo(@0);
     }];
+    
 }
 
 #pragma mark - 状态标签配置
@@ -408,6 +408,7 @@
 
 #pragma mark - 头像配置
 - (void)setupAuthorAvatarViewWithModel:(PostModel *)model {
+    NSLog(@"用户头像:%@",model.author_avatar);
     if(model.author_avatar){
         [self.authorAvatarView sd_setImageWithURL:[NSURL URLWithString:model.author_avatar]
                                         completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
@@ -600,20 +601,24 @@
     self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.mediaContainerView.frame),  CGRectGetHeight(self.mediaContainerView.frame)) manager:self.manager];
     self.photoView.delegate = self;
     self.photoView.layer.cornerRadius = 10;
-    self.photoView.layer.masksToBounds = YES;
+//    self.photoView.layer.masksToBounds = YES;
     self.photoView.outerCamera = YES;
     self.photoView.alpha = 1;
     self.photoView.showAddCell = NO;
     self.photoView.hideDeleteButton = YES;
-    self.photoView.layer.borderWidth = 0.5;
-    self.photoView.layer.borderColor = [UIColor quaternaryLabelColor].CGColor;
+//    self.photoView.layer.borderWidth = 0.5;
+//    self.photoView.layer.borderColor = [UIColor quaternaryLabelColor].CGColor;
     self.photoView.backgroundColor = [UIColor clearColor];
-    [self.photoView setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+//    [self.photoView setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
     
     // 刷新视图
     [self.photoView refreshView];
     
     [self.mediaContainerView addSubview:self.photoView];
+//    self.mediaContainerView.layer.borderWidth = 0.5;
+    self.mediaContainerView.layer.cornerRadius = 10;
+    self.mediaContainerView.layer.masksToBounds = YES;
+    self.mediaContainerView.layer.borderColor = [UIColor quaternaryLabelColor].CGColor;
     
     
     // 更新布局
@@ -1034,13 +1039,67 @@
     return topVC;
 }
 
-// 更新帖子信息（需要实现实际的网络请求）
+
+#pragma mark - 网络请求：更新帖子
 - (void)updatePostWithCompletion:(void(^)(BOOL success))completion {
-    // 这里应该实现实际的网络请求，更新帖子信息到服务器
-    // 为了示例，这里直接调用成功回调
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        completion(YES);
-    });
+    // 1. 构建请求参数
+    // 这里将 model 转换为字典，只发送变化的字段（或者发送全部可写字段）
+    NSMutableDictionary *params = [self.postModel yy_modelToJSONObject];
+    
+    // 基础认证信息
+    params[@"action"] = @"update_post_field"; // 【关键】对应新的后端路由
+    params[@"udid"] = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    
+
+    // 2. 发送网络请求 (这里需要替换为你项目中真实的网络请求类，如 AFNetworking)
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                             parameters:params progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        
+        // 3. 处理响应
+        NSInteger code = [jsonResult[@"code"] integerValue];
+        NSString *msg = jsonResult[@"msg"] ?: @"更新失败";
+        if (code == 200) {
+            // 假设 SUCCESS = 200
+            // 更新成功，服务器返回了最新的完整帖子数据
+            NSDictionary *data = jsonResult[@"data"];
+            if (data) {
+                // 使用 YYModel 刷新本地 model
+                [self.postModel yy_modelSetWithDictionary:data];
+                
+                // 可选：通知 UI 刷新
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self setupStatusButtonWithModel:self.postModel]; // 刷新状态按钮
+                    // 如果是在列表里，可以在这里回调 delegate 刷新列表
+                    [SVProgressHUD showSuccessWithStatus:msg];
+                    [SVProgressHUD dismissWithDelay:1];
+                });
+            }
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(YES);
+            });
+        } else {
+            
+            NSLog(@"更新失败: %@", msg);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(NO);
+            });
+        }
+    } failure:^(NSError *error) {
+        if (error) {
+            NSLog(@"更新帖子失败: %@", error);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(NO);
+            });
+            return;
+        }
+        
+    }];
+    // 下面是一个通用的示例逻辑
+    
 }
 
 

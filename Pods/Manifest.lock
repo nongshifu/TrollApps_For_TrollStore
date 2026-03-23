@@ -41,6 +41,9 @@ PODS:
   - BRPickerView/TextPicker (2.9.7):
     - BRPickerView/Core
   - HWPanModal (0.9.9)
+  - HXPhotoPicker/SDWebImage_AF (3.3.2):
+    - AFNetworking
+    - SDWebImage (~> 5.0)
   - HXPhotoPickerObjC (3.3.4):
     - HXPhotoPickerObjC/Default (= 3.3.4)
   - HXPhotoPickerObjC/Default (3.3.4)
@@ -84,9 +87,9 @@ PODS:
   - ZXNavigationBar (1.4.1)
 
 DEPENDENCIES:
-  - AFNetworking
   - BRPickerView
   - HWPanModal (~> 0.9.4)
+  - HXPhotoPicker/SDWebImage_AF
   - HXPhotoPickerObjC
   - HXPhotoPickerObjC/SDWebImage
   - IGListKit (~> 5.0.0)
@@ -107,6 +110,7 @@ SPEC REPOS:
     - AFNetworking
     - BRPickerView
     - HWPanModal
+    - HXPhotoPicker
     - HXPhotoPickerObjC
     - IGListDiffKit
     - IGListKit
@@ -126,6 +130,7 @@ SPEC CHECKSUMS:
   AFNetworking: 3bd23d814e976cd148d7d44c3ab78017b744cd58
   BRPickerView: 6548c8fbe21c0f29e72ab2fae177d196edc83f09
   HWPanModal: b57a6717d3cdcd666bff44f9dd2a5be9f4d6f5d2
+  HXPhotoPicker: 3d0526bc46cd2a4510a777d5f57dfad8e683fcfd
   HXPhotoPickerObjC: ca01803a5f8d48a43a8283eec2a632cfb0386b37
   IGListDiffKit: 02d937d7e714d6f558771f284ed80668d483b522
   IGListKit: baf7e87b4c2262cd569c380e46ca5667a4a82c82
@@ -141,6 +146,6 @@ SPEC CHECKSUMS:
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: 7f7f83bfc221dbadbab1070284605349bcbadf6e
+PODFILE CHECKSUM: 7a55e79e5e58c4b4fab760ebbe45cb78a51073be
 
 COCOAPODS: 1.16.2

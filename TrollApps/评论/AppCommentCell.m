@@ -4,7 +4,8 @@
 #import "NewProfileViewController.h"
 #import "UserProfileViewController.h"
 #import "LikeModel.h"
-
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface AppCommentCell ()
 @property (nonatomic, strong) UIImageView *avatarImageView;
@@ -276,6 +277,11 @@
     
     // 构建请求参数
     NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php", localURL];
+    NSLog(@"点赞action_type:%ld",self.appComment.action_type);
+    if(self.appComment.action_type == Comment_type_PostComment || self.appComment.action_type == Comment_type_PostSecondComment){
+        url = [NSString stringWithFormat:@"%@/post/post_api.php", localURL];
+    }
+    NSLog(@"点赞URL:%@",url);
     NSDictionary *params = @{
         @"action": @"toggle_comment_like",
         @"action_type": @(self.appComment.action_type),
@@ -396,7 +402,7 @@
 - (void)labelTapped:(UITapGestureRecognizer *)gestureRecognizer {
     UIImageView *view= (UIImageView *)gestureRecognizer.view;
     // 在这里处理标签被点击的逻辑
-    NSLog(@"view tapped: %ld", view.tag);
+    NSLog(@"头像点击: %@", self.appComment.user_udid);
     UserProfileViewController *vc = [UserProfileViewController new];
     vc.user_udid = self.appComment.user_udid;
     [[self getTopViewController] presentPanModal:vc];

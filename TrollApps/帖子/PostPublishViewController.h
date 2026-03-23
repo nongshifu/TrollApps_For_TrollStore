@@ -26,6 +26,9 @@ typedef void(^PostPublishCompletionBlock)(PostModel *post, NSError * _Nullable e
 /// 初始化方法（可传入草稿模型）
 - (instancetype)initWithDraftPost:(nullable PostModel *)draftPost;
 
+/// 核心模型
+@property (nonatomic, strong) PostModel *postModel;
+
 @end
 
 NS_ASSUME_NONNULL_END

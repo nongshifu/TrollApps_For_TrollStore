@@ -18,7 +18,9 @@ typedef NS_ENUM(NSInteger, AttachmentType) {
     AttachmentTypeVideo = 2,   // 视频
     AttachmentTypeAudio = 3,   // 录音
     AttachmentTypeDocument = 4, // 文档
-    AttachmentTypeOther = 5    // 其他
+    AttachmentTypeIPA = 5,    // ipa
+    AttachmentTypeDEB = 6,    // ipa
+    AttachmentTypeOther = 7    // 其他
     
 };
 

@@ -174,6 +174,9 @@ typedef NS_ENUM(NSInteger, PostSortType) {
 /// 扩展字段（字典，存自定义数据，如@{"is_anonymous":@1, "activity_id":@123}）
 @property (nonatomic, strong) NSDictionary *post_extra;
 
+///是否显示全部完整数据
+@property (nonatomic, assign) BOOL showAllData;
+
 @end
 
 NS_ASSUME_NONNULL_END

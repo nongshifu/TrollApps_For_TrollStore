@@ -10,7 +10,10 @@
 #import <Masonry/Masonry.h>
 
 @interface CommentInputView () <UITextViewDelegate>
-
+// 新增：记录原始文本（用于恢复）
+@property (nonatomic, copy) NSString *originalText;
+// 新增：@用户名的高亮颜色
+@property (nonatomic, strong) UIColor *atUserHighlightColor;
 @end
 
 @implementation CommentInputView
@@ -22,6 +25,8 @@
         _expandedHeight = expandedHeight;
         _keyboardIsShow = NO;
         _keyboardHeight = 0;
+        // 初始化高亮颜色（可自定义）
+        _atUserHighlightColor = [UIColor systemBlueColor];
         
         [self setupUI];
         [self setupConstraints];
@@ -46,7 +51,7 @@
                                        ballalpha:0.5];
     [self.backgroundView setRandomGradientBackgroundWithColorCount:2 alpha:0.1];
     
-    // 2. 输入框
+    // 2. 输入框 - 关键修改：支持富文本
     self.textView = [[UITextView alloc] init];
     self.textView.delegate = self;
     self.textView.font = [UIFont systemFontOfSize:15];
@@ -55,6 +60,9 @@
     self.textView.layer.cornerRadius = 10;
     self.textView.clipsToBounds = YES;
     self.textView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8);
+    // 关闭文本选择的菜单（可选）
+    self.textView.editable = YES;
+    self.textView.selectable = YES;
     [self addSubview:self.textView];
     
     // 3. 提示文字
@@ -132,7 +140,6 @@
         
         [self.sendButton mas_updateConstraints:^(MASConstraintMaker *make) {
             make.right.equalTo(self).offset(-10);
-    
             make.width.equalTo(@60);
             make.top.equalTo(self.textView);
             make.bottom.equalTo(self.textView);
@@ -143,9 +150,62 @@
     }];
 }
 
+#pragma mark - 核心功能：@用户名高亮
+/// 处理@用户名的富文本高亮
+- (void)highlightAtUserInTextView:(UITextView *)textView {
+    if (textView.text.length == 0) {
+        self.originalText = @"";
+        return;
+    }
+    
+    // 保存原始文本（用于发送时恢复）
+    self.originalText = textView.text;
+    
+    // 创建富文本
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textView.text];
+    // 设置默认字体和颜色
+    [attributedText addAttribute:NSFontAttributeName value:textView.font range:NSMakeRange(0, textView.text.length)];
+    [attributedText addAttribute:NSForegroundColorAttributeName value:textView.textColor range:NSMakeRange(0, textView.text.length)];
+    
+    // 正则匹配：@用户名 + 空格（匹配规则：@开头，后面跟非空字符，直到空格结束）
+    NSString *pattern = @"@[^\\s]+\\s";
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern
+                                                                           options:NSRegularExpressionCaseInsensitive
+                                                                             error:nil];
+    // 遍历所有匹配结果
+    NSArray<NSTextCheckingResult *> *matches = [regex matchesInString:textView.text
+                                                               options:0
+                                                                 range:NSMakeRange(0, textView.text.length)];
+    for (NSTextCheckingResult *match in matches) {
+        NSRange range = match.range;
+        if (range.location != NSNotFound && range.length > 0) {
+            // 设置@用户名的高亮颜色
+            [attributedText addAttribute:NSForegroundColorAttributeName
+                                   value:self.atUserHighlightColor
+                                   range:range];
+            // 可选：设置粗体
+            [attributedText addAttribute:NSFontAttributeName
+                                   value:[UIFont systemFontOfSize:15 weight:UIFontWeightMedium]
+                                   range:range];
+        }
+    }
+    
+    // 关闭代理避免循环调用
+    textView.delegate = nil;
+    // 设置富文本
+    textView.attributedText = attributedText;
+    // 恢复代理
+    textView.delegate = self;
+    
+    // 恢复光标位置（避免光标跳到开头）
+    NSRange selectedRange = textView.selectedRange;
+    textView.selectedRange = selectedRange;
+}
+
 #pragma mark - 事件处理
 - (void)sendButtonTapped {
-    NSString *content = [self.textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    // 发送时使用原始文本（去掉富文本格式）
+    NSString *content = [self.originalText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if (content.length == 0) {
         // 可替换为自定义提示
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示"
@@ -160,6 +220,9 @@
     if ([self.delegate respondsToSelector:@selector(commentInputViewDidSendComment:)]) {
         [self.delegate commentInputViewDidSendComment:content];
     }
+    
+    // 清空输入框
+    [self clearInputText];
 }
 
 #pragma mark - UITextViewDelegate
@@ -179,6 +242,9 @@
     
     // 处理换行
     [self processNewlinesInTextView:textView];
+    
+    // 核心新增：实时高亮@用户名
+    [self highlightAtUserInTextView:textView];
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
@@ -216,7 +282,9 @@
 
 /// 清空输入框
 - (void)clearInputText {
+    // 清空富文本和原始文本
     self.textView.text = @"";
+    self.originalText = @"";
     self.textPromptLabel.alpha = 1;
 }
 
@@ -225,6 +293,15 @@
     [super layoutSubviews];
     // 确保高度正确
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.keyboardIsShow ? self.expandedHeight : self.originalHeight);
+}
+
+/// 获取顶层控制器（原逻辑，补充实现）
+- (UIViewController *)getTopViewController {
+    UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+    while (topVC.presentedViewController) {
+        topVC = topVC.presentedViewController;
+    }
+    return topVC;
 }
 
 @end

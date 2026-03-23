@@ -13,7 +13,7 @@
 #import "NewProfileViewController.h"
 #import "PostPublishViewController.h"
 #import "SystemViewController.h"
-
+#import "ShowOnePostViewController.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <Masonry/Masonry.h>
 #import <UIKit/UIKit.h>
@@ -74,7 +74,7 @@
     self.searchController.searchBar.tintColor = [UIColor labelColor];
     self.searchController.searchBar.barTintColor = [UIColor labelColor];
     self.searchController.obscuresBackgroundDuringPresentation = NO; // 搜索时不模糊背景
-    self.searchController.hidesNavigationBarDuringPresentation = NO; // 搜索时不隐藏导航栏
+    self.searchController.hidesNavigationBarDuringPresentation = YES; // 搜索时不隐藏导航栏
     
     // 适配iOS 11+导航栏搜索框
     if (@available(iOS 11.0, *)) {
@@ -143,7 +143,7 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择排序方式" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     // 排序选项：对应PostSortType枚举
-    NSArray *sortTitles = @[@"按创建时间", @"按热度", @"按推荐权重", @"按最后评论时间"];
+    NSArray *sortTitles = @[@"按创建时间", @"按热度", @"按推荐权重", @"按最后更新时间"];
     NSArray *sortTypes = @[@0, @1, @2, @3];
     
     for (NSInteger i = 0; i < sortTitles.count; i++) {
@@ -363,6 +363,7 @@
 - (void)loadDataWithPage:(NSInteger)page {
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
     // 修正参数：补充topic_id，修复udid/keyword的空值处理
+    NSLog(@"搜索：%@",self.keyword);
     NSDictionary *dic = @{
         @"action":@"search_posts",
         @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
@@ -372,7 +373,7 @@
         @"topic_id":@(self.topic_id), // 新增：标签筛选参数
         @"start_time":@(self.start_time),
         @"end_time":@(self.end_time),
-        @"post_sort_type":@(self.post_sort_type)
+        @"sort_type":@(self.post_sort_type)
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
@@ -451,7 +452,7 @@
         return [[TemplateSectionController alloc] initWithCellClass:[PostCell class]
                                                          modelClass:[PostModel class]
                                                            delegate:self
-                                                         edgeInsets:UIEdgeInsetsMake(5, 10, 5, 10) // 调整内边距，适配Cell卡片
+                                                         edgeInsets:UIEdgeInsetsMake(5, 5, 5, 5) // 调整内边距，适配Cell卡片
                                                    usingCacheHeight:YES]; // 开启高度缓存，优化性能
     }
     return nil;
@@ -466,6 +467,9 @@
         PostModel *postModel = (PostModel *)model;
         NSLog(@"点击了帖子ID：%lld，标题：%@",postModel.post_id,postModel.post_title);
         // 这里可添加跳转到帖子详情页的逻辑
+        ShowOnePostViewController *vc = [ShowOnePostViewController new];
+        vc.postModel = postModel;
+        [self presentPanModal:vc];
     }
 }
 

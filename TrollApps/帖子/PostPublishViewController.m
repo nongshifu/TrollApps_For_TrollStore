@@ -155,8 +155,7 @@
 #pragma mark - 发帖控制器实现
 @interface PostPublishViewController () <UITextFieldDelegate, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, CLLocationManagerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UITableViewDataSource, UITableViewDelegate, UIDocumentPickerDelegate>
 
-/// 核心模型
-@property (nonatomic, strong) PostModel *postModel;
+
 
 /// UI组件
 @property (nonatomic, strong) UIScrollView *mainScrollView;
@@ -223,8 +222,9 @@
 @property (nonatomic, assign) BOOL isUpdating; // 是否为更新模式
 
 
-@property (nonatomic, strong) HXPhotoView *photoView;
-@property (nonatomic, strong) HXPhotoManager *manager;
+//@property (nonatomic, strong) HXPhotoView *photoView;
+//@property (nonatomic, strong) HXPhotoManager *manager;
+//
 
 
 
@@ -346,10 +346,26 @@
     for (NSString *imgUrl in self.postModel.post_images) {
         if (imgUrl.length > 0) {
             NSLog(@"帖子处理图片:%@",imgUrl);
+            // 1. 将字符串转为 NSURL 对象
+            NSURL *url = [NSURL URLWithString:imgUrl];
+            
+            // 2. 安全校验：确保 URL 有效
+            if (!url) {
+                NSLog(@"无效的URL: %@", imgUrl);
+                continue;
+            }
+            
+            // 3. 获取文件名 (自动处理 ?query 和 #fragment)
+            NSString *fileName = url.lastPathComponent;
+            
+            NSLog(@"原始链接: %@", imgUrl);
+            NSLog(@"提取的文件名: %@", fileName);
+            
             MediaItem *item = [[MediaItem alloc] init];
             item.type = MediaTypeRemoteImage;
             item.remoteUrl = imgUrl;
             item.isDeleted = NO;
+            item.fileName = fileName;
             [self.mediaItems addObject:item];
         }
     }
@@ -362,6 +378,11 @@
         item.remoteUrl = self.postModel.post_video_url;
         item.duration = self.postModel.post_video_duration;
         item.isDeleted = NO;
+        NSURL *url = [NSURL URLWithString:item.remoteUrl];
+        if (url) {
+            item.fileName = url.lastPathComponent;;
+        }
+        
         [self.mediaItems addObject:item];
     }
     if (model.post_video_url.length > 0) {
@@ -693,13 +714,13 @@
 
 - (void)setupTitleTextField {
     _titleTextField = [[UITextField alloc] init];
-    _titleTextField.placeholder = @"请输入帖子标题（可选）";
+    _titleTextField.placeholder = @"请输入帖子标题";
     _titleTextField.textColor = [UIColor post_text_primary_color];
     // 适配占位符颜色
     if (@available(iOS 13.0, *)) {
-        _titleTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"请输入帖子标题（可选）" attributes:@{NSForegroundColorAttributeName: [UIColor post_text_secondary_color]}];
+        _titleTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"请输入帖子标题" attributes:@{NSForegroundColorAttributeName: [UIColor post_text_secondary_color]}];
     } else {
-        _titleTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"请输入帖子标题（可选）" attributes:@{NSForegroundColorAttributeName: [UIColor post_text_secondary_color]}];
+        _titleTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"请输入帖子标题" attributes:@{NSForegroundColorAttributeName: [UIColor post_text_secondary_color]}];
     }
     
     _titleTextField.font = [UIFont systemFontOfSize:18 weight:UIFontWeightMedium];
@@ -1857,9 +1878,12 @@
         return;
     }
     
+    
     // 2. 构建PostModel
-    PostModel *postModel = [self buildPostModel];
-    if (!postModel) {
+    self.postModel = [self buildPostModel];
+    NSLog(@"构建PostModel:%ld",self.postModel.post_images.count);
+    
+    if (!self.postModel) {
         
         [SVProgressHUD showInfoWithStatus:@"构建帖子数据失败"];
         [SVProgressHUD dismissWithDelay:2];
@@ -1871,7 +1895,7 @@
     
     
     // 4. 调用发布工具类
-    [[PostPublisher sharedInstance] publishPost:postModel progress:^(CGFloat progress) {
+    [[PostPublisher sharedInstance] publishPost:self.postModel progress:^(CGFloat progress) {
         // 更新进度（可选）
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD showProgress:progress];
@@ -1898,9 +1922,10 @@
 #pragma mark - 辅助方法
 - (BOOL)validateInput {
     // 简单验证：标题和内容至少有一个
-    return (self.titleTextField.text.length > 0 || self.contentTextView.text.length > 0);
+    return (self.titleTextField.text.length > 0 && self.contentTextView.text.length > 0);
 }
 
+// 获取最新数据
 - (PostModel *)buildPostModel {
     // 确保postModel已存在（外部传入/初始化/草稿载入），不在这里创建新实例
     NSAssert(self.postModel, @"postModel未初始化，请先传入或载入草稿");
@@ -1915,83 +1940,29 @@
     self.postModel.topic_ids = self.postModel.topic_ids ?: @[@0,@1,@2,@3]; // 副类型ID数组（已通过按钮点击更新）
 
     // ===================== 视频信息（优先遍历，仅保留1个有效视频） =====================
-    MediaItem *validVideoItem = nil;
-    NSString *videoBase64 = @"";
+    BOOL videoExists = NO;
     // 遍历mediaItems，找未删除的视频（本地/远程，且仅保留最后一个有效视频）
     for (MediaItem *item in self.mediaItems) {
+        NSLog(@"遍历上传附件:%@",item.fileName);
         if (!item.isDeleted && (item.type == MediaTypeLocalVideo || item.type == MediaTypeRemoteVideo)) {
-            validVideoItem = item;
+            videoExists = YES;
             break; // 确保仅一个视频（业务规则）
         }
     }
     
-    if (validVideoItem) {
-        // 视频URL/本地路径 区分处理：本地转base64，远程保留URL
-        if (validVideoItem.type == MediaTypeLocalVideo && validVideoItem.localPath.length > 0) {
-            // 本地视频转base64
-            NSData *videoData = [NSData dataWithContentsOfFile:validVideoItem.localPath];
-            if (videoData) {
-                videoBase64 = [videoData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-            }
-            self.postModel.post_video_url = videoBase64;
-        } else {
-            // 远程视频保留URL
-            self.postModel.post_video_url = validVideoItem.remoteUrl ?: @"";
-        }
-        
-        // 视频时长
-        self.postModel.post_video_duration = validVideoItem.duration;
-        // 视频文件大小（本地视频：计算文件大小；远程视频：0）
-        if (validVideoItem.type == MediaTypeLocalVideo && validVideoItem.localPath.length > 0) {
-            NSError *error;
-            NSDictionary *fileAttrs = [[NSFileManager defaultManager] attributesOfItemAtPath:validVideoItem.localPath error:&error];
-            self.postModel.post_video_size = error ? 0 : [fileAttrs[NSFileSize] longLongValue];
-        } else {
-            self.postModel.post_video_size = 0;
-        }
-    } else {
-        // 无有效视频，清空视频属性
-        self.postModel.post_video_url = @"";
-        self.postModel.post_video_thumb_url = @"";
-        self.postModel.post_video_duration = 0;
-        self.postModel.post_video_size = 0;
-    }
-
     // ===================== 图片信息（视频处理后遍历，限制数量） =====================
     NSMutableArray<NSString *> *validImageURLs = [NSMutableArray array]; // 有效图片URL/base64数组
     NSMutableArray<NSString *> *validImageThumbURLs = [NSMutableArray array]; // 缩略图数组
     
     // 图片最大数量：有视频则8张，无视频则9张
-    NSInteger maxImageCount = validVideoItem ? 8 : 9;
+    NSInteger maxImageCount = videoExists ? 8 : 9;
     
     // 遍历mediaItems，过滤未删除的图片（本地/远程）
     for (MediaItem *item in self.mediaItems) {
-        // 跳过已删除、非图片类型的项
-        if (item.isDeleted || !(item.type == MediaTypeLocalImage || item.type == MediaTypeRemoteImage)) {
-            continue;
-        }
-        
-        NSString *imageValue = @"";
-        // 区分本地/远程图片：本地转base64，远程保留URL
-        if (item.type == MediaTypeLocalImage) {
-            // 本地路径（/var/mobile 或 file://）转base64
-            NSString *localPath = item.localPath;
-            if ([localPath hasPrefix:@"file://"]) {
-                localPath = [localPath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
-            }
-            NSData *imageData = [NSData dataWithContentsOfFile:localPath];
-            if (imageData) {
-                imageValue = [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-            }
-        } else {
-            // 远程图片直接保留URL
-            imageValue = item.remoteUrl ?: @"";
-        }
-        
-        if (imageValue.length > 0) {
-            [validImageURLs addObject:imageValue];
-            // 缩略图逻辑：本地图片暂用base64，远程图片用远程缩略图（如果有）
-            [validImageThumbURLs addObject:imageValue];
+        NSLog(@"遍历mediaItems，过滤未删除的图片（本地/远程）:%@",item.fileName);
+        // 未删除、并且云端图片
+        if (!item.isDeleted && item.type == MediaTypeRemoteImage && item.fileName) {
+            [validImageURLs addObject:item.fileName];
         }
         
         // 达到最大数量则停止
@@ -2095,6 +2066,7 @@
     [self presentVideoPicker];
 }
 
+// 弹出照片选择器
 - (void)presentVideoPicker {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
@@ -2551,7 +2523,7 @@
     item.fileName = fileNameWithExt;
     item.fileType = [self mimeTypeForFileAtPath:tempPath];
     [self.mediaItems addObject:item];
-    
+    NSLog(@"添加图片后 当前附件数量：%ld",self.mediaItems.count);
     // 刷新UI
     [self.imageCollectionView reloadData];
 }
@@ -2584,9 +2556,25 @@
     item.fileName = fileNameWithExt;
     item.fileType = [self mimeTypeForFileAtPath:videoUrl.path];
     [self.mediaItems addObject:item];
-    
+    NSLog(@"添加视频后 当前附件数量：%ld",self.mediaItems.count);
     // 刷新视频UI
     [self updateVideoPreview];
+    
+    //数据模型属性
+    self.postModel.post_video_thumb_url = @"";
+    self.postModel.post_video_duration = duration;
+    NSError *error;
+    NSDictionary *fileAttrs = [[NSFileManager defaultManager] attributesOfItemAtPath:item.localPath error:&error];
+    self.postModel.post_video_size = error ? 0 : [fileAttrs[NSFileSize] longLongValue];
+    
+    
+    if (item.type == MediaTypeLocalVideo && item.localPath.length > 0) {
+
+        self.postModel.post_video_url = item.localPath;
+    } else {
+        // 远程视频保留URL
+        self.postModel.post_video_url = item.remoteUrl;
+    }
 }
 
 // 删除图片（仅标记isDeleted，不实际移除）
@@ -2621,11 +2609,19 @@
             break;
         }
     }
+    //删除页面属性
     self.selectedVideoURL = nil;
     self.videoThumbImageView.image = nil;
     self.videoDurationLabel.hidden = YES;
     self.deleteVideoBtn.hidden = YES;
     [self updateVideoPreview]; // 刷新UI
+    
+    
+    //删除数据模型属性
+    self.postModel.post_video_url = @"";
+    self.postModel.post_video_thumb_url = @"";
+    self.postModel.post_video_duration = 0;
+    self.postModel.post_video_size = 0;
 }
 
 // 新增：图片删除按钮点击
@@ -2671,9 +2667,9 @@
     NSString *subTitle = @"";
     if (attachment.attachment_source_type == 0) { // 本地文件
         NSString *sizeStr = [self formatFileSize:attachment.attachment_size];
-        subTitle = [NSString stringWithFormat:@"%@ | %@ | 本地文件", sizeStr, attachment.attachment_type];
+        subTitle = [NSString stringWithFormat:@"%@ | %ld | 本地文件", sizeStr, attachment.attachment_type];
     } else { // URL
-        subTitle = [NSString stringWithFormat:@"%@ | 网络文件", attachment.attachment_type];
+        subTitle = [NSString stringWithFormat:@"%ld | 网络文件", attachment.attachment_type];
     }
     cell.detailTextLabel.text = subTitle;
     cell.detailTextLabel.textColor = [UIColor post_text_secondary_color];

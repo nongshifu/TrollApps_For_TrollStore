@@ -7,7 +7,8 @@ target 'TrollApps' do
 
   # Pods for newTorllApps
 
-  pod 'AFNetworking'
+  #pod 'AFNetworking'
+  pod "HXPhotoPicker/SDWebImage_AF" 
   pod 'SDWebImage', '~> 5.0'
   pod 'Masonry'
   pod 'BRPickerView' #地区国家区号选择器
