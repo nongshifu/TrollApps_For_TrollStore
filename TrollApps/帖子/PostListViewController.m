@@ -76,6 +76,9 @@
     self.searchController.obscuresBackgroundDuringPresentation = NO; // 搜索时不模糊背景
     self.searchController.hidesNavigationBarDuringPresentation = YES; // 搜索时不隐藏导航栏
     
+    self.navigationController.navigationBarHidden = NO;
+    self.tabBarController.tabBar.hidden = NO;
+    
     // 适配iOS 11+导航栏搜索框
     if (@available(iOS 11.0, *)) {
         self.navigationItem.searchController = self.searchController;
@@ -452,7 +455,7 @@
         return [[TemplateSectionController alloc] initWithCellClass:[PostCell class]
                                                          modelClass:[PostModel class]
                                                            delegate:self
-                                                         edgeInsets:UIEdgeInsetsMake(5, 5, 5, 5) // 调整内边距，适配Cell卡片
+                                                         edgeInsets:UIEdgeInsetsMake(5, 10, 5, 10) // 调整内边距，适配Cell卡片
                                                    usingCacheHeight:YES]; // 开启高度缓存，优化性能
     }
     return nil;
@@ -473,22 +476,101 @@
     }
 }
 
-#pragma mark - 适配iOS 13+暗黑模式（可选）
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-    [super traitCollectionDidChange:previousTraitCollection];
-    if (@available(iOS 13.0, *)) {
-        if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
-            // 暗黑模式切换时刷新UI
-            [self.collectionView reloadData];
-            self.searchController.searchBar.barTintColor = self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark ? [UIColor darkGrayColor] : [UIColor whiteColor];
-        }
-    }
-}
 
-#pragma mark - 页面消失时收起搜索框
+#pragma mark - 控制器显示函数
+
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [self.searchController.searchBar resignFirstResponder];
 }
+
+// 显示之前
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
+}
+// 显示后
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
+    [self setBackgroundUI];
+    [self topBackageView];
+    [self updateViewConstraints];
+
+    
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    // 在这里进行与布局完成后相关的操作，比如获取子视图的最终尺寸等
+    NSLog(@"视图布局完成：%@",self.collectionView);
+}
+
+
+
+- (void)dealloc {
+    // 移除通知观察者
+    [[NSNotificationCenter defaultCenter] removeObserver:UIKeyboardWillShowNotification];
+    [[NSNotificationCenter defaultCenter] removeObserver:UIKeyboardWillHideNotification];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+}
+
+
+
+- (void)topBackageView{
+    //创建一个空视图渐变色
+    [super topBackageView];
+    
+    UIView * navigationControllerBackageView =[[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, 150)];
+    navigationControllerBackageView.backgroundColor = [UIColor clearColor];
+   
+    UIImage *image = [UIView convertViewToPNG:navigationControllerBackageView];
+    
+    
+    //先判断下系统
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
+        appearance.backgroundColor = [UIColor clearColor];
+        appearance.backgroundEffect = nil; // 完全透明，无磨砂
+        appearance.backgroundImage = image;
+        appearance.shadowImage = [UIImage new];
+        appearance.shadowColor = nil;
+        
+        self.navigationController.navigationBar.standardAppearance = appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
+        self.navigationController.navigationBar.compactAppearance = appearance;
+        
+    }else{
+        //顶部背景图
+        [self.navigationController.navigationBar setBackgroundImage:image forBarMetrics:UIBarMetricsDefault];
+        //清除分割线
+        [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    }
+
+}
+
+
+- (void)setBackgroundUI {
+    [super setBackgroundUI];
+
+    // 设置背景颜色和透明度
+    self.view.backgroundColor = [UIColor clearColor];
+    [self.view removeDynamicBackground];
+    
+}
+
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    
+    NSLog(@"界面模式发生变化");
+    [self setBackgroundUI];
+    [self topBackageView];
+    
+}
+
+
+
 
 @end

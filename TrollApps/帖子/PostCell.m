@@ -83,8 +83,8 @@
 - (void)setupUI {
     // 1. 卡片容器
     self.cardView = [[UIView alloc] init];
-    self.cardView.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7]
-                                                       darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.3]];
+    self.cardView.backgroundColor = [UIColor colorWithLightColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.8]
+                                                       darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.4]];
     self.cardView.layer.cornerRadius = kCardCornerRadius;
     self.cardView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.cardView.layer.shadowOffset = kCardShadowOffset;
@@ -170,7 +170,7 @@
     // 1. 卡片容器约束
     [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.contentView).insets(UIEdgeInsetsMake(0, 0, 0, 0));
-        make.width.equalTo(@(kWidth - 10));
+        make.width.equalTo(@(kWidth - 20));
     }];
     
     // 2. 状态按钮约束（与原来的标签约束一致）
@@ -178,7 +178,7 @@
         make.top.equalTo(self.cardView).offset(10);
         make.right.equalTo(self.cardView).offset(-10);
         make.width.equalTo(@60);
-        make.height.equalTo(@20);
+        make.height.equalTo(@25);
     }];
     
     // 3. 头像

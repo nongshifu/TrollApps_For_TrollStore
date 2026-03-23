@@ -339,7 +339,7 @@
         return [[TemplateSectionController alloc] initWithCellClass:[PostCell class]
                                                          modelClass:[PostModel class]
                                                            delegate:self
-                                                         edgeInsets:UIEdgeInsetsMake(5, 5, 5, 5) // 调整内边距，适配Cell卡片
+                                                         edgeInsets:UIEdgeInsetsMake(5, 10, 5, 10) // 调整内边距，适配Cell卡片
                                                    usingCacheHeight:YES]; // 开启高度缓存，优化性能
     }else if([object isKindOfClass:[CommentModel class]]){
         return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class]
@@ -352,7 +352,7 @@
         return [[TemplateSectionController alloc] initWithCellClass:[TipBarCell class]
                                                          modelClass:[TipBarModel class]
                                                           delegate:self
-                                                         edgeInsets:UIEdgeInsetsMake(5, 5, 5, 5) // 调整内边距，适配Cell卡片
+                                                         edgeInsets:UIEdgeInsetsMake(5, 10, 5, 10) // 调整内边距，适配Cell卡片
                                                          cellHeight:50];
     }
     return nil;
@@ -599,5 +599,7 @@
 - (BOOL)isAutoHandleKeyboardEnabled{
     return NO;
 }
+
+
 
 @end
