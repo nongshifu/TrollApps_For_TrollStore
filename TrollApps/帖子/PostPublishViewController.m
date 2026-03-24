@@ -290,7 +290,7 @@
     // 模拟用户ID（实际从用户中心获取）
    
     UserModel *userModel = [NewProfileViewController sharedInstance].userInfo;
-//    self.postModel.user_model = userModel;
+    self.postModel.user_model = userModel;
     
     self.postModel.user_id = userModel.user_id;
     self.postModel.udid = userModel.udid;

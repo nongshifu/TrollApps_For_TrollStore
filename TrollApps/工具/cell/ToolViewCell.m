@@ -52,6 +52,8 @@
     self.contentView.layer.cornerRadius = 15;
     self.contentView.clipsToBounds = YES; // 确保子视图不超出圆角范围
     
+    
+    
     // 1. 左侧头像
     self.avatarImgView = [[UIImageView alloc] init];
     self.avatarImgView.contentMode = UIViewContentModeScaleAspectFill;
@@ -79,9 +81,14 @@
     self.tagsContainerView.buttonBcornerRadius  = 7;
     self.tagsContainerView.autoLineBreak = YES;
     self.tagsContainerView.space = 3;
+    self.tagsContainerView.tag = 1;
+    self.tagsContainerView.userInteractionEnabled = YES;
     self.tagsContainerView.buttonSpace = 7;
     self.tagsContainerView.buttonBackgroundColorAlpha = 0.5;
+    self.tagsContainerView.buttonDelegate = self;
     [self.contentView addSubview:self.tagsContainerView];
+    
+    
     
    
     // 5. 简介（替换为UITextView，支持选择功能）
@@ -101,9 +108,10 @@
     // 6. 统计容器（预留，用户后期实现）
     self.statsContainerView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 100, 25)];
     self.statsContainerView.buttonDelegate = self;
-    self.statsContainerView.buttonBcornerRadius  =3;
+    self.statsContainerView.buttonBcornerRadius  = 3;
     self.statsContainerView.autoLineBreak = YES;
     self.statsContainerView.space = 3;
+    self.statsContainerView.tag = 2;
     self.statsContainerView.fontSize = 12;
     self.statsContainerView.buttonSpace = 6;
     self.statsContainerView.tintIconColor = [UIColor whiteColor];
@@ -379,35 +387,41 @@
 
 #pragma mark - 底部按钮点击
 
-- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
-    NSString *action;
-    switch (tag) {
-        case 0:
-            action = @"";
-            return;
-        case 1:
-            action = @"collect";
-            break;
-        case 2:
-            action = @"toggleToolLike";
-            break;
-        case 3:
-            action = @"toggleToolDisLike";
-            break;
-        case 4:
-            action = @"addComment";
-            [self addComment:action button:button];
-            return;
-        case 5:
-            action = @"shareTool";
-            [self handleShareAction];
-            return;
-        
-        default:
-            break;
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
+    NSInteger viewTag = view.tag;
+    if(viewTag == 1){
+        [self buttonClicked];
+    }else{
+        NSString *action;
+        switch (tag) {
+            case 0:
+                action = @"";
+                return;
+            case 1:
+                action = @"collect";
+                break;
+            case 2:
+                action = @"toggleToolLike";
+                break;
+            case 3:
+                action = @"toggleToolDisLike";
+                break;
+            case 4:
+                action = @"addComment";
+                [self addComment:action button:button];
+                return;
+            case 5:
+                action = @"shareTool";
+                [self handleShareAction];
+                return;
+            
+            default:
+                break;
+        }
+        [self buttonActionWith:action button:button];
+        [DemoBaseViewController triggerVibration];
     }
-    [self buttonActionWith:action button:button];
-    [DemoBaseViewController triggerVibration];
+    
     
 }
 
@@ -451,6 +465,15 @@
 
 - (void)openHtmlButton:(UIButton*)button{
     [self openHtml:self.toolModel];
+}
+
+- (void)buttonClicked{
+    
+    ShowOneToolViewController *vc = [ShowOneToolViewController new];
+    vc.tool_id = self.toolModel.tool_id;
+    UIViewController *topVc = [self getTopViewController];
+    if([topVc isKindOfClass:[ShowOneToolViewController class]])return;
+    [topVc presentPanModal:vc];
 }
 
 - (void)openHtml:(WebToolModel*)model {

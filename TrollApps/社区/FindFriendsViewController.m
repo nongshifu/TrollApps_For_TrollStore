@@ -494,7 +494,7 @@
 
 #pragma mark - 历史搜索按钮点击
 ///点击代理
-- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button{
+- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(nonnull MiniButtonView *)view{
     if(tag == 0) return;
     [SVProgressHUD showWithStatus:nil];
     [SVProgressHUD dismissWithDelay:1];
@@ -504,7 +504,7 @@
 }
 
 ///长按代理
-- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button {
+- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button  view:(nonnull MiniButtonView *)view{
     if(tag == 0) return;
     [self.searchTitles removeObject:title];
     [[NSUserDefaults standardUserDefaults] setObject:self.searchTitles forKey:FIND_TITLES_SAVE_KEY];

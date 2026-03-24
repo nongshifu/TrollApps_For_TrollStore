@@ -18,7 +18,7 @@
 #import "ShowOneOrderViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 @interface AppDelegate ()
 
 @end
@@ -55,18 +55,58 @@
     [self.window makeKeyAndVisible];
     [self createRongIM];
     [loadData sharedInstance];
-    
+    [self setupSystemBackageColor];
     
     return YES;
+}
+
+#pragma mark - 主题
+- (void)setupSystemBackageColor{
+    // 1. 配置导航栏基础样式（透明背景）
+    UINavigationBar *navBar = [UINavigationBar appearance];
+    navBar.backgroundColor = [UIColor clearColor];
+    navBar.barTintColor = [UIColor clearColor]; // 导航栏背景色
+    navBar.tintColor = [UIColor labelColor]; // 按钮文字/图标颜色
+    navBar.translucent = YES; // 关键：开启透明（必须）
+    navBar.shadowImage = [UIImage new]; // 隐藏底部分割线
+    [navBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];// 清空背景图
+    
+    
+    // 2. 取消 UIBarButtonItem 所有背景样式
+    UIBarButtonItem *barButton = [UIBarButtonItem appearance];
+    // 关闭系统默认的高亮背景
+    [barButton setBackgroundImage:[UIImage new] forState:UIControlStateNormal style:UIBarButtonItemStylePlain barMetrics:UIBarMetricsDefault];
+    [barButton setBackgroundImage:[UIImage new] forState:UIControlStateHighlighted style:UIBarButtonItemStylePlain barMetrics:UIBarMetricsDefault];
+    [barButton setBackgroundImage:[UIImage new] forState:UIControlStateSelected style:UIBarButtonItemStylePlain barMetrics:UIBarMetricsDefault];
+    // 清空背景偏移（避免残留空白）
+    [barButton setBackgroundVerticalPositionAdjustment:0 forBarMetrics:UIBarMetricsDefault];
 }
 
 #pragma mark - 融云相关
 //初始化融云
 - (void)createRongIM{
-    NSString *appKey = @"mgb7ka1nmog3g"; // example: bos9p5rlcm2ba
+    NSString *appKey = @"k51hidwqkoz3b"; // example: mgb7ka1nmog3g sfci50a7syeti k51hidwqkoz3b
+    
     RCInitOption *initOption = nil;
     [[RCCoreClient sharedCoreClient] initWithAppKey:appKey option:initOption];
+    
     [RCCoreClient sharedCoreClient].logLevel = RC_Log_Level_Error;
+//    /// 添加代理委托
+//    [[RCIM sharedRCIM] addConnectionStatusDelegate:self];
+//
+//    [[RCIM sharedRCIM] connectWithToken:@"后台获取的 token"
+//        dbOpened:^(RCDBErrorCode code) {
+//             //消息数据库打开，可以进入到主页面
+//        }success:^(NSString *userId) {
+//             //连接成功,可跳转至会话列表页
+//        }error:^(RCConnectErrorCode status) {
+//            if (status ==RC_CONN_TOKEN_INCORRECT) {
+//                //从 APP 服务获取新 token，并重连
+//            } else {
+//                //无法连接到 IM 服务器，请根据相应的错误码作出对应处理
+//        }
+//    }];
+//
     //设为选择媒体资源时包含视频文件
     RCKitConfigCenter.message.isMediaSelectorContainVideo = YES;
     //设为选择媒体资源时包含视频文件
@@ -113,7 +153,7 @@
     RCKitConfigCenter.ui.globalNavigationBarTintColor = [UIColor labelColor];
     //设置会话类型默认标题
     RCKitConfigCenter.ui.globalConversationCollectionTitleDic = @{
-//        @(ConversationType_PRIVATE): @"私信",
+        @(ConversationType_PRIVATE): @"私信",
         @(ConversationType_SYSTEM): @"系统消息",
         @(ConversationType_CUSTOMERSERVICE): @"官方客服消息",
         @(ConversationType_PUSHSERVICE): @"推送服务消息",

@@ -251,8 +251,8 @@
 - (void)buttonTapped:(UITapGestureRecognizer *)gestureRecognizer {
     UIButton *button = (UIButton *)gestureRecognizer.view;
     if (gestureRecognizer.state == UIGestureRecognizerStateRecognized) {
-        if ([self.buttonDelegate respondsToSelector:@selector(buttonTappedWithTag:title:button:)]) {
-            [self.buttonDelegate buttonTappedWithTag:button.tag title:button.titleLabel.text button:button];
+        if ([self.buttonDelegate respondsToSelector:@selector(buttonTappedWithTag:title:button:view:)]) {
+            [self.buttonDelegate buttonTappedWithTag:button.tag title:button.titleLabel.text button:button view:self];
         }
     }
 }
@@ -261,8 +261,8 @@
 - (void)buttonLongPressed:(UILongPressGestureRecognizer *)gestureRecognizer {
     UIButton *button = (UIButton *)gestureRecognizer.view;
     if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-        if ([self.buttonDelegate respondsToSelector:@selector(buttonLongPressedWithTag:title:button:)]) {
-            [self.buttonDelegate buttonLongPressedWithTag:button.tag title:button.titleLabel.text button:button];
+        if ([self.buttonDelegate respondsToSelector:@selector(buttonLongPressedWithTag:title:button:view:)]) {
+            [self.buttonDelegate buttonLongPressedWithTag:button.tag title:button.titleLabel.text button:button view:self];
         }
     }
 }
@@ -271,8 +271,8 @@
 - (void)buttonDoubleTapped:(UITapGestureRecognizer *)gestureRecognizer {
     UIButton *button = (UIButton *)gestureRecognizer.view;
     if (gestureRecognizer.state == UIGestureRecognizerStateRecognized) {
-        if ([self.buttonDelegate respondsToSelector:@selector(buttonDoubleTappedWithTag:title:button:)]) {
-            [self.buttonDelegate buttonDoubleTappedWithTag:button.tag title:button.titleLabel.text button:button];
+        if ([self.buttonDelegate respondsToSelector:@selector(buttonDoubleTappedWithTag:title:button:view:)]) {
+            [self.buttonDelegate buttonDoubleTappedWithTag:button.tag title:button.titleLabel.text button:button view:self];
         }
     }
 }

@@ -426,7 +426,7 @@
 
 #pragma mark - 底部按钮点击
 // 双击系统标签添加到自定义分类
-- (void)buttonDoubleTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
+- (void)buttonDoubleTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
     // 检查是否已存在该分类
     if ([self.titles containsObject:title]) {
         UIAlertController *alert = [UIAlertController

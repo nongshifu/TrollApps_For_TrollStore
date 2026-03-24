@@ -542,7 +542,7 @@
     
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
     // 构建请求参数（根据实际接口调整）
-    Action_type comment_type = Comment_type_PostComment;
+    Action_type comment_type = Comment_type_Post;
     NSDictionary *params = @{
         @"action": @"comment",
         

@@ -3,14 +3,14 @@
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
-
+@class MiniButtonView;
 @protocol MiniButtonViewDelegate <NSObject>
 ///点击代理
-- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button;
+- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(MiniButtonView*)view;
 ///长按代理
-- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button;
+- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(MiniButtonView*)view;
 ///双击代理
-- (void)buttonDoubleTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button;
+- (void)buttonDoubleTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(MiniButtonView*)view;
 //开始滑动会触发这个代理
 - (void)miniButtonViewDidStartSliding;
 //停止滑动

@@ -879,7 +879,7 @@
     [self updateViewConstraints];
 }
 
-- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
     if(tag ==0){
         CategoryManagerViewController *vc = [CategoryManagerViewController new];
         [self presentPanModal:vc];

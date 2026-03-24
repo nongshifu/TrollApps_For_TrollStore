@@ -70,7 +70,13 @@
                                                           darkColor:[[UIColor systemBackgroundColor] colorWithAlphaComponent:0.4]
     ];
     self.contentView.layer.cornerRadius = 15;
+    self.userInteractionEnabled = YES;
     
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(buttonClicked:)];
+    tapGesture.cancelsTouchesInView = NO; // 确保不影响其他控件的事件
+    self.contentView.userInteractionEnabled = YES;
+    [self.contentView addGestureRecognizer:tapGesture];
+
     
     
     // 应用图标
@@ -593,7 +599,7 @@
 
 #pragma mark - 底部点击代理
 
-- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
     NSString *action = nil;
     NSString *successMsg = nil;
     button.tag = tag;

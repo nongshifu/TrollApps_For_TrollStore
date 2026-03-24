@@ -17,7 +17,8 @@
 #import "CommentModel.h"
 #import "ContactHelper.h"
 #import "ToolMessage.h"
-
+#undef MY_NSLog_ENABLED
+#define MY_NSLog_ENABLED YES
 
 @interface ShowOneToolViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, UICollectionViewDelegate, CommentInputViewDelegate>
 @property (nonatomic, assign) BOOL sort;//搜索排序 0 按最新时间 1 按最热门评论
@@ -28,6 +29,7 @@
 @property (nonatomic, strong) UIButton *editButton;//编辑软件更新按钮
 @property (nonatomic, strong) UIButton *editAppStatuButton;//删除软件按照
 @property (nonatomic, assign) BOOL hasShownTipBarBubble; // 新增：标记是否已显示气泡提示
+@property (nonatomic, strong) TipBarModel *tipBarModel; //提示条模型
 
 
 @end
@@ -57,7 +59,14 @@
     // 注册点击评论排序通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tipBarCellTapped:) name:kTipBarCellTappedNotification object:nil];
    
-    [self refreshLoadInitialData];
+    
+    
+    [self loadPostData];
+    
+    self.tipBarModel = [[TipBarModel alloc] initWithIconURL:@"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
+    self.page = 1;
+    [self loadDataWithPage:1];
+    
 }
 
 
@@ -76,7 +85,6 @@
     
     UIButton *button2 = [UIButton systemButtonWithImage:[UIImage systemImageNamed:@"repeat"] target:self action:@selector(refresh:)];
     button2.frame = CGRectMake(kWidth - 95, 10, 40, 30);
-    [button2 addTarget:self action:@selector(refresh) forControlEvents:UIControlEventTouchUpInside];
     button2.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.8];
     button2.layer.cornerRadius = 15;
     [self.view addSubview:button2];
@@ -155,16 +163,16 @@
 }
 
 - (void)refresh:(UIButton*)button {
-    [DemoBaseViewController triggerVibration];
-    self.page = 1;
-    [self loadDataWithPage:self.page];
+    [self refresh];
 }
 
 ///右上角刷新按钮
 - (void)refresh {
     [self.dataSource removeAllObjects];
+    [self loadPostData];
+    [DemoBaseViewController triggerVibration];
     self.page = 1;
-    [self loadDataWithPage:1];
+    [self loadDataWithPage:self.page];
     
 }
 
@@ -298,30 +306,15 @@
 
 }
 
-
-
-#pragma mark - 子类必须重写的方法
-/**
- 加载指定页数数据（子类必须实现）
- @param page 当前请求的页码
- */
-- (void)loadDataWithPage:(NSInteger)page {
-    // 记录当前页码（避免多线程问题）
-    NSInteger currentPage = page;
+#pragma mark - 获取帖子数据
+- (void)loadPostData {
     
-    // 第一页时清空数据源
-    if (currentPage <= 1) {
-        [self.dataSource removeAllObjects];
-    }
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
     // 构建请求参数
     NSDictionary *dic = @{
         @"action": @"getToolDetail",
-        @"sort": @(self.sort),
         @"tool_id": @(self.tool_id),
-        @"pageSize": @(30),
         @"udid": udid,
-        @"page": @(currentPage)
     };
     
     NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
@@ -355,80 +348,112 @@
                 NSDictionary *tool_info = data[@"tool"];
                 NSLog(@"请求查看成功，tool_info: %@", tool_info);
                 self.webToolModel = [WebToolModel yy_modelWithDictionary:tool_info];
+                self.webToolModel.userModel = [UserModel yy_modelWithDictionary:tool_info[@"UserModel"]];
                 self.webToolModel.isShowAll = YES;
                 NSLog(@"请求查看工具成功，返回数据self.webToolModel: %@", self.webToolModel);
-                // 确保应用信息有效
-                if (self.webToolModel && self.webToolModel.tool_name) {
-                    NSLog(@"确保应用信息有效tool_name: %@", self.webToolModel.tool_name);
-                    
-                    // 如果是第一页，替换原有应用信息；否则忽略（避免重复添加）
-                    if (currentPage <= 1) {
-                        if (self.dataSource.count > 0 && [self.dataSource[0] isKindOfClass:[WebToolModel class]]) {
-                            [self.dataSource replaceObjectAtIndex:0 withObject:self.webToolModel];
-                        } else {
-                            [self.dataSource insertObject:self.webToolModel atIndex:0];
-                        }
-                    }
-                    //显示更新按钮
-                    BOOL isUpdateAPP = [self.webToolModel.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid];
-                    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
-                    self.editButton.alpha = isUpdateAPP || isAdmin;
-                    self.editAppStatuButton.alpha = isUpdateAPP || isAdmin;
-                    if(isUpdateAPP){
-                        NSLog(@"显示更新按钮 准备更新软件:%@",self.webToolModel.tool_name);
-                    }
-                    
-                }
                 
+                [self.dataSource insertObject:self.webToolModel atIndex:0];
+                [self.dataSource insertObject:self.tipBarModel atIndex:1];
                 
+                [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
+                    [self updateEmptyViewVisibility];
+                    [self showBubbleOnTipBarIcon];
+                }];
+                
+            } else {
+                [self handleErrorWithMessage:[NSString stringWithFormat:@"请求失败: %@", message]];
+            }
+        });
+    }failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"网络请求失败: %@", error);
+            [self handleErrorWithMessage:[NSString stringWithFormat:@"网络错误\n%@", error.localizedDescription]];
+        });
+    }];
+}
+
+#pragma mark - 子类必须重写的方法
+/**
+ 加载指定页数数据（子类必须实现）
+ @param page 当前请求的页码
+ */
+- (void)loadDataWithPage:(NSInteger)page {
+    // 记录当前页码（避免多线程问题）
+    NSInteger currentPage = page;
+    
+    // 第一页时清空数据源
+    if (currentPage <= 1) {
+        [self.dataSource removeAllObjects];
+        if(self.webToolModel){
+            [self.dataSource insertObject:self.webToolModel atIndex:0];
+            [self.dataSource insertObject:self.tipBarModel atIndex:1];
+        }
+        
+    }
+    
+    NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
+    // 构建请求参数
+    NSDictionary *dic = @{
+        @"action": @"getComments",
+        @"sort": @(self.sort),
+        @"tool_id": @(self.tool_id),
+        @"pageSize": @(30),
+        @"udid": udid,
+        @"page": @(currentPage)
+    };
+    
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
+    NSLog(@"请求URL:%@ 参数:%@", url, dic);
+   
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url
+                                             parameters:dic
+                                                   udid:udid
+                                               progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"请求成功，返回数据stringResult: %@", stringResult);
+            [self endRefreshing];
+            // 验证返回数据格式
+            if (!jsonResult) {
+                NSLog(@"返回数据格式错误: %@", stringResult);
+                [self handleErrorWithMessage:@"返回数据格式错误"];
+                return;
+            }
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSLog(@"请求成功，返回数据: %@", stringResult);
+            
+            NSString *message = jsonResult[@"msg"];
+            if(code == 200){
+                // 解析数据
+                NSDictionary *data = jsonResult[@"data"];
                 // 解析评论数据
-                NSDictionary *commentsData = data[@"commentsData"];
-                NSLog(@"请求查看帖子成功，commentsData: %@", commentsData);
-                if(commentsData){
-                    NSArray * comments = commentsData[@"comments"];
-                    for (NSDictionary *commentDic in comments) {
-                        NSLog(@"评论数据:%@",commentDic);
-                        CommentModel *comment = [CommentModel yy_modelWithDictionary:commentDic];
-                        comment.userInfo = [UserModel yy_modelWithDictionary:commentDic[@"userInfo"]];
-                        NSLog(@"评论用户数据nickname:%@",comment.userInfo.nickname);
-                        if (comment) {
-                            [self.dataSource  addObject:comment];
-                        }
-                    }
-                    TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256" tipText:@"这个应用怎么样？点评下吧！" leftButtonText:@"New" rightButtonText:@"Hot"];
+                NSArray * comments = data[@"comments"];
+                
+                NSDictionary *pagination = data[@"pagination"];
+                BOOL hasMore = [pagination[@"hasMore"] boolValue];
+                if(!hasMore || comments.count ==0){
+                    [self handleNoMoreData];
                     
-                    if(self.dataSource.count > 2){
-                        id model = [self.dataSource objectAtIndex:1];
-                        if (![model isKindOfClass:[TipBarModel class]]){
-                            [self.dataSource insertObject:tipBarModel atIndex:1];
-                        }
-                    }else if(self.dataSource.count == 1){
-                        
-                        [self.dataSource insertObject:tipBarModel atIndex:1];
-                    }
-                    
-                   
-                    //刷新
-                    [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
-                        [self updateEmptyViewVisibility];
-                        [self showBubbleOnTipBarIcon];
-                    }];
-                    
-                    NSDictionary *pagination = commentsData[@"pagination"];
-                    BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                    if(!hasMore || comments.count ==0){
-                        [self handleNoMoreData];
-                        
-                    }else{
-                        self.page +=1;
-                    }
                 }else{
-                     //刷新
-                     [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
-                         [self updateEmptyViewVisibility];
-                         [self showBubbleOnTipBarIcon];
-                     }];
+                    self.page +=1;
                 }
+                for (NSDictionary *commentDic in comments) {
+                    NSLog(@"评论数据:%@",commentDic);
+                    CommentModel *comment = [CommentModel yy_modelWithDictionary:commentDic];
+                    comment.userInfo = [UserModel yy_modelWithDictionary:commentDic[@"userInfo"]];
+                    NSLog(@"评论用户数据nickname:%@",comment.userInfo.nickname);
+                    if (comment) {
+                        [self.dataSource  addObject:comment];
+                    }
+                }
+                
+                //刷新
+                [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
+                    [self updateEmptyViewVisibility];
+                    [self showBubbleOnTipBarIcon];
+                }];
                 
             } else {
                 [self handleErrorWithMessage:[NSString stringWithFormat:@"请求失败: %@", message]];
@@ -661,7 +686,7 @@
                                                 superVC:self
                                            dismissDelay:1.5
                                          arrowDirection:UIPopoverArrowDirectionDown];
-                
+                [tipBarCell.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.webToolModel.userModel.avatar] placeholderImage:tipBarCell.iconImageView.image];
                 // 5. 标记为已显示，避免重复弹出
                 self.hasShownTipBarBubble = YES;
                 break; // 找到第一个 TipBarCell 即可，无需继续遍历

@@ -32,7 +32,7 @@
 
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface NewProfileViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, TemplateSectionControllerDelegate, TemplateListDelegate,WKNavigationDelegate>
 
@@ -269,7 +269,7 @@
 - (void)testgetSerialNumber{
     NSString *serialNumber = [self getSerialNumber];
     if(!serialNumber || serialNumber.length<5){
-        [self showAlertFromViewController:self title:@"权限失效" message:@"请用巨魔商店安装本APP\n就可以享受高级权限"];
+        [self showGetUDIDNote];
     }else{
         self.serialNumberLabel.text = serialNumber;
     }
@@ -779,7 +779,7 @@
             NSLog(@"从 APP 服务获取新 token，并重连");
         } else {
             //无法连接到 IM 服务器，请根据相应的错误码作出对应处理
-            NSLog(@"无法连接到 IM 服务器，请根据相应的错误码作出对应处理");
+            NSLog(@"无法连接到 IM 服务器，请根据相应的错误码作出对应处理:%ld",errorCode);
         }
     }];
 }
@@ -813,21 +813,32 @@
         [self updateUserInfoWithUserModel:self.userInfo];
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序" preferredStyle:UIAlertControllerStyleAlert];
-            // 添加取消按钮
-            UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                
-                
-            }];
-            [alert addAction:cancelAction];
-            UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                [self registerUser:idfv nickname:@"游客用户"];
-            }];
-            [alert addAction:confirmAction];
-            [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
+            [self showGetUDIDNote];
         });
     }];
     
+}
+
+- (void)showGetUDIDNote {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序/n或者获取UDID进行注册" preferredStyle:UIAlertControllerStyleAlert];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+        
+    }];
+    [alert addAction:cancelAction];
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self registerUser:[self getIDFV] nickname:@"游客用户"];
+    }];
+    [alert addAction:confirmAction];
+    UIAlertAction*getudid = [UIAlertAction actionWithTitle:@"获取UDID安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self installProfile];
+    }];
+    [alert addAction:getudid];
+    
+    
+    
+    [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)registerUser:(NSString*)udid nickname:(NSString*)nickname{
@@ -848,11 +859,12 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"请求udid用户数据:%@",stringResult);
             NSInteger code = [jsonResult[@"code"] intValue];
+            NSString * msg = jsonResult[@"msg"];
             if (jsonResult && code == 200) {
                 self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"userInfo"]];
                 [self updateUserInfoWithUserModel:self.userInfo];
             }else{
-                [SVProgressHUD showErrorWithStatus:@"注册失败"];
+                [SVProgressHUD showErrorWithStatus:msg];
             }
         });
     } failure:^(NSError *error) {
@@ -920,6 +932,7 @@
 }
 
 - (void)copyIdentifier:(UIButton *)sender {
+    
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = sender.titleLabel.text;
     [self showAlertWithTitle:@"提示" message:@"已复制到剪贴板"];
@@ -1229,6 +1242,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self animationUI];
+//    [self testgetSerialNumber];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

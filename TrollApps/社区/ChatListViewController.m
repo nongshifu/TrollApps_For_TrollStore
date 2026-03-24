@@ -37,6 +37,9 @@
 @property (nonatomic, strong) NSMutableArray *searchArray;  // 搜索结果存储数组
 
 @property (nonatomic, strong) UISearchController *searchController;
+@property (nonatomic, assign) SquareVCType currentVCType; // 记录当前控制器类型
+@property (nonatomic, strong) UIBarButtonItem *leftButton;
+@property (nonatomic, strong) UIBarButtonItem *rightButton;
 @end
 
 @implementation ChatListViewController
@@ -44,7 +47,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
+    self.currentVCType = [[NSUserDefaults standardUserDefaults] integerForKey:kSquareVCTypeKey];
     [self setupViews];
     //设置约束
     [self setupViewConstraints];
@@ -83,7 +86,7 @@
     //注册消息接收代理
     [[RCCoreClient sharedCoreClient] addReceiveMessageDelegate:self];
     
-//    self.edgesForExtendedLayout = UIRectEdgeBottom | UIRectEdgeLeft | UIRectEdgeRight ;
+//    self.edgesForExtendedLayout = UIRectEdgeBottom | UIRectEdgeLeft | UIRectEdgeRight  | UIRectEdgeTop;
     self.edgesForExtendedLayout = UIRectEdgeNone;
     
     self.view.backgroundColor = [UIColor clearColor];
@@ -149,22 +152,22 @@
     // 判断是否是模态弹出
     BOOL isPresentedModally = [self isModal];
     
-    UIBarButtonItem *camera = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"qrcode"] style:UIBarButtonItemStylePlain target:self action:@selector(camera:)];
-    camera.tintColor = [UIColor labelColor];
+    self.rightButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"switch.2"] style:UIBarButtonItemStylePlain target:self action:@selector(switchMode:)];
+    self.rightButton.tintColor = [UIColor labelColor];
     
     // 仅在模态时设置右侧关闭按钮，否则隐藏
-    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : camera;
+    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : self.rightButton;
     
     // 关闭按钮
-    UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"heart"] style:UIBarButtonItemStylePlain target:self action:@selector(heart:)];
-    leftButton.tintColor = [UIColor labelColor];
+    self.leftButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"qrcode"] style:UIBarButtonItemStylePlain target:self action:@selector(camera:)];
+    self.leftButton.tintColor = [UIColor labelColor];
     
     // 关键：禁用系统默认的返回按钮
     self.navigationItem.leftItemsSupplementBackButton = NO; // 禁用补充模式
     self.navigationItem.hidesBackButton = YES; // 隐藏系统返回按钮
     
     // 设置自定义左侧按钮
-    self.navigationItem.leftBarButtonItem = leftButton;
+    self.navigationItem.leftBarButtonItem = self.leftButton;
 }
 
 
@@ -185,7 +188,7 @@
     [self.conversationListTableView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view).offset(0); // 顶部偏移量
         make.left.right.equalTo(self.view);
-        make.bottom.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(0);
     }];
     [self.miniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.conversationListTableView.mas_top).offset(0); // 顶部偏移量
@@ -201,13 +204,15 @@
 -(void)updateViewConstraints{
     [super updateViewConstraints];
     
-    
+    CGFloat statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+    CGFloat navBarHeight = self.navigationController.navigationBar.frame.size.height;
+    CGFloat topOffset = statusBarHeight + navBarHeight + 44;
     CGFloat newtopOffset = self.miniButtonView.hidden ? 0 : 40;
     
     [self.conversationListTableView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view).offset(newtopOffset); // 顶部偏移量
         make.left.right.equalTo(self.view);
-        make.bottom.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(0);
     }];
     [self.miniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(self.conversationListTableView.mas_top).offset(0); // 顶部偏移量
@@ -243,6 +248,23 @@
 }
 
 #pragma mark - action 函数
+
+// 切换模式的点击事件
+- (void)switchMode:(UIBarButtonItem *)item  {
+    // 1. 切换控制器类型
+    self.currentVCType = (self.currentVCType == SquareVCTypePostList) ? SquareVCTypeOther : SquareVCTypePostList;
+    
+    // 2. 发送通知给 TabBarController
+    NSDictionary *userInfo = @{kSquareVCTypeKey: @(self.currentVCType)};
+    [[NSNotificationCenter defaultCenter] postNotificationName:kSwitchSquareVCNotification
+                                                        object:nil
+                                                      userInfo:userInfo];
+    
+    // 可选：更新按钮图标/颜色，提示切换状态
+    NSString *iconName = (self.currentVCType == SquareVCTypeOther) ? @"switch.2.fill" : @"switch.2";
+    self.rightButton.image = [UIImage systemImageNamed:iconName];
+    self.rightButton.tintColor = (self.currentVCType == SquareVCTypeOther) ? [UIColor blueColor] : [UIColor redColor];
+}
 
 // 关闭按钮的点击事件（模态弹出时，通过dismiss关闭）
 - (void)close:(UIBarButtonItem *)item {
@@ -708,13 +730,22 @@
     NSString *avaurl = [NSString stringWithFormat:@"%@",userModel.avatar];
     NSLog(@"更新头像地址:%@",avaurl);
     [avaView sd_setImageWithURL:[NSURL URLWithString:avaurl]];
+    if(userModel.is_online){
+        avaView.layer.borderWidth = 1;
+        avaView.layer.borderColor = [UIColor greenColor].CGColor;
+    }
     
-   
     if(mycel.model.conversationType == ConversationType_SYSTEM){
         mycel.conversationTitle.text = @"互动消息";
         avaView.image = [UIImage imageNamed:@"xingqiu99"];
     }
-    
+    //超管
+    if(userModel.role){
+        mycel.conversationTitle.text = [NSString stringWithFormat:@"%@ (超管)",userModel.nickname];
+        mycel.conversationTitle.textColor = [UIColor orangeColor];
+    }else{
+        mycel.conversationTitle.textColor = [UIColor labelColor];
+    }
     
     mycel.conversationTagView.layer.masksToBounds =NO;
    
@@ -1040,7 +1071,7 @@
 
 #pragma mark - 历史搜索按钮点击
 ///点击代理
-- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button{
+- (void)buttonTappedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(nonnull MiniButtonView *)view{
     if(tag == 0) return;
     [SVProgressHUD showWithStatus:nil];
     [SVProgressHUD dismissWithDelay:1];
@@ -1050,7 +1081,7 @@
 }
 
 ///长按代理
-- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button {
+- (void)buttonLongPressedWithTag:(NSInteger)tag title:(NSString *)title button:(UIButton*)button view:(nonnull MiniButtonView *)view{
     if(tag == 0) return;
     [self.searchTitles removeObject:title];
     [[NSUserDefaults standardUserDefaults] setObject:self.searchTitles forKey:TITLES_SAVE_KEY];

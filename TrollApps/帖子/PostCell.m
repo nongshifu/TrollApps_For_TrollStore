@@ -18,6 +18,12 @@
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 #import "NewProfileViewController.h"
+#import "MiniButtonView.h"
+#import "MyCollectionViewController.h"
+#import "ShowOnePostViewController.h"
+#import "ToolMessage.h"
+#import "ChatListViewController.h"
+#import "QRCodeGeneratorViewController.h"
 
 
 #undef MY_NSLog_ENABLED
@@ -33,7 +39,7 @@
 #define kMaxContentLines 4          // 正文最大行数
 #define kMaxMediaCount 9            // 最大媒体数量（图片+视频）
 
-@interface PostCell ()<HXPhotoViewDelegate>
+@interface PostCell ()<HXPhotoViewDelegate, MiniButtonViewDelegate>
 /// 卡片容器视图
 @property (nonatomic, strong) UIView *cardView;
 /// 状态按钮
@@ -50,12 +56,10 @@
 @property (nonatomic, strong) UIView *mediaContainerView;
 @property (nonatomic, strong) HXPhotoView *photoView;
 @property (nonatomic, strong) HXPhotoManager *manager;
+
 /// 互动栏
-@property (nonatomic, strong) UIView *interactBarView;
-/// 点赞数标签
-@property (nonatomic, strong) UILabel *likeCountLabel;
-/// 评论数标签
-@property (nonatomic, strong) UILabel *commentCountLabel;
+@property (nonatomic, strong) MiniButtonView *statsMiniButtonView; // 统计按钮容器
+
 /// 时间/位置标签
 @property (nonatomic, strong) UILabel *timeLocationLabel;
 
@@ -145,20 +149,21 @@
     [self.cardView addSubview:self.timeLocationLabel];
     
     // 7. 互动栏
-    self.interactBarView = [[UIView alloc] init];
-    [self.cardView addSubview:self.interactBarView];
-    
-    // 7.1 点赞数
-    self.likeCountLabel = [[UILabel alloc] init];
-    self.likeCountLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightRegular];
-    self.likeCountLabel.textColor = [UIColor lightGrayColor];
-    [self.interactBarView addSubview:self.likeCountLabel];
-    
-    // 7.2 评论数
-    self.commentCountLabel = [[UILabel alloc] init];
-    self.commentCountLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightRegular];
-    self.commentCountLabel.textColor = [UIColor lightGrayColor];
-    [self.interactBarView addSubview:self.commentCountLabel];
+    // 统计信息按钮堆栈视图
+    self.statsMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, 150, 20)];
+    self.statsMiniButtonView.buttonDelegate = self;
+    self.statsMiniButtonView.buttonSpace = 10;
+    self.statsMiniButtonView.buttonBcornerRadius = 5;
+    self.statsMiniButtonView.fontSize = 13;
+    self.statsMiniButtonView.buttonBackageColorArray = @[
+        [[UIColor systemBlueColor] colorWithAlphaComponent:0.5],
+        [[UIColor systemPinkColor] colorWithAlphaComponent:0.5],
+        [[UIColor systemYellowColor] colorWithAlphaComponent:0.5],
+        [[UIColor systemGreenColor] colorWithAlphaComponent:0.5],
+        [[UIColor systemTealColor] colorWithAlphaComponent:0.5],
+    ];
+    self.statsMiniButtonView.tintIconColor = [UIColor whiteColor];
+    [self.cardView addSubview:self.statsMiniButtonView];
     
     // 初始化媒体视图数组
     self.mediaViews = [NSMutableArray array];
@@ -184,7 +189,7 @@
     // 3. 头像
     [self.authorAvatarView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.cardView).offset(10);
-        make.left.equalTo(self.cardView).offset(10);
+        make.left.equalTo(self.cardView).offset(15);
         make.width.height.equalTo(@(kAvatarWidth));
     }];
     
@@ -206,7 +211,7 @@
     // 4. 正文标签
     [self.contentLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.userLabel.mas_bottom).offset(kSpacing);
-        make.left.equalTo(self.cardView).inset(10);
+        make.left.equalTo(self.cardView).inset(20);
         make.right.equalTo(self.cardView.mas_right).offset(-10);
     }];
     
@@ -220,28 +225,19 @@
     // 6. 时间/位置标签
     [self.timeLocationLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.mediaContainerView.mas_bottom).offset(kSpacing);
-        make.left.right.equalTo(self.cardView).inset(10);
+        make.left.right.equalTo(self.cardView).inset(20);
     }];
     
-    // 7. 互动栏
-    [self.interactBarView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.timeLocationLabel.mas_bottom).offset(kSpacing);
-        make.left.right.equalTo(self.cardView).inset(10);
+    
+    // 7. 统计信息按钮约束
+    [self.statsMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.timeLocationLabel.mas_bottom).offset(8);
+        make.left.equalTo(self.contentView).offset(16);
+        make.right.equalTo(self.contentView);
+        make.height.equalTo(@25);
         make.bottom.equalTo(self.cardView).offset(-10);
-        make.height.equalTo(@20);
     }];
     
-    // 7.1 点赞数
-    [self.likeCountLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.interactBarView);
-        make.centerY.equalTo(self.interactBarView);
-    }];
-    
-    // 7.2 评论数
-    [self.commentCountLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.likeCountLabel.mas_right).offset(15);
-        make.centerY.equalTo(self.interactBarView);
-    }];
 }
 
 #pragma mark - 数据绑定
@@ -279,6 +275,7 @@
     
     // 7. 互动数据
     [self setupInteractDataWithModel:model];
+    
     
     // 强制刷新布局
     [self layoutIfNeeded];
@@ -452,10 +449,45 @@
 
 #pragma mark - 互动数据配置
 - (void)setupInteractDataWithModel:(PostModel *)model {
-    self.likeCountLabel.text = [NSString stringWithFormat:@"点赞 %ld", model.post_like_count];
-    self.commentCountLabel.text = [NSString stringWithFormat:@"评论 %ld", model.post_comment_count];
+    // 创建统计按钮
+    NSArray *statsTitles = @[
+        model.post_collect_count > 0 ? [self formatCount:model.post_collect_count] : @"收藏",
+        model.post_like_count > 0 ? [self formatCount:model.post_like_count] : @"点赞",
+        model.post_report_count > 0 ? [self formatCount:model.post_report_count] : @"踩",
+        model.post_comment_count > 0 ? [self formatCount:model.post_comment_count] : @"评论",
+        model.post_share_count > 0 ? [self formatCount:model.post_share_count] : @"分享"
+    ];
+    NSLog(@"点赞等状态isCollect：%d isLike:%d isDislike:%d",model.post_is_collected,model.post_is_liked,model.post_is_report);
+    NSArray *imageNames = @[
+        model.post_is_collected ? @"star.fill" : @"star",
+        model.post_is_liked ? @"heart.fill" : @"heart",
+        model.post_is_report ? @"hand.thumbsdown.fill" : @"hand.thumbsdown",
+        @"bubble.right",
+        @"square.and.arrow.up"
+    ];
+    
+    [self.statsMiniButtonView updateButtonsWithStrings:statsTitles icons:imageNames];
+    [self.statsMiniButtonView refreshLayout];
+    
+    [self.statsMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.height.equalTo(@(25));
+        if(!self.postModel.showAllData){
+//            make.top.equalTo(self.appDescriptionTextView.mas_bottom).offset(5);
+        }
+    }];
 }
+#pragma mark - 辅助函数
 
+//重命名数量
+- (NSString *)formatCount:(NSInteger)count {
+    if (count < 1000) {
+        return [NSString stringWithFormat:@"%ld", count];
+    } else if (count < 10000) {
+        return [NSString stringWithFormat:@"%.2fK", count / 1000.0];
+    } else {
+        return [NSString stringWithFormat:@"%.2fW", count / 10000.0];
+    }
+}
 #pragma mark - 工具方法
 - (BOOL)isValidURL:(NSString *)urlStr {
     if (!urlStr || urlStr.length == 0) return NO;
@@ -548,9 +580,7 @@
     self.titleLabel.text = @"";
     self.contentLabel.text = @"";
     self.timeLocationLabel.text = @"";
-    self.likeCountLabel.text = @"";
-    self.commentCountLabel.text = @"";
-    
+   
     
     if (self.currentPlayer) {
         [self.currentPlayer pause];
@@ -1102,5 +1132,451 @@
     
 }
 
+#pragma mark - 统计按钮点击
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
+    NSString *action = nil;
+    NSString *successMsg = nil;
+    button.tag = tag;
+    // 根据按钮tag确定操作类型
+    NSLog(@"点击了统计按钮的第%ld",tag);
+    switch (tag) {
+        case 0: // 收藏
+            action = @"toggle_collect";
+            successMsg = @"收藏";
+            [self collectButtonTapped:action successMessage:successMsg button:button];
+            return;;
+        case 1: // 点赞
+            action = @"toggle_like";
+            successMsg = @"点赞";
+            break;
+        case 2: // 踩一踩
+            action = @"toggle_dislike";
+            successMsg = @"踩一踩";
+            break;
+        case 3: // 评论
+            action = @"comment";
+            successMsg = @"发布评论";
+            [self handleCommentAction];
+            return;
+        case 4: // 分享
+            action = @"share";
+            successMsg = @"分享";
+            [self handleShareAction];
+            return;;
+        default:
+            return;
+    }
+    [self performAction:action successMessage:successMsg button:button];
+}
+
+
+- (void)collectButtonTapped:(NSString *)action successMessage:(NSString *)message button:(UIButton *)button {
+    NSLog(@"点击了收藏按钮");
+    NSString *actionStr = action;
+    //底部弹出选择 查看收藏表 收藏此App
+    // 1. 获取当前App的ID（假设从当前页面数据中获取，需根据实际情况修改）
+    NSInteger currentAppId = self.postModel.post_id; // 示例：当前App的ID
+    if (!currentAppId || currentAppId == 0) {
+        [SVProgressHUD showErrorWithStatus:@"未获取到应用信息"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    // 2. 创建底部弹出菜单（UIAlertController 模拟 ActionSheet）
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil
+                                                                         message:nil
+                                                                  preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    // 3. 添加“收藏此App”选项
+    NSString *collectActionTitle = self.postModel.post_is_collected ? @"取消收藏" : @"收藏此应用";
+    UIAlertActionStyle style = self.postModel.post_is_collected ? UIAlertActionStyleDestructive : UIAlertActionStyleDefault;
+    UIAlertAction *collectAction = [UIAlertAction actionWithTitle:collectActionTitle
+                                                            style:style
+                                                          handler:^(UIAlertAction * _Nonnull action) {
+        // 执行收藏操作（调用API）
+        [self performAction:actionStr successMessage:message button:button];
+    }];
+    [actionSheet addAction:collectAction];
+    
+    // 4. 添加“查看收藏列表”选项
+    UIAlertAction *viewFavoritesAction = [UIAlertAction actionWithTitle:@"查看我的收藏"
+                                                                  style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction * _Nonnull action) {
+        // 跳转到收藏列表页面
+        MyCollectionViewController *vc = [MyCollectionViewController new];
+        vc.target_udid = self.postModel.udid;
+        [[self getviewController] presentPanModal:vc];
+    }];
+    [actionSheet addAction:viewFavoritesAction];
+    
+    // 5. 添加取消选项
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [actionSheet addAction:cancelAction];
+    
+    // 6. 适配iPad（避免崩溃）
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        actionSheet.popoverPresentationController.sourceView = button;
+        actionSheet.popoverPresentationController.sourceRect = button.bounds;
+    }
+    
+    // 7. 显示菜单
+    [[self getviewController] presentViewController:actionSheet animated:YES completion:nil];
+}
+
+- (void)handleCommentAction {
+    UIViewController *vc = [self getTopViewController];
+    if([vc isKindOfClass:[ShowOnePostViewController class]])return;
+    // 处理评论操作
+    NSLog(@"处理评论操作");
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"发布评论" message:@"请输入评论内容" preferredStyle:UIAlertControllerStyleAlert];
+    
+    // 添加输入框
+    [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+        textField.placeholder = @"请输入评论内容";
+    }];
+    
+    // 添加取消按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        // 取消操作的处理
+    }];
+    
+    // 添加确定按钮
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UITextField *textField = alertController.textFields.firstObject;
+        // 确定操作的处理，这里可以获取输入框的内容
+        NSLog(@"输入的内容：%@", textField.text);
+        NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+        if(textField.text.length==0){
+            [SVProgressHUD showErrorWithStatus:@"请输入评论内容"];
+            [SVProgressHUD dismissWithDelay:2];
+            return;
+        }
+        if(udid.length==0){
+            [SVProgressHUD showErrorWithStatus:@"请先登录绑定哦"];
+            [SVProgressHUD dismissWithDelay:2];
+            return;
+        }
+        
+        Action_type comment_type = Comment_type_Post;
+        // 构建请求参数（根据实际接口调整）
+        NSDictionary *params = @{
+            @"action": @"comment",
+            @"action_type": @(comment_type),
+            @"to_id": @(self.postModel.post_id),
+            @"content": textField.text,
+            @"udid": udid
+        };
+        
+        [SVProgressHUD showWithStatus:@"发送中..."];
+        [DemoBaseViewController triggerVibration];
+        
+        [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                                  urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                 parameters:params
+                                                       udid:udid
+                                                   progress:^(NSProgress *progress) {
+            
+        } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+            NSLog(@"发布评论返回:%@",jsonResult);
+            NSLog(@"发布评论stringResult返回:%@",stringResult);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if(!jsonResult || !jsonResult[@"code"]){
+                    return;
+                }
+                NSInteger code = [jsonResult[@"code"] intValue];
+                NSString * msg = jsonResult[@"msg"];
+                
+                if (code == 200) {
+                    [SVProgressHUD showSuccessWithStatus:msg];
+                    //发送给IM
+                    [self sendRcimMessage:3 text:textField.text];
+                    
+                    
+                    self.postModel.post_comment_count+=1;
+                } else {
+                    [SVProgressHUD showErrorWithStatus:msg];
+                }
+                [SVProgressHUD dismissWithDelay:1];
+                self.model = self.postModel;
+                [self bindViewModel:self.model];
+            });
+        } failure:^(NSError *error) {
+            [SVProgressHUD showErrorWithStatus:@"网络错误，发送失败"];
+            [SVProgressHUD dismissWithDelay:2];
+        }];
+    }];
+    
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    
+    [[self getTopViewController] presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)handleShareAction {
+    // 处理评论操作
+    NSLog(@"处理分享操作");
+    // 添加应用URL
+    NSString *urlString = [NSString stringWithFormat:@"%@/post/post.php?id=%lld&type=app", localURL, self.postModel.post_id];
+    //系统导航遮挡问题
+    UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+    
+    // 确保应用信息有效
+    if (!self.postModel || !self.postModel.post_title) {
+        [SVProgressHUD showInfoWithStatus:@"暂无应用信息可分享"];
+        return;
+    }
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"分享" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    // 添加取消按钮
+    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+    }];
+    [alert addAction:cancelAction];
+    
+    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"生成二维码" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self generateQRCodeWithUrlString:urlString];
+    }];
+    [alert addAction:confirmAction];
+    
+    UIAlertAction*confirmAction2 = [UIAlertAction actionWithTitle:@"拷贝连接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string =urlString;
+        [SVProgressHUD showSuccessWithStatus:@"连接已经拷贝到剪贴板"];
+        [SVProgressHUD dismissWithDelay:1];
+    }];
+    [alert addAction:confirmAction2];
+    
+    UIAlertAction*confirmAction3 = [UIAlertAction actionWithTitle:@"分享到" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        // 1. 准备分享内容
+        NSMutableArray *shareItems = [NSMutableArray array];
+        
+        NSURL *appURL = [NSURL URLWithString:[urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+        if (appURL) {
+            [shareItems addObject:appURL];
+        }
+        
+        // 添加应用名称和描述
+        NSString *shareText = [NSString stringWithFormat:@"%@",
+                               self.postModel.post_title ?: @"快来一起看看吧！"];
+        [shareItems addObject:shareText];
+        
+        // 处理应用图标（异步下载网络图片）
+        __block UIImage *appIcon = nil;
+        NSString *iconURL = self.postModel.user_model.avatar;
+        if (iconURL && [iconURL length] > 0 && [iconURL hasPrefix:@"http"]) {
+            [[UIImageView new] sd_setHighlightedImageWithURL:[NSURL URLWithString:iconURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                if(image){
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self presentShareControllerWithItems:shareItems appIcon:image];
+                    });
+                }
+            }];
+        } else {
+            // 本地图片或无图标，直接显示分享界面
+            [self presentShareControllerWithItems:shareItems appIcon:appIcon];
+        }
+    }];
+    [alert addAction:confirmAction3];
+    
+    UIAlertAction*confirmAction4 = [UIAlertAction actionWithTitle:@"分享给好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        // 修改后：包装导航栏 + 底部模态样式
+        ChatListViewController *vc = [ChatListViewController new];
+        vc.isShare = YES;
+        vc.shareModel = self.postModel;
+        vc.messageForType = MessageForTypeApp;
+        // 1. 创建导航控制器，将vc作为根控制器（核心：让vc拥有导航栏）
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:vc];
+        navVC.view.backgroundColor = [UIColor systemBackgroundColor];
+        [navVC.view addColorBallsWithCount:10 ballradius:150 minDuration:30 maxDuration:50 UIBlurEffectStyle:UIBlurEffectStyleProminent UIBlurEffectAlpha:0.9 ballalpha:0.7];
+        // 2. 设置底部模态弹出样式（iOS 13+ 推荐，底部滑入）
+        navVC.modalPresentationStyle = UIModalPresentationFullScreen; // 或 UIModalPresentationPageSheet
+        // 3. 弹出导航控制器（而非直接弹出vc）
+        [[self getviewController] presentViewController:navVC animated:YES completion:nil];
+    }];
+    [alert addAction:confirmAction4];
+    
+    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)performAction:(NSString *)action successMessage:(NSString *)message button:(UIButton *)button {
+    if (!self.model || !action) return;
+    
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    if(udid.length == 0){
+        [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"请先获取UDID登录后操作"];
+        [SVProgressHUD dismissWithDelay:2];
+        return;
+    }
+    
+    // 显示加载指示器
+    [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"正在%@...", message]];
+    
+    // API地址 - 根据实际情况修改
+    NSString *urlString = [NSString stringWithFormat:@"%@/post/post_api.php",localURL];
+    
+    // 准备请求参数
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"action"] = action;
+    params[@"to_id"] = @(self.postModel.post_id);
+    params[@"action_type"] = @(Comment_type_Post);
+    // 获取设备标识
+    params[@"idfv"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    
+    NSLog(@"共享单例udid：%@",udid);
+    params[@"udid"] = udid;
+    NSLog(@"请求操作字典：%@",params);
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:urlString
+                                             parameters:params
+                                                   udid:udid progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
+            if(!jsonResult ){
+                NSLog(@"请求返回stringResult：%@",stringResult);
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"返回数据错误\n%@",stringResult]];
+                [SVProgressHUD dismissWithDelay:1];
+                return;
+            }
+            [DemoBaseViewController triggerVibration];
+            NSLog(@"请求返回stringResult：%@",stringResult);
+            NSLog(@"请求返回字典：%@",jsonResult);
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString *message = jsonResult[@"msg"];
+            if (code != 200){
+                // 失败
+                [SVProgressHUD showErrorWithStatus:message];
+                [SVProgressHUD dismissWithDelay:1];
+                return;
+            }
+            NSDictionary *data = jsonResult[@"data"];
+            BOOL newStatus = [data[@"newStatus"] boolValue];
+            if(newStatus){
+                [self sendRcimMessage:button.tag text:@""];
+            }
+            
+            UIImage *image = button.imageView.image;
+            [SVProgressHUD showImage:image status:message];
+            [SVProgressHUD dismissWithDelay:1];
+            // 新增：根据服务器返回的status动态更新计数
+            [self updateStatsAfterResponse:jsonResult tag:button.tag];
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"%@",error]];
+            [SVProgressHUD dismissWithDelay:1];
+        });
+        
+    }];
+}
+
+- (void)sendRcimMessage:(NSInteger)tag text:(NSString *)text{
+    NSArray *msgs = @[@"我收藏了你的帖子", @"我点赞了你的帖子", @"我踩了你的帖子", @"我评论了你的帖子", @"我分享了你的帖子"];
+    ToolMessage *message = [[ToolMessage alloc] init];
+    message.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],self.postModel.post_title];
+    message.messageForType = MessageForTypeApp;
+    message.extra = [self.postModel yy_modelToJSONString];
+    [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.postModel.udid content:message pushContent:message.content pushData:message.content success:^(long messageId) {
+        RCTextMessage *meg = [[RCTextMessage alloc] init];
+        meg.content = [NSString stringWithFormat:@"%@\n%@",msgs[tag],text];
+        [[RCIM sharedRCIM] sendMessage:ConversationType_PRIVATE targetId:self.postModel.udid content:meg pushContent:meg.content pushData:message.content success:^(long messageId) {
+            
+        } error:^(RCErrorCode nErrorCode, long messageId) {
+            
+        }];
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        
+    }];
+}
+
+- (void)updateStatsAfterResponse:(id)response tag:(NSInteger )tag{
+    // 获取服务器返回的状态和数量变化
+    NSDictionary *data = response[@"data"];
+    if(!data) return;
+    BOOL newStatus = [data[@"newStatus"] boolValue];
+    NSInteger count = [data[@"count"] intValue];
+    // 根据按钮tag确定操作类型
+    switch (tag) {
+        case 0: // 收藏
+            self.postModel.post_is_collected = newStatus;
+            self.postModel.post_is_collected = count;
+            break;
+        case 1: // 点赞
+            self.postModel.post_is_liked = newStatus;
+            self.postModel.post_like_count = count;
+            break;
+        case 2: // 踩一踩
+            self.postModel.post_is_report = newStatus;
+            self.postModel.post_report_count = count;
+            break;
+        case 3: // 评论
+            
+            self.postModel.post_comment_count = count;
+            break;
+        case 4: // 分享
+            
+            self.postModel.post_share_count = count;
+            break;
+        default:
+            return;
+    }
+    
+    // 更新model并刷新UI
+    self.model = self.postModel;
+    [self bindViewModel:self.model];
+}
+
+- (void)generateQRCodeWithUrlString:(NSString*)urlString {
+    // 将用户 ID 转换为字符串mySoulChat://user?id=123456
+    QRCodeGeneratorViewController *vc = [[QRCodeGeneratorViewController alloc] initWithURLString:urlString title:self.postModel.post_title];
+    [[self getTopViewController] presentPanModal:vc];
+}
+
+- (void)presentShareControllerWithItems:(NSMutableArray *)shareItems appIcon:(UIImage *)appIcon {
+    [SVProgressHUD dismiss]; // 隐藏加载提示
+    
+    // 添加应用图标（如果有）
+    if (appIcon) {
+        [shareItems addObject:appIcon];
+    }
+    
+    // 2. 创建分享控制器
+    UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:shareItems applicationActivities:nil];
+    
+    // 3. 排除不需要的分享选项
+    activityVC.excludedActivityTypes = @[
+    ];
+    
+    // 4. 设置分享完成回调
+    activityVC.completionWithItemsHandler = ^(UIActivityType _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
+        NSLog(@"设置分享完成回调");
+        if(activityError){
+            NSLog(@"分享activityError: %@", activityError);
+        }
+        if (completed) {
+            [SVProgressHUD showSuccessWithStatus:@"分享成功"];
+            [SVProgressHUD dismissWithDelay:1];
+            NSLog(@"分享完成，活动类型: %@", activityType);
+        } else {
+            NSLog(@"分享取消");
+        }
+        
+        if (activityError) {
+            NSLog(@"分享错误: %@", activityError.localizedDescription);
+        }
+    };
+    
+    // 5. 适配iPad
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        activityVC.popoverPresentationController.sourceView = self;
+        activityVC.popoverPresentationController.sourceRect = CGRectMake(self.bounds.size.width/2, self.bounds.size.height/2, 1, 1);
+    }
+    
+    // 6. 显示分享控制器
+    [[self getTopViewController] presentViewController:activityVC animated:YES completion:nil];
+}
 
 @end

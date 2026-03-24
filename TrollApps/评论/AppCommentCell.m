@@ -192,7 +192,16 @@
         
         // 加载头像（这里用占位图示例，实际项目中可使用SDWebImage加载网络图片）
         [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:userInfo.avatar] placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
-        
+        //用户在线
+        if(userInfo.is_online){
+            self.avatarImageView.layer.borderWidth = 2;
+            self.avatarImageView.layer.borderColor = [UIColor greenColor].CGColor;
+        }
+        // 超管
+        if(userInfo.role){
+            self.nicknameLabel.textColor = [UIColor orangeColor];;
+            
+        }
         if(userInfo.user_id == [NewProfileViewController sharedInstance].userInfo.user_id){
             self.nicknameLabel.text = @"(我)";
         }
@@ -278,7 +287,7 @@
     // 构建请求参数
     NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php", localURL];
     NSLog(@"点赞action_type:%ld",self.appComment.action_type);
-    if(self.appComment.action_type == Comment_type_PostComment || self.appComment.action_type == Comment_type_PostSecondComment){
+    if(self.appComment.action_type == Comment_type_Post || self.appComment.action_type == Comment_type_PostSecondComment){
         url = [NSString stringWithFormat:@"%@/post/post_api.php", localURL];
     }
     NSLog(@"点赞URL:%@",url);

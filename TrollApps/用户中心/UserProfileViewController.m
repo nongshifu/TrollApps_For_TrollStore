@@ -24,7 +24,7 @@
 
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // 当前文件单独启用
+#define MY_NSLog_ENABLED YES // 当前文件单独启用
 
 @interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
@@ -35,6 +35,7 @@
 @property (nonatomic, strong) UILabel *bioLabel;//简介
 @property (nonatomic, strong) UILabel *jianjie;//简介
 @property (nonatomic, strong) UIButton *contact;//联系对方
+@property (nonatomic, strong) UIButton *editButton;//编辑
 @property (nonatomic, strong) UIButton *followButtom;//关注按钮
 @property (nonatomic, strong) UIButton *vipButtom;//vip按钮
 @property (nonatomic, strong) UIButton *showFollowListButton;//显示粉丝列表
@@ -127,14 +128,27 @@
     self.vipButtom.contentEdgeInsets = UIEdgeInsetsMake(1, 10, 1, 10); // 整体内边距
     [self.view addSubview:self.vipButtom];
     
+    //左上角编辑按钮
+    self.editButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.editButton setTitle:@"编辑资料" forState:UIControlStateNormal];
+    [self.editButton addTarget:self action:@selector(editButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    self.editButton.hidden = YES;
+    self.editButton.backgroundColor = [UIColor systemPinkColor];
+    self.editButton.layer.cornerRadius = 8;
+    self.editButton.layer.masksToBounds = YES; // 确保圆角生效
+    self.editButton.titleLabel.font = [UIFont boldSystemFontOfSize:13];
+    [self.editButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]; // 文字也设为白色
+    self.editButton.contentEdgeInsets = UIEdgeInsetsMake(1, 10, 1, 10); // 整体内边距
+    [self.view addSubview:self.editButton];
     
     
-    
-    
+    //右上角@按钮
     self.contact = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.contact setTitle:@"@ TA" forState:UIControlStateNormal];
+    [self.contact setTitle:@"@ Ta" forState:UIControlStateNormal];
     [self.contact addTarget:self action:@selector(contactButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.contact];
+    
+    
     
     // 昵称
     self.nicknameLabel = [[UILabel alloc] init];
@@ -232,10 +246,7 @@
     [self.sortButton addTarget:self action:@selector(sortButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.sortButton];
     
-    self.contact = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.contact setTitle:@"@ Ta" forState:UIControlStateNormal];
-    [self.contact addTarget:self action:@selector(contactButtonTap:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.contact];
+    
     
     
     // 创建评论输入视图
@@ -297,6 +308,10 @@
 //设置约束
 - (void)setupViewConstraints {
     CGFloat height = 36;
+    
+    
+    
+    //右上角按钮
     [self.contact mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.view).offset(-25);
         make.top.equalTo(self.view).offset(15);
@@ -343,6 +358,13 @@
     [self.showFollowListButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.jianjie.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
+        make.height.mas_equalTo(25);
+    }];
+    
+    //编辑资料
+    [self.editButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.view).offset(-15);
+        make.bottom.equalTo(self.showFollowListButton.mas_bottom);
         make.height.mas_equalTo(25);
     }];
     
@@ -447,6 +469,13 @@
             make.width.equalTo(self.followButtom);
         }];
         
+        [self.contact mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.right.equalTo(self.view).offset(-15);
+            make.top.equalTo(self.view).offset(15);
+
+        }];
+        
+        
     }else if(!self.currentVC.isScrollingUp && self.currentVC.scrollY <=20){
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.view).offset(25);
@@ -496,6 +525,12 @@
             make.top.equalTo(self.jianjie.mas_bottom).offset(15);
             make.centerX.equalTo(self.view);
             make.height.mas_equalTo(25);
+        }];
+        
+        [self.contact mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.right.equalTo(self.view).offset(-25);
+            make.top.equalTo(self.view).offset(15);
+
         }];
         
         
@@ -577,6 +612,15 @@
 - (void)contactButtonTap:(UIButton*)button{
     if(!self.userInfo)return;
     [[ContactHelper shared] showContactActionSheetWithUserInfo:self.userInfo];
+    
+}
+
+- (void)editButtonTap:(UIButton*)button{
+    if(!self.userInfo)return;
+    EditUserProfileViewController *vc = [EditUserProfileViewController new];
+    vc.udid = self.userInfo.udid;
+    [self presentPanModal:vc];
+    
     
 }
 
@@ -713,6 +757,18 @@
         self.followButtom.backgroundColor = [UIColor systemGrayColor];
         [self.followButtom setTitle:@"自己" forState:UIControlStateNormal];
         self.followButtom.enabled = NO;
+        self.editButton.hidden = NO;
+    }
+    if(self.userInfo.role){
+        self.nicknameLabel.text = [NSString stringWithFormat:@"%@ (超管)",self.userInfo.nickname];
+        self.nicknameLabel.textColor = [UIColor orangeColor];
+    }
+    if(self.userInfo.is_online){
+        self.avatarImageView.layer.borderWidth = 3;
+        self.avatarImageView.layer.borderColor = [UIColor greenColor].CGColor;
+    }
+    if([NewProfileViewController sharedInstance].userInfo.role){
+        self.editButton.hidden = NO;
     }
     self.vipButtom.hidden = userModel.vip_level == 0;
     

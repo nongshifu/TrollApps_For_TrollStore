@@ -32,6 +32,8 @@
 @property (nonatomic, strong) UIBarButtonItem *postPublisPostButton;
 /// 时间筛选弹窗（开始/结束时间选择）
 @property (nonatomic, strong) UIAlertController *timeFilterAlert;
+
+@property (nonatomic, assign) SquareVCType currentVCType; // 记录当前控制器类型
 @end
 
 @implementation PostListViewController
@@ -42,7 +44,7 @@
     self.zx_hideBaseNavBar = YES;
     self.zx_showSystemNavBar = YES;
     self.title = @"社区广场";
-    
+    self.currentVCType = [[NSUserDefaults standardUserDefaults] integerForKey:kSquareVCTypeKey];
     // 初始化导航栏UI
     [self setupNavigationBar];
     
@@ -90,18 +92,20 @@
     }
     
     // 2. 筛选按钮（分类/标签/时间）
-    self.filterButton = [[UIBarButtonItem alloc] initWithTitle:@"筛选" style:UIBarButtonItemStylePlain target:self action:@selector(filterButtonClicked)];
+    self.filterButton = [[UIBarButtonItem alloc] initWithTitle:@"筛选" style:UIBarButtonItemStyleDone target:self action:@selector(filterButtonClicked)];
     self.filterButton.tintColor = [UIColor labelColor];
     
+    
     // 3. 排序按钮
-    self.sortButton = [[UIBarButtonItem alloc] initWithTitle:@"排序" style:UIBarButtonItemStylePlain target:self action:@selector(sortButtonClicked)];
+    self.sortButton = [[UIBarButtonItem alloc] initWithTitle:@"排序" style:UIBarButtonItemStyleDone target:self action:@selector(sortButtonClicked)];
     self.sortButton.tintColor = [UIColor labelColor];
     
     // 4. 导航栏右侧按钮
     self.navigationItem.leftBarButtonItems = @[self.sortButton, self.filterButton];
     
-    // 5. 发帖按钮
-    self.postPublisPostButton = [[UIBarButtonItem alloc] initWithTitle:@"发帖" style:UIBarButtonItemStylePlain target:self action:@selector(newPostButtonClicked)];
+    // 5. 发帖按钮switch.2
+    
+    self.postPublisPostButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"switch.2"] style:UIBarButtonItemStylePlain target:self action:@selector(switchMode)];
     self.postPublisPostButton.tintColor = [UIColor redColor];
     self.navigationItem.rightBarButtonItem = self.postPublisPostButton;
 }
@@ -218,6 +222,24 @@
     UINavigationController *nv = [[UINavigationController alloc] initWithRootViewController:vc];
     [self presentViewController:nv animated:YES completion:nil];
 }
+
+#pragma mark - 切换页面模式
+// 切换模式的点击事件
+- (void)switchMode {
+    // 1. 切换控制器类型
+    self.currentVCType = !self.currentVCType;
+    // 2. 发送通知给 TabBarController
+    NSDictionary *userInfo = @{kSquareVCTypeKey: @(self.currentVCType)};
+    [[NSNotificationCenter defaultCenter] postNotificationName:kSwitchSquareVCNotification
+                                                        object:nil
+                                                      userInfo:userInfo];
+    
+    // 可选：更新按钮图标/颜色，提示切换状态
+    NSString *iconName = (self.currentVCType == SquareVCTypeOther) ? @"switch.2.fill" : @"switch.2";
+    self.postPublisPostButton.image = [UIImage systemImageNamed:iconName];
+    self.postPublisPostButton.tintColor = (self.currentVCType == SquareVCTypeOther) ? [UIColor blueColor] : [UIColor redColor];
+}
+
 #pragma mark - 分类筛选（示例：需替换为真实分类数据）
 - (void)showCategoryFilter {
     // 1. 获取单例
@@ -488,6 +510,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
+    
 }
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {

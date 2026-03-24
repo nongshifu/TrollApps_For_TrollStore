@@ -25,6 +25,8 @@
 #import "MyCollectionViewController.h"
 #import "PostPublishViewController.h"
 #import "PostListViewController.h"
+#import "MyCollectionViewController.h"
+
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
 @property (nonatomic, strong) UIView *backageView;
@@ -32,6 +34,7 @@
 @property (nonatomic, strong) UIButton *centerButton; // 添加中间按钮
 @property (nonatomic, assign) CGFloat yOffset; // Y偏移
 @property (nonatomic, assign) NSInteger vCselectedIndex;
+@property (nonatomic, assign) SquareVCType vcModelType;
 @end
 
 @implementation MyTabBarController
@@ -39,6 +42,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.delegate = self; // 设置代理
+    self.vcModelType = [[NSUserDefaults standardUserDefaults] integerForKey:kSquareVCTypeKey];
     // Do any additional setup after loading the view.
     [self setupTabBarItems];
     // 创建中间凸起按钮
@@ -67,6 +71,14 @@
     UIImage *bgImage = [newImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:UIImageResizingModeStretch];
     self.circleView.image =bgImage;
     [self updateTabBarColor];
+    
+    [self SwitchSquareVC:self.vcModelType];
+    
+    // 新增：监听切换控制器的通知
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleSwitchSquareVC:)
+                                                 name:kSwitchSquareVCNotification
+                                               object:nil];
     
     
 }
@@ -182,19 +194,19 @@
             
             return;
         case 3:{
-//            NSString *udid = [loadData sharedInstance].userModel.udid;
-//            if(!udid || udid.length<5)return;
-//            UserProfileViewController *publishVC = [[UserProfileViewController alloc] init];
-//            publishVC.user_udid = [loadData sharedInstance].userModel.udid;
-//            publishVC.title = @"我的关注";
-//            [self presentPanModal:publishVC];
-//
-            
-            PostPublishViewController *publishVC = [[PostPublishViewController alloc] init];
-            publishVC.title = @"发帖";
-            UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:publishVC];
-            [self presentViewController:nc animated:YES completion:nil];
-//            [self presentPanModal:publishVC];
+            if(self.vcModelType == SquareVCTypePostList){
+                PostPublishViewController *publishVC = [[PostPublishViewController alloc] init];
+                publishVC.title = @"发帖";
+                UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:publishVC];
+                [self presentViewController:nc animated:YES completion:nil];
+            }else{
+                MyCollectionViewController *vc = [MyCollectionViewController new];
+                vc.selectedIndex = 3;
+                vc.showFollowList = YES;
+                vc.target_udid = [loadData sharedInstance].userModel.udid;
+                [self presentPanModal:vc];
+            }
+
             
         }
             
@@ -298,6 +310,8 @@
                                                               imageName:@""
                                                           selectedImage:@""]
     ];
+   
+    
     [sideMenuControllers addObject:[self createSideMenuControllerWithVC:[PostListViewController new]
                                                                   title:@"广场"
                                                               imageName:@"message"
@@ -338,8 +352,8 @@
         @"plus",
         @"t.circle",
         @"plus",
-        @"lightbulb",
         @"pencil.and.outline",
+        @"lightbulb",
     ];
     UIImage *icon = [UIImage systemImageNamed:icons[self.vCselectedIndex]];
     icon = [icon imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:28 weight:UIImageSymbolWeightBold]];
@@ -366,5 +380,65 @@
     
 //    [self.backageView addColorBallsWithCount:5 ballradius:100 minDuration:50 maxDuration:100 UIBlurEffectStyle:UIBlurEffectStyleProminent UIBlurEffectAlpha:0.98 ballalpha:0.2];
     [self.tabBar addGlowEffectWithColor:[UIColor secondaryLabelColor] shadowOffset:CGSizeMake(0, -0.5) shadowOpacity:1 shadowRadius:2];
+}
+
+// 新增：处理切换控制器的通知
+- (void)handleSwitchSquareVC:(NSNotification *)notification {
+    // 1. 获取要切换的控制器类型
+    self.vcModelType = [notification.userInfo[kSquareVCTypeKey] integerValue];
+    [self SwitchSquareVC:self.vcModelType];
+}
+
+- (void)SwitchSquareVC:(SquareVCType)type{
+    // 1.本地化储存
+    [[NSUserDefaults standardUserDefaults] setInteger:type forKey:kSquareVCTypeKey];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    // 2. 获取当前 TabBar 的控制器数组（可变副本）
+    NSMutableArray *newViewControllers = [self.viewControllers mutableCopy];
+    if (newViewControllers.count < 4) return; // 防越界（广场在索引3的位置）
+    
+    // 3. 创建目标控制器（根据类型切换）
+    UIViewController *targetVC;
+    NSString *title = type == SquareVCTypePostList ? @"广场" :@"聊天";
+    NSString *imageName = @"message";
+    NSString *selectedImage = @"message.fill";
+    
+    if (type == SquareVCTypeOther) {
+        // 替换为新控制器
+        targetVC = [self createSideMenuControllerWithVC:[ChatListViewController new] // 你的新控制器
+                                                  title:title
+                                              imageName:imageName
+                                          selectedImage:selectedImage];
+        // 可选：修改图标/标题
+        imageName = @"star";
+        selectedImage = @"star.fill";
+        title = @"新广场";
+        UIImage *icon = [UIImage systemImageNamed:@"heart.fill"];
+        icon = [icon imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:28 weight:UIImageSymbolWeightBold]];
+        [self.centerButton setImage:icon forState:UIControlStateNormal];
+    } else {
+        // 切回帖子列表
+        targetVC = [self createSideMenuControllerWithVC:[PostListViewController new]
+                                                  title:title
+                                              imageName:imageName
+                                          selectedImage:selectedImage];
+        UIImage *icon = [UIImage systemImageNamed:@"pencil.and.outline"];
+        icon = [icon imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:28 weight:UIImageSymbolWeightBold]];
+        [self.centerButton setImage:icon forState:UIControlStateNormal];
+    }
+    
+    // 4. 替换索引3的控制器（广场的位置）
+    newViewControllers[3] = targetVC;
+    
+    // 5. 重新赋值并刷新 TabBar（关键：让替换生效）
+    self.viewControllers = newViewControllers;
+    
+    // 可选：保持当前选中的 Tab 不变
+    NSInteger currentIndex = self.selectedIndex;
+    self.selectedIndex = currentIndex;
+    
+    NSLog(@"广场控制器已切换为：%@", type == SquareVCTypeOther ? @"新控制器" : @"帖子列表");
+    
 }
 @end    

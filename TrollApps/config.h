@@ -93,7 +93,15 @@ NS_ASSUME_NONNULL_BEGIN
 //本地储存udid的KEY
 #define TROLLAPPS_SAVE_UDID_KEY @"TROLLAPPS_SAVE_UDID_KEY"
 
+// config.h
+#define kSwitchSquareVCNotification @"kSwitchSquareVCNotification"
+#define kSquareVCTypeKey @"kSquareVCTypeKey" // 传递控制器类型的key
 
+// 定义两种控制器类型
+typedef NS_ENUM(NSInteger, SquareVCType) {
+    SquareVCTypePostList = 0, // 帖子列表（默认）
+    SquareVCTypeOther = 1     // 替换后的其他控制器
+};
 
 
 @interface config : NSObject<UIViewControllerTransitioningDelegate>

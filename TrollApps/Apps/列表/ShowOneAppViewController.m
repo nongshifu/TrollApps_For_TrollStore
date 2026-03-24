@@ -671,11 +671,13 @@
             // 3. 确保 iconImageView 存在且已添加到视图层级
             if (tipBarCell.iconImageView && tipBarCell.iconImageView.superview) {
                 // 4. 调用气泡工具类，指向 iconImageView，3秒后消失
+                
                 [BubbleTipManager showBubbleTipWithText:@"点击联系作者"
                                              targetView:tipBarCell.iconImageView
                                                 superVC:self
                                            dismissDelay:1.5
                                          arrowDirection:UIPopoverArrowDirectionDown];
+                [tipBarCell.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.appInfo.userModel.avatar] placeholderImage:tipBarCell.iconImageView.image];
                 
                 // 5. 标记为已显示，避免重复弹出
                 self.hasShownTipBarBubble = YES;

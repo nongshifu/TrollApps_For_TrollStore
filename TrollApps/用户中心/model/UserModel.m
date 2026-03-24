@@ -11,7 +11,7 @@
 #import "NewProfileViewController.h"
 
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // 当前文件单独启用
+#define MY_NSLog_ENABLED YES // 当前文件单独启用
 
 // 内存缓存字典（键：唯一标识，值：UserModel 实例）
 static NSMutableDictionary<NSString *, UserModel *> *_userCacheDict = nil;

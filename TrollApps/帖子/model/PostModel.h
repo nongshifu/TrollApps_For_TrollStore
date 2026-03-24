@@ -169,6 +169,8 @@ typedef NS_ENUM(NSInteger, PostSortType) {
 @property (nonatomic, assign) BOOL post_is_liked;
 /// 当前用户是否收藏（0-否 1-是，前端展示用）
 @property (nonatomic, assign) BOOL post_is_collected;
+/// 当前用户是否踩一踩（0-否 1-是，前端展示用）
+@property (nonatomic, assign) BOOL post_is_report;
 
 #pragma mark - 扩展字段（兼容个性化需求）
 /// 扩展字段（字典，存自定义数据，如@{"is_anonymous":@1, "activity_id":@123}）

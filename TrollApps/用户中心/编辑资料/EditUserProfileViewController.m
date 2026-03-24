@@ -35,6 +35,10 @@
 @property (nonatomic, strong) UITextView *bioTextView;
 @property (nonatomic, strong) UILabel *bioCountLabel;
 
+@property (nonatomic, strong) UITextField *oldPwdTextField;
+@property (nonatomic, strong) UITextField *pwdTextField;
+@property (nonatomic, strong) UITextField *confirmPwdTextField;
+
 @property (nonatomic, strong) UIButton *saveButton;
 @property (nonatomic, strong) UIImage *selectedAvatarImage;
 @property (nonatomic, strong) UIScrollView *scrollView;
@@ -209,6 +213,33 @@
     self.bioCountLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [contentView addSubview:self.bioCountLabel];
     
+    // 旧密码
+    self.oldPwdTextField = [[UITextField alloc] init];
+    self.oldPwdTextField.placeholder = @"请输入旧密码";
+    self.oldPwdTextField.secureTextEntry = YES;
+    self.oldPwdTextField.backgroundColor = textFieldBackgroundColor;
+    self.oldPwdTextField.borderStyle = UITextBorderStyleRoundedRect;
+    self.oldPwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
+    [contentView addSubview:self.oldPwdTextField];
+
+    // 新密码
+    self.pwdTextField = [[UITextField alloc] init];
+    self.pwdTextField.placeholder = @"请输入新密码 (6-20位)";
+    self.pwdTextField.secureTextEntry = YES;
+    self.pwdTextField.backgroundColor = textFieldBackgroundColor;
+    self.pwdTextField.borderStyle = UITextBorderStyleRoundedRect;
+    self.pwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
+    [contentView addSubview:self.pwdTextField];
+
+    // 确认新密码
+    self.confirmPwdTextField = [[UITextField alloc] init];
+    self.confirmPwdTextField.placeholder = @"请确认新密码";
+    self.confirmPwdTextField.secureTextEntry = YES;
+    self.confirmPwdTextField.backgroundColor = textFieldBackgroundColor;
+    self.confirmPwdTextField.borderStyle = UITextBorderStyleRoundedRect;
+    self.confirmPwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
+    [contentView addSubview:self.confirmPwdTextField];
+    
     // 保存按钮
     self.saveButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.saveButton.backgroundColor = [UIColor systemBlueColor];
@@ -322,8 +353,31 @@
         make.top.equalTo(self.bioTextView.mas_bottom).offset(5);
         make.right.equalTo(self.contentView).offset(-20);
         make.height.equalTo(@20);
+        
+    }];
+    
+    [self.oldPwdTextField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.bioCountLabel.mas_bottom).offset(20);
+        make.left.equalTo(self.contentView).offset(20);
+        make.right.equalTo(self.contentView).offset(-20);
+        make.height.equalTo(@44);
+    }];
+
+    [self.pwdTextField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.oldPwdTextField.mas_bottom).offset(20);
+        make.left.equalTo(self.contentView).offset(20);
+        make.right.equalTo(self.contentView).offset(-20);
+        make.height.equalTo(@44);
+    }];
+
+    [self.confirmPwdTextField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.pwdTextField.mas_bottom).offset(20);
+        make.left.equalTo(self.contentView).offset(20);
+        make.right.equalTo(self.contentView).offset(-20);
+        make.height.equalTo(@44);
         make.bottom.equalTo(self.contentView).offset(-20);
     }];
+
     
     [self.saveButton mas_makeConstraints:^(MASConstraintMaker *make) {
        
@@ -404,7 +458,7 @@
             
             // 设置VIP状态
             if ([UserModel isVIPExpiredWithDate:userModel.vip_expire_date]) {
-                self.vipLabel.text = @"普通用户";
+                self.vipLabel.text = @"非VIP";
                 self.vipLabel.textColor = [UIColor systemGrayColor];
             } else {
                 self.vipLabel.text = [NSString stringWithFormat:@"VIP %ld · 到期日: %@", (long)userModel.vip_level, [TimeTool getTimeformatDate:userModel.vip_expire_date]];
@@ -513,6 +567,14 @@
     userInfo.isShowFollows = self.showFollowsSegmentedControl.selectedSegmentIndex;
     userInfo.bio = self.bioTextView.text;
     
+    // ================== 密码修改逻辑 ==================
+    NSString *oldPwd = self.oldPwdTextField.text;
+    NSString *newPwd = self.pwdTextField.text;
+    NSString *confirmPwd = self.confirmPwdTextField.text;
+
+    
+    // ==================================================
+    
     
     // 显示加载指示器
     UIActivityIndicatorView *loadingIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
@@ -526,6 +588,19 @@
     NSMutableDictionary *newDic = [NSMutableDictionary dictionaryWithDictionary:dic];
     newDic[@"action"] = @"updateProfile";
     newDic[@"target_udid"] = self.userInfo.udid;
+    if (newPwd.length > 0) {
+        if (newPwd.length < 6 || newPwd.length > 20) {
+            [SVProgressHUD showInfoWithStatus:@"新密码长度必须 6-20 位"];
+            return;
+        }
+        if (![newPwd isEqualToString:confirmPwd]) {
+            [SVProgressHUD showInfoWithStatus:@"两次输入的新密码不一致"];
+            return;
+        }
+        
+        newDic[@"old_password"] = oldPwd;
+        newDic[@"new_password"] = newPwd;
+    }
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:newDic

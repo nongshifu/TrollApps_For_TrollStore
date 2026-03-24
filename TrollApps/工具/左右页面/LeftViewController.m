@@ -184,7 +184,7 @@
 
 }
 
-- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button {
+- (void)buttonTappedWithTag:(NSInteger)tag title:(nonnull NSString *)title button:(nonnull UIButton *)button view:(nonnull MiniButtonView *)view{
     if(tag ==0){
         [SVProgressHUD showWithStatus:@"刷新中"];
         NSArray<WebToolModel *> *array = [[WebToolManager sharedManager] getAllWebTools];

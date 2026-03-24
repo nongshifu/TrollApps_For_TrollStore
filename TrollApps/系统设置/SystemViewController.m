@@ -183,7 +183,7 @@ static dispatch_once_t _onceToken;
 
 #pragma mark - 数据加载
 - (void)loadConfigData {
-    [SVProgressHUD showWithStatus:@"加载中"];
+    
     
     NSString *url = [NSString stringWithFormat:@"%@/admin/system_api.php",localURL];
     NSString *udid = [loadData sharedInstance].userModel.udid?:@"";
@@ -196,8 +196,10 @@ static dispatch_once_t _onceToken;
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
         // 进度处理
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
-        [SVProgressHUD dismiss];
+        
+        
         dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD dismiss];
             if(!jsonResult && stringResult){
                 NSLog(@"读取配置错误：%@",stringResult);
                 [SVProgressHUD showErrorWithStatus:stringResult];
@@ -225,14 +227,16 @@ static dispatch_once_t _onceToken;
                 [self.tableView reloadData];
             } else {
                 NSString *errorMsg = jsonResult[@"msg"] ?: @"获取配置失败";
-                [SVProgressHUD showErrorWithStatus:errorMsg];
-                [SVProgressHUD dismissWithDelay:5];
+//                [SVProgressHUD showErrorWithStatus:errorMsg];
+//                [SVProgressHUD dismissWithDelay:5];
             }
         });
         
     } failure:^(NSError *error) {
-        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"网络错误: %@", error.localizedDescription]];
-        [SVProgressHUD dismissWithDelay:5];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"网络错误: %@", error.localizedDescription]];
+            [SVProgressHUD dismissWithDelay:5];
+        });
         
     }];
 }
