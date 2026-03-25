@@ -2,7 +2,6 @@ ${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-frameworks.sh
 ${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework
 ${BUILT_PRODUCTS_DIR}/BRPickerView/BRPickerView.framework
 ${BUILT_PRODUCTS_DIR}/HWPanModal/HWPanModal.framework
-${BUILT_PRODUCTS_DIR}/HXPhotoPicker/HXPhotoPicker.framework
 ${BUILT_PRODUCTS_DIR}/HXPhotoPickerObjC/HXPhotoPickerObjC.framework
 ${BUILT_PRODUCTS_DIR}/IGListDiffKit/IGListDiffKit.framework
 ${BUILT_PRODUCTS_DIR}/IGListKit/IGListKit.framework

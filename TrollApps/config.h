@@ -91,7 +91,7 @@ NS_ASSUME_NONNULL_BEGIN
 ///整个屏幕宽度
 #define kHeight [UIScreen mainScreen].bounds.size.height
 //本地储存udid的KEY
-#define TROLLAPPS_SAVE_UDID_KEY @"TROLLAPPS_SAVE_UDID_KEY"
+#define TROLLAPPS_SAVE_UDID_KEY @"SAVE_UDID_KEY"
 
 // config.h
 #define kSwitchSquareVCNotification @"kSwitchSquareVCNotification"

@@ -93,7 +93,7 @@
     self.editButton.frame = CGRectMake(15, 10, 50, 30);
     self.editButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.8];
     self.editButton.layer.cornerRadius = 15;
-    self.editButton.alpha = 0;
+    self.editButton.hidden = YES;
     [self.editButton setTitle:@"更新" forState:UIControlStateNormal];
     [self.editButton addTarget:self action:@selector(updateApp:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.editButton];
@@ -102,7 +102,7 @@
     self.editAppStatuButton.frame = CGRectMake(75, 10, 50, 30);
     self.editAppStatuButton.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.8];
     self.editAppStatuButton.layer.cornerRadius = 15;
-    self.editAppStatuButton.alpha = 0;
+    self.editAppStatuButton.hidden = YES;
     [self.editAppStatuButton setTitle:@"状态" forState:UIControlStateNormal];
     [self.editAppStatuButton addTarget:self action:@selector(editAppStatu:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.editAppStatuButton];
@@ -354,6 +354,17 @@
                 
                 [self.dataSource insertObject:self.webToolModel atIndex:0];
                 [self.dataSource insertObject:self.tipBarModel atIndex:1];
+                
+                // 如果是自己 显示更新按钮
+                if([self.webToolModel.userModel.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid]){
+                    self.editButton.hidden = NO;
+                }
+                // 如果是管理员 显示审核按钮
+                if([NewProfileViewController sharedInstance].userInfo.role ){
+                    self.editAppStatuButton.hidden = NO;
+                    self.editButton.hidden = NO;
+                }
+                
                 
                 [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
                     [self updateEmptyViewVisibility];

@@ -7,9 +7,8 @@ target 'TrollApps' do
 
   # Pods for newTorllApps
 
-  #pod 'AFNetworking'
-  pod "HXPhotoPicker/SDWebImage_AF" 
-  pod 'SDWebImage', '~> 5.0'
+  pod 'AFNetworking'
+  
   pod 'Masonry'
   pod 'BRPickerView' #地区国家区号选择器
   pod 'SVProgressHUD' #弹窗
@@ -30,6 +29,7 @@ target 'TrollApps' do
   pod 'ZXingObjC' #二维码
   pod 'HXPhotoPickerObjC' #帖子照片展示
   pod 'HXPhotoPickerObjC/SDWebImage'
+  pod "HXPhotoPickerObjC/SDWebImage_AF"
   pod 'RongCloudIM/IMKit' # 即时通讯基础 UI 组件
 
 

@@ -94,16 +94,17 @@
     [[RCIM sharedRCIM] refreshUserInfoCache:userInfo withUserId:userModel.udid];
     
 }
+
 /// 获取本地存储的UDID
 - (NSString *)getUDID {
     // 优先从本地存储获取（通过描述文件获取的UDID）
    
-    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
-    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
-    if (savedUDID.length > 0) {
-        return savedUDID;
-    }
-    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
+//    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
+//    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
+//    if (savedUDID.length > 0) {
+//        return savedUDID;
+//    }
+//    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
     // 否则尝试通过系统接口获取（可能失败，仅作为备用）
     static CFStringRef (*$MGCopyAnswer)(CFStringRef);
     void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
@@ -128,7 +129,9 @@
 
 /// 获取本机IDFV
 - (NSString *)getIDFV {
-    return [KeychainTool readAndSaveIDFV];
+    // 钥匙串中没有，生成当前设备的原始IDFV
+    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
+    return vendorID ? [vendorID UUIDString] : [[NSUUID UUID] UUIDString];
 }
 
 #pragma mark - 分类标签处理
@@ -365,6 +368,7 @@
         
     }
 }
+
 - (NSComparisonResult)compareSemanticVersion:(NSString *)version1 withVersion2:(NSString *)version2 {
     // 分割版本号为数组（如 "10.0.6" → @[@10, @0, @6]）
     NSArray *parts1 = [version1 componentsSeparatedByString:@"."];

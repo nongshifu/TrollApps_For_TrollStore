@@ -224,12 +224,12 @@
 - (NSString *)getUDID {
     // 优先从本地存储获取（通过描述文件获取的UDID）
    
-    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
-    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
-    if (savedUDID.length > 0) {
-        return savedUDID;
-    }
-    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
+//    NSString *savedUDID = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY];
+//    NSLog(@"优先从本地存储获取savedUDID:%@",savedUDID);
+//    if (savedUDID.length > 0) {
+//        return savedUDID;
+//    }
+//    NSLog(@"否则尝试通过系统接口获取（可能失败，仅作为备用）savedUDID:%@",savedUDID);
     // 否则尝试通过系统接口获取（可能失败，仅作为备用）
     static CFStringRef (*$MGCopyAnswer)(CFStringRef);
     void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
@@ -254,7 +254,9 @@
 
 /// 获取本机IDFV
 - (NSString *)getIDFV {
-    return [KeychainTool readAndSaveIDFV];
+    // 钥匙串中没有，生成当前设备的原始IDFV
+    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
+    return vendorID ? [vendorID UUIDString] : [[NSUUID UUID] UUIDString];
 }
 
 - (NSString*)getSerialNumber{
@@ -802,7 +804,8 @@
         self.userInfo = userModel;
         [self updateUserInfoWithUserModel:self.userInfo];
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
-        [self fetchUserInfoFromServerWithIDFV:[self getIDFV]];
+        [self registerUserWithUdid:udid idfv:[self getIDFV]];
+        
     }];
 
 }
@@ -820,36 +823,82 @@
 }
 
 - (void)showGetUDIDNote {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"读取用户失败" message:@"请确保使用巨魔商店TrollStore来安装本程序/n或者获取UDID进行注册" preferredStyle:UIAlertControllerStyleAlert];
-    // 添加取消按钮
-    UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+    // 获取三个关键状态
+    NSString *deviceUDID = [self getUDID];
+    BOOL hasTrollRoot = (deviceUDID.length > 0);       // 是否有巨魔权限
+    BOOL hasUserInfo = (self.userInfo.nickname.length > 0 && self.userInfo.idfv.length > 0); // 是否有注册属性
+    NSString *idfv = [self getIDFV];
+    
+    // ====================== 规则1：有巨魔 + 已有属性 = 已注册 = 不弹任何弹窗 ======================
+    if (hasTrollRoot && hasUserInfo) {
+        NSLog(@"✅ 已注册+有巨魔权限，无需弹窗");
+        return;
+    }
+    
+    // ====================== 规则2：有巨魔 + 无属性 = 首次打开 = 自动注册，不弹窗 ======================
+    if (hasTrollRoot && !hasUserInfo) {
+        NSLog(@"✅ 检测到巨魔，首次打开，自动注册");
+        [self registerUserWithUdid:deviceUDID idfv:idfv];
+        return;
+    }
+    
+    // ====================== 下面是必须弹窗的情况 ======================
+    NSString *title = @"温馨提示";
+    NSString *message = @"";
+    NSMutableArray *actions = [NSMutableArray array];
+    
+    // 取消按钮
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    [actions addObject:cancel];
+    
+    // ====================== 规则3：无巨魔 + 有属性 = 提示安装巨魔 ======================
+    if (!hasTrollRoot && hasUserInfo) {
+        message = @"⚠️ 当前设备未使用巨魔商店安装\n部分功能受限，建议安装巨魔商店后使用";
         
+        UIAlertAction *installTroll = [UIAlertAction actionWithTitle:@"安装巨魔商店" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://trollstore.app"] options:@{} completionHandler:nil];
+        }];
+        [actions addObject:installTroll];
+    }
+    
+    // ====================== 规则4：无巨魔 + 无属性 = 普通安装 = 显示【获取UDID】+【游客注册】 ======================
+    else if (!hasTrollRoot && !hasUserInfo) {
+        message = @"📱 请获取设备UDID或使用游客模式继续使用";
         
-    }];
-    [alert addAction:cancelAction];
-    UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self registerUser:[self getIDFV] nickname:@"游客用户"];
-    }];
-    [alert addAction:confirmAction];
-    UIAlertAction*getudid = [UIAlertAction actionWithTitle:@"获取UDID安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self installProfile];
-    }];
-    [alert addAction:getudid];
+        // 游客注册
+        UIAlertAction *guest = [UIAlertAction actionWithTitle:@"游客用户" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [self registerUserWithUdid:nil idfv:idfv];
+        }];
+        
+        // 获取UDID（安装描述文件）
+        UIAlertAction *getUDID = [UIAlertAction actionWithTitle:@"获取UDID" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            [self installProfile];
+        }];
+        
+        [actions addObject:guest];
+        [actions addObject:getUDID];
+    }
     
-    
-    
+    // 显示最终弹窗
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    for (UIAlertAction *a in actions) {
+        [alert addAction:a];
+    }
     [[UIApplication sharedApplication].windows.firstObject.rootViewController presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)registerUser:(NSString*)udid nickname:(NSString*)nickname{
+- (void)registerUserWithUdid:(NSString*)udid idfv:(NSString*)idfv{
+    [SVProgressHUD showWithStatus:@"正在注册..."];
     
-    NSDictionary *dic = @{
-        @"action":@"register",
-        @"nickname":nickname,
-        @"password" :udid,
-        @"udid":udid,
-        @"type":@"udid"
-    };
+    NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+    [dic setValue:@"register" forKey:@"action"];
+    if(udid.length>0){
+        [dic setValue:udid forKey:@"udid"];
+    }
+    if(idfv.length>0){
+        [dic setValue:idfv forKey:@"idfv"];
+    }
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
@@ -857,20 +906,24 @@
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"请求udid用户数据:%@",stringResult);
+            NSLog(@"注册结果：%@",stringResult);
             NSInteger code = [jsonResult[@"code"] intValue];
-            NSString * msg = jsonResult[@"msg"];
+            NSString *msg = jsonResult[@"msg"];
+            
             if (jsonResult && code == 200) {
                 self.userInfo = [UserModel yy_modelWithDictionary:jsonResult[@"userInfo"]];
                 [self updateUserInfoWithUserModel:self.userInfo];
-            }else{
+                [SVProgressHUD showSuccessWithStatus:@"注册成功"];
+            } else {
                 [SVProgressHUD showErrorWithStatus:msg];
             }
         });
     } failure:^(NSError *error) {
-        NSLog(@"注册用户失败：%@",error);
-        [SVProgressHUD showErrorWithStatus:@"注册失败"];
-        [SVProgressHUD dismissWithDelay:3];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"注册失败：%@",error);
+            [SVProgressHUD showErrorWithStatus:@"注册失败，请重试"];
+        });
+        
     }];
 }
 

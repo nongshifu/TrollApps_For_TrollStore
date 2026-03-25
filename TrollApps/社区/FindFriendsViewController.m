@@ -270,7 +270,7 @@
                     BOOL hasMore = [pagination[@"hasMore"] boolValue];
                     NSLog(@"noMoreData:%d",hasMore);
                     if(list.count >0){
-                        [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"搜索到%ld个结果",list.count]];
+//                        [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"搜索到%ld个结果",list.count]];
                     }else{
                         [self handleNoMoreData];
                         [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"翻到底啦"];
