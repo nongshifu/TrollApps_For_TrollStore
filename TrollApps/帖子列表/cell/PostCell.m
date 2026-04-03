@@ -60,6 +60,9 @@
 /// 互动栏
 @property (nonatomic, strong) MiniButtonView *statsMiniButtonView; // 统计按钮容器
 
+/// 帖子驳回
+@property (nonatomic, strong) UILabel *post_reject_reason_Label;
+
 /// 时间/位置标签
 @property (nonatomic, strong) UILabel *timeLocationLabel;
 
@@ -165,6 +168,12 @@
     self.statsMiniButtonView.tintIconColor = [UIColor whiteColor];
     [self.cardView addSubview:self.statsMiniButtonView];
     
+    // 8 驳回
+    self.post_reject_reason_Label = [[UILabel alloc] init];
+    self.post_reject_reason_Label.font = [UIFont systemFontOfSize:12 weight:UIFontWeightLight];
+    self.post_reject_reason_Label.textColor = [UIColor redColor];
+    [self.cardView addSubview:self.post_reject_reason_Label];
+    
     // 初始化媒体视图数组
     self.mediaViews = [NSMutableArray array];
     self.videoDurationLabels = [NSMutableArray array];
@@ -172,10 +181,11 @@
 
 #pragma mark - 约束布局
 - (void)setupConstraints {
+    
     // 1. 卡片容器约束
     [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.contentView).insets(UIEdgeInsetsMake(0, 0, 0, 0));
-        make.width.equalTo(@(kWidth - 20));
+        make.width.equalTo(@(CGRectGetWidth(self.contentView.frame)));
     }];
     
     // 2. 状态按钮约束（与原来的标签约束一致）
@@ -232,9 +242,16 @@
     // 7. 统计信息按钮约束
     [self.statsMiniButtonView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.timeLocationLabel.mas_bottom).offset(8);
-        make.left.equalTo(self.contentView).offset(16);
-        make.right.equalTo(self.contentView);
+        make.left.equalTo(self.cardView).offset(16);
+        make.right.equalTo(self.cardView);
         make.height.equalTo(@25);
+    }];
+    
+    // 8.驳回原因
+    [self.post_reject_reason_Label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
+        make.left.equalTo(self.cardView).offset(16);
+        make.right.equalTo(self.cardView);
         make.bottom.equalTo(self.cardView).offset(-10);
     }];
     
@@ -275,6 +292,9 @@
     
     // 7. 互动数据
     [self setupInteractDataWithModel:model];
+    
+    // 8. 驳回数据
+    [self setupPostRejectReasonDataWithModel:model];
     
     
     // 强制刷新布局
@@ -476,6 +496,24 @@
         }
     }];
 }
+
+#pragma mark - 驳回数据
+- (void)setupPostRejectReasonDataWithModel:(PostModel *)model {
+    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
+    BOOL isMySelf = [NewProfileViewController sharedInstance].userInfo.user_id == model.user_id;
+    self.post_reject_reason_Label.text = [NSString stringWithFormat:@"【管理驳回原因】%@",model.post_reject_reason];
+    
+    [self.post_reject_reason_Label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
+        make.left.equalTo(self.cardView).offset(16);
+        make.right.equalTo(self.cardView);
+        make.bottom.equalTo(self.cardView).offset(-10);
+        if(!isAdmin && !isMySelf){
+            make.height.equalTo(@(0));
+        }
+    }];
+}
+
 #pragma mark - 辅助函数
 
 //重命名数量
@@ -681,11 +719,15 @@
             statusBgColor = [UIColor orangeColor];
             break;
         case PostStatusPublished:
+            statusText = @"已发布";
             if (model.post_audit_status == PostAuditStatusApproved) {
                 statusText = @"已发布";
                 statusBgColor = [UIColor greenColor];
             } else if (model.post_audit_status == PostAuditStatusRejected) {
                 statusText = @"审核驳回";
+                statusBgColor = [UIColor redColor];
+            }else if (model.post_audit_status == PostAuditStatusNotAudited) {
+                statusText = @"待审核";
                 statusBgColor = [UIColor redColor];
             }
             break;
@@ -705,6 +747,11 @@
     [self.statusButton setTitle:statusText forState:UIControlStateNormal];
     [self.statusButton setBackgroundColor:statusBgColor];
     [self.statusButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    
+    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
+    BOOL isMySelf = [NewProfileViewController sharedInstance].userInfo.user_id == model.user_id;
+    
+    self.statusButton.hidden = !isAdmin && !isMySelf;
 }
 
 #pragma mark - 状态按钮点击事件
