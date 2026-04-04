@@ -87,6 +87,7 @@ static dispatch_once_t _onceToken;
 - (void)refreshConfigData {
     [self loadConfigData];
 }
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -384,7 +385,9 @@ static dispatch_once_t _onceToken;
 
 // 编辑配置项的所有字段（修改后）
 - (void)showItemEditAlertWithFields:(NSArray<ConfigField *> *)itemFields indexPath:(NSIndexPath *)indexPath {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"编辑配置项" message:nil preferredStyle:UIAlertControllerStyleAlert];
+    
+    NSString *message = @"键|值|类型|说明|是否必填|排序权重";
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"编辑配置项" message:message preferredStyle:UIAlertControllerStyleAlert];
     
     // 为每个可编辑字段添加输入框
     NSMutableDictionary *textFields = [NSMutableDictionary dictionary];
@@ -582,7 +585,8 @@ static dispatch_once_t _onceToken;
     [fields addObject:[self createFieldWithName:@"排序权重" key:@"sort" value:@"0" editable:YES]];
     
     // 弹出添加配置的弹窗
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"添加配置项" message:nil preferredStyle:UIAlertControllerStyleAlert];
+    NSString *message = @"键|值|类型|说明|是否必填|排序权重";
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"添加配置项" message:message preferredStyle:UIAlertControllerStyleAlert];
     
     // 为每个可编辑字段添加输入框
     NSMutableDictionary *textFields = [NSMutableDictionary dictionary];
@@ -673,13 +677,11 @@ static dispatch_once_t _onceToken;
     UIPickerView *picker = [[UIPickerView alloc] init];
     picker.delegate = self;
     picker.dataSource = self;
-    picker.tag = 1; // 标记为配置类型选择器
+    picker.tag = 1;
     
-    // 设置当前选中值
     NSInteger selectedRow = [self rowForTypeText:textField.text];
     [picker selectRow:selectedRow inComponent:0 animated:NO];
     
-    // 添加完成按钮
     UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 44)];
     [toolbar setItems:@[
         [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
@@ -688,6 +690,8 @@ static dispatch_once_t _onceToken;
     [toolbar sizeToFit];
     
     textField.inputAccessoryView = toolbar;
+    textField.inputView = picker; // ✅ 这里补上！
+    
     return picker;
 }
 
@@ -711,12 +715,21 @@ static dispatch_once_t _onceToken;
     [toolbar sizeToFit];
     
     textField.inputAccessoryView = toolbar;
+    // ✅ 关键修复：把选择器设置为输入框的弹出视图
+    textField.inputView = picker;
     return picker;
 }
 
-// 关闭选择器
+// 关闭选择器（正确版本：关闭顶层弹窗的键盘）
 - (void)dismissPicker:(id)sender {
-    [self.view endEditing:YES];
+    // 获取当前最顶层的控制器（UIAlertController）
+    UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+    while (topVC.presentedViewController) {
+        topVC = topVC.presentedViewController;
+    }
+    
+    // 关闭顶层页面的所有编辑（包括 Alert 里的选择器）
+    [topVC.view endEditing:YES];
 }
 
 // 获取配置类型的文本对应的行号
@@ -789,20 +802,26 @@ static dispatch_once_t _onceToken;
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
-    // 获取当前关联的文本框
-    UITextField *textField = nil;
-    for (UIView *view in self.view.subviews) {
-        if ([view isKindOfClass:[UITextField class]] && [(UITextField *)view.inputView isEqual:pickerView]) {
-            textField = (UITextField *)view;
-            break;
+    // ✅ 正确获取 Alert 里的 textField
+    UITextField *targetTextField = nil;
+    
+    // 遍历当前控制器的所有 presentedViewController（就是 Alert）
+    UIViewController *presentedVC = self.presentedViewController;
+    if ([presentedVC isKindOfClass:[UIAlertController class]]) {
+        UIAlertController *alert = (UIAlertController *)presentedVC;
+        for (UITextField *tf in alert.textFields) {
+            if (tf.inputView == pickerView) {
+                targetTextField = tf;
+                break;
+            }
         }
     }
-    
-    if (textField) {
-        if (pickerView.tag == 1) { // 配置类型选择器
-            textField.text = [self typeTextForType:row];
-        } else { // 是否必填选择器
-            textField.text = row == 0 ? @"是" : @"否";
+
+    if (targetTextField) {
+        if (pickerView.tag == 1) {
+            targetTextField.text = [self typeTextForType:row];
+        } else {
+            targetTextField.text = row == 0 ? @"是" : @"否";
         }
     }
 }

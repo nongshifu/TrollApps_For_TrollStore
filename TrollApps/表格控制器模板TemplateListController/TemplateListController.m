@@ -40,13 +40,17 @@
     
     // 集合视图
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-    layout.estimatedItemSize = CGSizeMake(self.view.bounds.size.width, 100); // 设置预估高度
+    
+    // 👉 关键：开启自动估算尺寸（自适应高度核心）
+    layout.estimatedItemSize = UICollectionViewFlowLayoutAutomaticSize;
+    layout.scrollDirection = UICollectionViewScrollDirectionVertical;
     //横向布局
-//    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-   
+    //    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    
     self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     self.collectionView.backgroundColor = [UIColor clearColor];
     self.collectionView.delegate = self;
+    
     
     [self.view addSubview:self.collectionView];
     

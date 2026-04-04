@@ -116,7 +116,7 @@
             NSInteger row = 0;
             if (self.selectIndexs.count > 0 && component < self.selectIndexs.count) {
                 NSInteger index = [self.selectIndexs[component] integerValue];
-                row = ((index > 0 && index < itemArr.count) ? index : 0);
+                row = (index >= 0 && index < itemArr.count) ? index : 0;
             }
             [selectIndexs addObject:@(row)];
         }
@@ -130,19 +130,23 @@
         NSInteger i = 0;
         NSInteger selectIndex = self.selectIndexs.count > 0 && i < self.selectIndexs.count ? [self.selectIndexs[i] integerValue] : 0;
         [selectIndexs addObject:@(selectIndex)];
-        BRTextModel *selectModel = self.dataSourceArr[selectIndex];
-        while (hasNext) {
-            NSArray *nextArr = selectModel.children;
-            if (!nextArr || nextArr.count == 0) {
-                hasNext = NO;
-                break;
+        if (selectIndex >= 0 && selectIndex < self.dataSourceArr.count) {
+            BRTextModel *selectModel = self.dataSourceArr[selectIndex];
+            while (hasNext) {
+                NSArray *nextArr = selectModel.children;
+                if (!nextArr || nextArr.count == 0) {
+                    hasNext = NO;
+                    break;
+                }
+                [dataList addObject:nextArr];
+                
+                i++;
+                selectIndex = self.selectIndexs.count > 0 && i < self.selectIndexs.count ? [self.selectIndexs[i] integerValue] : 0;
+                [selectIndexs addObject:@(selectIndex)];
+                if (selectIndex < nextArr.count) {
+                    selectModel = nextArr[selectIndex];
+                }
             }
-            [dataList addObject:nextArr];
-            
-            i++;
-            selectIndex = self.selectIndexs.count > 0 && i < self.selectIndexs.count ? [self.selectIndexs[i] integerValue] : 0;
-            [selectIndexs addObject:@(selectIndex)];
-            selectModel = nextArr[selectIndex];
         }
         
         // 控制选择器固定显示的列数
@@ -216,8 +220,10 @@
                     component = component / 2;
                 }
             }
-            NSArray *itemArr = self.dataList[component];
-            return itemArr.count;
+            if (component < self.dataList.count) {
+                return [self.dataList[component] count];
+            }
+            return 0;
         }
             break;
             
@@ -248,12 +254,16 @@
     [self.pickerStyle setupPickerSelectRowStyle:pickerView titleForRow:row forComponent:component];
     
     // 3.记录选择器滚动过程中选中的列和行
-    [self handlePickerViewRollingStatus:pickerView component:component];
+    NSInteger selectRow = [pickerView selectedRowInComponent:component];
+    if (selectRow >= 0) {
+        self.rollingComponent = component;
+        self.rollingRow = selectRow;
+    }
 
     // 设置文本
     if (self.pickerMode == BRTextPickerComponentSingle) {
-        id item = self.dataList[row];
-        if ([item isKindOfClass:[BRTextModel class]]) {
+        id item = row < self.dataList.count ? self.dataList[row] : nil;
+        if (item && [item isKindOfClass:[BRTextModel class]]) {
             BRTextModel *model = (BRTextModel *)item;
             label.text = model.text;
         } else {
@@ -270,45 +280,19 @@
             }
         }
         
-        NSArray *itemArr = self.dataList[component];
-        id item = [itemArr objectAtIndex:row];
-        if ([item isKindOfClass:[BRTextModel class]]) {
-            BRTextModel *model = (BRTextModel *)item;
-            label.text = model.text;
-        } else {
-            label.text = item;
+        if (component < self.dataList.count) {
+            NSArray *itemArr = self.dataList[component];
+            id item = row < itemArr.count ? itemArr[row] : nil;
+            if (item && [item isKindOfClass:[BRTextModel class]]) {
+                BRTextModel *model = (BRTextModel *)item;
+                label.text = model.text;
+            } else {
+                label.text = item;
+            }
         }
     }
     
     return label;
-}
-
-#pragma mark - 处理选择器滚动状态
-- (void)handlePickerViewRollingStatus:(UIPickerView *)pickerView component:(NSInteger)component {
-    // 获取选择器组件滚动中选中的行
-    NSInteger selectRow = [pickerView selectedRowInComponent:component];
-    if (selectRow >= 0) {
-        self.rollingComponent = component;
-        // 根据滚动方向动态计算 rollingRow
-        NSInteger lastRow = self.rollingRow;
-        // 调整偏移量：当用户快速滚动并点击确定按钮时，可能导致选择不准确。这里简单的实现向前/向后多滚动一行（也可以根据滚动速度来调整偏移量）
-        NSInteger offset = 1;
-        if (lastRow >= 0) {
-            // 向上滚动
-            if (selectRow > lastRow) {
-                self.rollingRow = selectRow + offset;
-            } else if (selectRow < lastRow) {
-                // 向下滚动
-                self.rollingRow = selectRow - offset;
-            } else {
-                // 保持当前位置
-                self.rollingRow = selectRow;
-            }
-        } else {
-            // 首次滚动，默认向上滚动
-            self.rollingRow = selectRow + offset;
-        }
-    }
 }
 
 // 获取选择器是否滚动中状态
@@ -423,10 +407,10 @@
 - (NSArray *)getMultiSelectModels {
     NSMutableArray *modelArr = [[NSMutableArray alloc]init];
     for (NSInteger i = 0; i < self.dataList.count; i++) {
-        NSInteger index = [self.selectIndexs[i] integerValue];
-        NSArray *dataArr = self.dataList[i];
+        NSInteger index = i < self.selectIndexs.count ? [self.selectIndexs[i] integerValue] : 0;
+        NSArray *dataArr = i < self.dataList.count ? self.dataList[i] : @[];
+        id item = index >= 0 && index < dataArr.count ? dataArr[index] : nil;
         
-        id item = index < dataArr.count ? dataArr[index] : nil;
         if ([item isKindOfClass:[BRTextModel class]]) {
             BRTextModel *model = (BRTextModel *)item;
             model.index = index;
@@ -467,15 +451,14 @@
     [self.pickerView reloadAllComponents];
     // 3.滚动到选择的值
     if (self.pickerMode == BRTextPickerComponentSingle) {
-        [self.pickerView selectRow:self.selectIndex inComponent:0 animated:self.selectRowAnimated];
+        if (self.selectIndex >= 0 && self.selectIndex < self.dataList.count) {
+            [self.pickerView selectRow:self.selectIndex inComponent:0 animated:self.selectRowAnimated];
+        }
     } else if (self.pickerMode == BRTextPickerComponentMulti || self.pickerMode == BRTextPickerComponentCascade) {
         for (NSInteger i = 0; i < self.selectIndexs.count; i++) {
-            NSNumber *row = [self.selectIndexs objectAtIndex:i];
-            NSInteger component = i;
-            if (self.pickerStyle.columnSpacing > 0) {
-                component = i * 2;
-            }
-            [self.pickerView selectRow:[row integerValue] inComponent:component animated:self.selectRowAnimated];
+            NSInteger component = self.pickerStyle.columnSpacing > 0 ? i * 2 : i;
+            NSInteger row = i < self.selectIndexs.count ? [self.selectIndexs[i] integerValue] : 0;
+            [self.pickerView selectRow:row inComponent:component animated:self.selectRowAnimated];
         }
     }
 }
@@ -513,9 +496,10 @@
     self.doneBlock = ^{
         if (weakSelf.isRolling) {
             NSLog(@"选择器滚动还未结束");
-            // 问题：如果滚动选择器过快，然后在滚动过程中快速点击确定按钮，会导致 didSelectRow 代理方法还没有执行，出现没有选中的情况。
-            // 解决：这里手动处理一下，如果滚动还未结束，强制执行一次 didSelectRow 代理方法，选择当前滚动的行。
-            [weakSelf pickerView:weakSelf.pickerView didSelectRow:weakSelf.rollingRow inComponent:weakSelf.rollingComponent];
+            // 问题：当用户快速滚动选择器，在滚动未结束前快速点击确定按钮，会导致 didSelectRow 代理方法还没有执行，出现没有选中的情况。
+            // 解决：这里手动处理一下，如果滚动还未结束，强制执行一次 didSelectRow 代理方法，选择当前滚动的行。（如果需要预判，可以根据滚动速度来调整偏移量）
+            //[weakSelf pickerView:weakSelf.pickerView didSelectRow:weakSelf.rollingRow inComponent:weakSelf.rollingComponent];
+            [weakSelf handleAutoSelectRollingRow];
         }
     
         // 点击确定，执行选择结果回调
@@ -527,6 +511,26 @@
     };
     
     [super addPickerToView:view];
+}
+
+#pragma mark - 处理滚动未结束前自动选择行
+- (void)handleAutoSelectRollingRow {
+    NSInteger component = self.rollingComponent;
+    NSInteger row = self.rollingRow;
+    
+    // 组件边界检查
+    NSInteger maxComponent = [self.pickerView numberOfComponents] - 1;
+    component = MAX(0, MIN(component, maxComponent));
+    
+    // 行边界检查
+    NSInteger maxRow = [self.pickerView numberOfRowsInComponent:component] - 1;
+    row = MAX(0, MIN(row, maxRow));
+    
+    // 记录修正后的值
+    self.rollingComponent = component;
+    self.rollingRow = row;
+    
+    [self pickerView:self.pickerView didSelectRow:row inComponent:component];
 }
 
 #pragma mark - 重写父类方法

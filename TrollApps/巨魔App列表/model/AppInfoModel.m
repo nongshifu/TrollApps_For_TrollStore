@@ -42,6 +42,8 @@
     if (self.dislike_count != other.dislike_count) return NO;
     if (self.download_count != other.download_count) return NO;
     if (self.comment_count != other.comment_count) return NO;
+    if (self.app_rmb != other.app_rmb) return NO;
+    
     
     // 布尔状态对比（用户操作状态）
     if (self.isLike != other.isLike) return NO;
@@ -51,6 +53,7 @@
     if (self.isComment != other.isComment) return NO;
     if (self.isShare != other.isShare) return NO;
     if (self.is_cloud != other.is_cloud) return NO;
+    if (self.hasPurchased != other.hasPurchased) return NO;
     
     
     // 内容信息对比（影响展示的文本/URL）
@@ -92,6 +95,7 @@
             NSLog(@"jsonResult:%@", jsonResult);
             NSLog(@"stringResult:%@", stringResult);
             NSInteger code = [jsonResult[@"code"] integerValue];
+            NSString * msg = jsonResult[@"msg"];
             if (code == 200) {
                 NSString *downloadLink = jsonResult[@"data"][@"download_url"];
                 if (downloadLink.length > 0) {
@@ -111,7 +115,7 @@
             // 解析失败：构造错误信息
             NSError *parseError = [NSError errorWithDomain:@"DownloadLinkError"
                                                      code:-1
-                                                 userInfo:@{NSLocalizedDescriptionKey: @"解析下载链接失败"}];
+                                                 userInfo:@{NSLocalizedDescriptionKey: msg}];
             if (failure) failure(parseError);
         });
         

@@ -27,6 +27,7 @@
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, strong) UIButton *downloadButton;
 @property (nonatomic, strong) UIView *dividerView;
+@property (nonatomic, strong) UIImageView *iconImageView;
 
 @end
 
@@ -52,6 +53,12 @@
     self.cardView.layer.shadowRadius = 8;
     self.cardView.layer.masksToBounds = NO;
     [self.contentView addSubview:self.cardView];
+    
+    // 图标
+    self.iconImageView = [UIImageView new];
+    self.iconImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.iconImageView.layer.cornerRadius = 15;
+    [self.cardView addSubview:self.iconImageView];
     
     
     // 应用名称标签
@@ -118,10 +125,16 @@
  配置布局约束
  */
 - (void)setupConstraints {
+    // 图标
+    [self.iconImageView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.cardView).offset(10);
+        make.right.equalTo(self.cardView).offset(-10);
+        make.height.width.equalTo(@30);
+    }];
     // 应用名称标签约束
     [self.appNameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.equalTo(self.cardView).offset(20);
-        make.right.equalTo(self.cardView).offset(-20);
+        make.right.equalTo(self.iconImageView).offset(-10);
         make.height.greaterThanOrEqualTo(@24);
     }];
     
@@ -243,6 +256,11 @@
             self.statusLabel.text = @"未知状态";
             self.statusLabel.textColor = [self dynamicSecondaryLabelColor];
             break;
+    }
+    if(self.downloadRecordModel.downloadPoints>0){
+        self.statusLabel.text = @"购买成功";
+        self.statusLabel.textColor = [UIColor systemOrangeColor];
+        self.pointsLabel.textColor = [UIColor systemOrangeColor];
     }
 }
 

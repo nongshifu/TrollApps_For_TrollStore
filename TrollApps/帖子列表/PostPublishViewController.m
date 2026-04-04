@@ -441,7 +441,7 @@
             break;
         }
     }
-    NSLog(@"显示视频地址:%@",self.postModel.post_video_thumb_url)
+    NSLog(@"显示视频地址:%@",self.postModel.post_video_thumb_url);
     if (videoItem) {
         self.videoThumbImageView.hidden = NO;
         // 显示视频封面

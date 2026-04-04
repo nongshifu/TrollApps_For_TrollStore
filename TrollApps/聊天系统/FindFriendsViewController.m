@@ -34,7 +34,8 @@
 @property (nonatomic, strong) NSMutableArray *searchTitles;//搜索数组
 
 @property (nonatomic, strong) NSMutableArray *search_fields;
-
+@property (nonatomic, strong) UIButton *button;
+@property (nonatomic, strong) UIButton *backbutton;
 @end
 
 @implementation FindFriendsViewController
@@ -106,23 +107,52 @@
     self.searchController.searchBar.returnKeyType = UIReturnKeySearch;
     
     // 地区选择按钮（移至右侧）
-    UIBarButtonItem *reset = [[UIBarButtonItem alloc] initWithTitle:@"重置" style:UIBarButtonItemStylePlain target:self action:@selector(resetTap:)];
+    self.button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.button setTitle:@"重置" forState:UIControlStateNormal];
+    [self.button addTarget:self action:@selector(resetTap:) forControlEvents:UIControlEventTouchUpInside];
+    self.button.titleLabel.font = [UIFont systemFontOfSize:16]; // 重置按钮字体大小
+    UIBarButtonItem *reset = [[UIBarButtonItem alloc] initWithCustomView:self.button];
     reset.tintColor = [UIColor labelColor];
     self.navigationItem.rightBarButtonItem = reset;
+    
+    // 返回按钮 - 放大图标
+    self.backbutton = [UIButton buttonWithType:UIButtonTypeCustom];
+    // 设置图标大小（核心修改）
+    UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:22 weight:UIImageSymbolWeightMedium];
+    UIImage *backImage = [[UIImage systemImageNamed:@"chevron.backward.circle"] imageWithConfiguration:config];
+    [self.backbutton setImage:backImage forState:UIControlStateNormal];
+    
+    [self.backbutton addTarget:self action:@selector(back:) forControlEvents:UIControlEventTouchUpInside];
+    // 设置按钮大小，让点击区域更大
+    self.backbutton.frame = CGRectMake(0, 0, 44, 44);
+    // 图片居中显示
+    self.backbutton.contentMode = UIViewContentModeCenter;
+    self.backbutton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    
+    UIBarButtonItem *back = [[UIBarButtonItem alloc] initWithCustomView:self.backbutton];
+    back.tintColor = [UIColor labelColor];
+    self.navigationItem.leftBarButtonItem = back;
     
     // 配置导航项
     self.navigationItem.searchController = self.searchController;
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
-
+    
+    self.backbutton.tintColor = [UIColor labelColor];
+    self.button.titleLabel.textColor = [UIColor labelColor];
 }
 
-- (void)resetTap:(UIBarButtonItem*)item{
+- (void)resetTap:(UIButton*)item{
     self.keyword = @"";
     self.page = 1;
     self.searchController.searchBar.text = @"";
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:KEYWORD_SAVE_KEY];
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self loadDataWithPage:1];
+    
+}
+
+- (void)back:(UIButton*)item{
+    [self dismiss];
     
 }
 
@@ -586,9 +616,13 @@
         navBar.shadowImage = [UIImage new];
         
     }
+    self.backbutton.titleLabel.textColor = [UIColor labelColor];
+    self.button.titleLabel.textColor = [UIColor labelColor];
     
     // 4. 强制刷新导航栏布局（解决高度计算异常）
     [self.navigationController.navigationBar layoutIfNeeded];
+    
+    
 }
 
 

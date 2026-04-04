@@ -23,7 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 下载用户UDID（与数据库字段userUdid完全一致）
 @property (nonatomic, copy) NSString *userUdid;
 /// 下载地址（与数据库字段downloadUrl完全一致）
-@property (nonatomic, strong) NSURL *downloadUrl;
+@property (nonatomic, strong) NSString *downloadUrl;
+/// 图像地址（与数据库字段iconUrlUrl完全一致）
+@property (nonatomic, strong) NSString *iconUrl;
 /// 下载时间（与数据库字段downloadTime完全一致）
 @property (nonatomic, copy) NSString *downloadTime;
 /// 扣除的下载点数（与数据库字段downloadPoints完全一致）

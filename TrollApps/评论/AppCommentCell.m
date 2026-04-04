@@ -132,9 +132,7 @@
     
     
     // 使用 Masonry 布局（也可使用系统 NSLayoutConstraint）
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@(kWidth-24));
-    }];
+    
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(15); // 左间距15
         make.top.equalTo(self.contentView).offset(12); // 上间距12

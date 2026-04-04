@@ -51,6 +51,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 隐藏控制器（不销毁）
 - (void)hideWebToolWithId:(NSInteger)toolId;
 
+// 显示控制器（重新添加到视图层级）
+- (void)showWebToolWithId:(NSInteger)toolId inParentViewController:(UIViewController *)parentVC;
+
 @end
 
 NS_ASSUME_NONNULL_END

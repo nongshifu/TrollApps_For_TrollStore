@@ -29,7 +29,7 @@
 #import "YSMPaymentConfig.h"
 #import "PaymentManager.h"
 #import "ContactHelper.h"
-
+#import "SystemViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -59,6 +59,8 @@
 
 @property (nonatomic, assign) PaymentType payType;
 
+@property (nonatomic, strong) ConfigItem * configItem;
+
 @end
 
 @implementation NewProfileViewController
@@ -77,7 +79,7 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.templateListDelegate = self;
-   
+    
     // 初始化长效Token相关
     [self loadLongTermToken];
     
@@ -119,6 +121,11 @@
     self.hidesHorizontalScrollIndicator = YES;
     
     [self testgetSerialNumber];
+    
+    // 加载系统配置
+    [SystemViewController sharedInstance];
+    
+    self.configItem = [[SystemViewController sharedInstance] configItemForKey:@"en_web_pay"];
     
 }
 
@@ -1126,7 +1133,8 @@
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"action"] = @"updateAvatar";
     params[@"avatar"] = base64Image; // 关键：确保key与PHP端一致
-    
+    params[@"target_udid"] = self.userInfo.udid;
+    params[@"udid"] = [NewProfileViewController sharedInstance].userInfo.udid;
     // 5. 打印参数（排查是否被修改）
     NSLog(@"上传参数：%@", params);
     
@@ -1532,6 +1540,7 @@
         @"udid": self.userInfo.udid,
         @"token": self.userInfo.token ?: @"",
         @"mch_orderid":mch_orderid,
+        @"action":@"createOrder",
         @"data": @{ // 直接在第一层 data 中放业务参数
             @"vipLevel": @(package.level),
             @"VIPPackage": @{
@@ -1619,6 +1628,44 @@
         [SVProgressHUD dismissWithDelay:2 completion:^{
             self.isBuyIng = NO;
         }];
+        return;
+    }
+    self.configItem = [[SystemViewController sharedInstance] configItemForKey:@"en_web_pay"];
+    NSLog(@"配置键值is_required：%d config_value:%@",self.configItem.is_required,self.configItem.config_value);
+    if(self.configItem.is_required && self.configItem.config_value){
+        // 1. 对所有参数进行 URL 编码
+        NSString *levelStr = [NSString stringWithFormat:@"%ld", package.level];
+        NSString *titleEncoded = [package.title stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        NSString *priceStr = [NSString stringWithFormat:@"%f", package.price];
+        NSString *packageIdStr = package.packageId;
+        NSString *udidStr = [self getUDID];
+
+        // 2. 拼接安全的 URL
+        NSString *url = [NSString stringWithFormat:@"%@%@?level=%@&title=%@&price=%@&packageId=%@&payType=%ld&udid=%@",
+                         localURL,
+                         self.configItem.config_value,
+                         levelStr,
+                         titleEncoded, // 这里用编码后的
+                         priceStr,
+                         packageIdStr,
+                         (long)self.payType,
+                         udidStr];
+        NSLog(@"打开支付网址：%@",url);
+
+        // 3. 安全打开（增加判空）
+        NSURL *openUrl = [NSURL URLWithString:url];
+        if (openUrl) {
+            [[UIApplication sharedApplication] openURL:openUrl options:@{} completionHandler:^(BOOL success) {
+                [SVProgressHUD showSuccessWithStatus:@"支付流程已完成，等待服务器确认~"];
+                [SVProgressHUD dismissWithDelay:2];
+                self.isBuyIng = NO;
+            }];
+        } else {
+            // URL 生成失败的容错
+            [SVProgressHUD showErrorWithStatus:@"支付链接生成失败"];
+            [SVProgressHUD dismissWithDelay:1.5];
+            self.isBuyIng = NO;
+        }
         return;
     }
 

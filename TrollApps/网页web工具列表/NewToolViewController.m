@@ -6,6 +6,7 @@
 //
 
 #import "NewToolViewController.h"
+#import "NewProfileViewController.h"
 #import "WebToolModel.h"
 #import "ToolTagsView.h"
 #import "HTMLCodeEditorView.h"
@@ -179,7 +180,12 @@
     [self.infoContainer addSubview:_tagsView];
     
     //切换选项卡
-    _switchInput = [[UISegmentedControl alloc] initWithItems:@[@"HTML",@"URL"]];
+    NSMutableArray *array = [NSMutableArray arrayWithArray:@[@"HTML",@"URL"]];
+    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
+    if(isAdmin){
+        [array addObject:@"控制器"];
+    }
+    _switchInput = [[UISegmentedControl alloc] initWithItems:array];
     _switchInput.selectedSegmentIndex = 0;
     [_switchInput addTarget:self action:@selector(switchInputTap) forControlEvents:UIControlEventValueChanged];
     
@@ -295,7 +301,7 @@
     [self.switchInput mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.tagsView.mas_bottom).offset(8);
         make.left.equalTo(self.view).offset(16);
-        make.width.equalTo(@110);
+//        make.width.equalTo(@270);
         make.height.equalTo(@35); // 固定高度，或根据需求调整
     }];
     
@@ -504,9 +510,9 @@
 
 - (void)switchInputTap {
     NSInteger index = self.switchInput.selectedSegmentIndex;
-    if(index ==0){
+    if(index == 0){
         [self.codeEditorView.rightButton setTitle:@"HTML" forState:UIControlStateNormal];
-    }else{
+    }else if(index == 1){
         [self.codeEditorView.rightButton setTitle:@"URL" forState:UIControlStateNormal];
         NSString * text = self.codeEditorView.codeTextView.text;
         //检测输入是否是URL
@@ -518,8 +524,13 @@
             } onCancelled:^{
                 self.switchInput.selectedSegmentIndex = 0;
             }];
-            [self updateViewConstraints];
+            
         }
+        
+    }else{
+        [self.codeEditorView.rightButton setTitle:@"控制器类名" forState:UIControlStateNormal];
+        NSString * text = self.codeEditorView.codeTextView.text;
+        
     }
     
   
@@ -924,12 +935,12 @@
         [self showAlertWithTitle:@"提示" message:@"请输入工具 代码 或 URL"];
         return NO;
     }
-    if(self.switchInput.selectedSegmentIndex == 0){
+    if(self.switchInput.selectedSegmentIndex == WebToolTypeHtml){
         if(self.codeEditorView.codeTextView.text.length <100){
             [self showAlertWithTitle:@"提示" message:@"请输入工完整标准HTML代码"];
             return NO;
         }
-    }else{
+    }else if(self.switchInput.selectedSegmentIndex == WebToolTypeURL){
         BOOL isURL = [NewAppFileModel isValidURL:self.codeEditorView.codeTextView.text];
         if(!isURL){
             [self showAlertWithConfirmationFromViewController:self title:@"URL不合法" message:@"URL模式下仅支持http或https开头URL网址" confirmTitle:@"清除输入" cancelTitle:@"取消" onConfirmed:^{

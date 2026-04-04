@@ -172,6 +172,7 @@
     self.post_reject_reason_Label = [[UILabel alloc] init];
     self.post_reject_reason_Label.font = [UIFont systemFontOfSize:12 weight:UIFontWeightLight];
     self.post_reject_reason_Label.textColor = [UIColor redColor];
+    self.post_reject_reason_Label.hidden = YES;
     [self.cardView addSubview:self.post_reject_reason_Label];
     
     // 初始化媒体视图数组
@@ -499,16 +500,16 @@
 
 #pragma mark - 驳回数据
 - (void)setupPostRejectReasonDataWithModel:(PostModel *)model {
-    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
-    BOOL isMySelf = [NewProfileViewController sharedInstance].userInfo.user_id == model.user_id;
+//    BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
+//    BOOL isMySelf = [NewProfileViewController sharedInstance].userInfo.user_id == model.user_id;
     self.post_reject_reason_Label.text = [NSString stringWithFormat:@"【管理驳回原因】%@",model.post_reject_reason];
-    
+    self.post_reject_reason_Label.hidden = model.post_audit_status != PostAuditStatusRejected;
     [self.post_reject_reason_Label mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
         make.left.equalTo(self.cardView).offset(16);
         make.right.equalTo(self.cardView);
         make.bottom.equalTo(self.cardView).offset(-10);
-        if(!isAdmin && !isMySelf){
+        if(model.post_audit_status != PostAuditStatusRejected){
             make.height.equalTo(@(0));
         }
     }];

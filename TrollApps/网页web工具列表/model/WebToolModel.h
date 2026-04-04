@@ -19,6 +19,13 @@ typedef NS_ENUM(NSInteger, WebToolStatus) {
     WebToolStatusBanned = 3       // 禁止使用
 };
 
+typedef NS_ENUM(NSInteger, WebToolType) {
+    WebToolTypeHtml = 0,      // HTML
+    WebToolTypeURL = 1,     // URL
+    WebToolTypeViewController = 2    // 视图控制器
+};
+
+
 @interface WebToolModel : NSObject<IGListDiffable>
 
 /** 工具唯一标识（对应数据库tool_id） */
@@ -28,7 +35,7 @@ typedef NS_ENUM(NSInteger, WebToolStatus) {
 @property (nonatomic, strong) NSString *tool_name;
 
 /** 工具类型（对应数据库tool_type） */
-@property (nonatomic, assign) NSInteger tool_type;
+@property (nonatomic, assign) WebToolType tool_type;
 
 /** 工具简介（对应数据库tool_description） */
 @property (nonatomic, strong) NSString *tool_description;

@@ -33,7 +33,8 @@ typedef NS_ENUM(NSInteger, SortType) {
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
 @property (nonatomic, strong)  NSString *keyword;
 @property (nonatomic, assign)  BOOL isMyTool;
-@property (nonatomic, strong)  UIBarButtonItem * rightItem;
+@property (nonatomic, strong)  UIButton * rightButton;
+@property (nonatomic, strong)  UIButton *myButton;
 @property (nonatomic, assign)  SortType sortType;
 @property (nonatomic, strong)  UISearchController *searchController;
 @property (nonatomic, strong)  UILabel *subTitle;
@@ -98,31 +99,45 @@ typedef NS_ENUM(NSInteger, SortType) {
     self.navigationItem.hidesSearchBarWhenScrolling = NO; // 滚动时不隐藏搜索框
     
     // 地区选择按钮（移至右侧）text.alignright
-   
-    self.rightItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"text.alignright"] style:UIBarButtonItemStylePlain target:self action:@selector(rightTapped:)];
-    self.rightItem.tintColor = [UIColor labelColor];
-    self.navigationItem.rightBarButtonItem = self.rightItem;
+    self.rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.rightButton setImage:[UIImage systemImageNamed:@"text.alignright"] forState:UIControlStateNormal];
+    [self.rightButton addTarget:self action:@selector(rightTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:self.rightButton];
+    rightItem.tintColor = [UIColor labelColor];
+    self.navigationItem.rightBarButtonItem = rightItem;
     
     // 关闭按钮
+    UIButton *leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    // 设置图标大小（核心修改）
+    UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:18 weight:UIImageSymbolWeightMedium];
+    UIImage *leftImage = [[UIImage systemImageNamed:@"clock"] imageWithConfiguration:config];
     
-    UIBarButtonItem * leftItem = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"clock"] style:UIBarButtonItemStylePlain target:self action:@selector(recently)];
+    [leftButton setImage:leftImage forState:UIControlStateNormal];
+    [leftButton addTarget:self action:@selector(recently) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem * leftItem = [[UIBarButtonItem alloc] initWithCustomView:leftButton];
     
     
     leftItem.tintColor = [UIColor labelColor];
     
     
     // 地区选择按钮（移至右侧）
-    UIBarButtonItem *myItem = [[UIBarButtonItem alloc] initWithTitle:@"ME" style:UIBarButtonItemStylePlain target:self action:@selector(myToolTapped:)];
+    self.myButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.myButton setTitle:@"ME" forState:UIControlStateNormal];
+    [self.myButton addTarget:self action:@selector(myToolTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *myItem = [[UIBarButtonItem alloc] initWithCustomView:self.myButton];
     myItem.tintColor = [UIColor labelColor];
+    self.myButton.titleLabel.textColor = [UIColor labelColor];
     
-    myItem.tintColor = [UIColor labelColor];
     
     // 关键：禁用系统默认的返回按钮
     self.navigationItem.leftItemsSupplementBackButton = NO; // 禁用补充模式
     self.navigationItem.hidesBackButton = YES; // 隐藏系统返回按钮
     
     // 设置自定义左侧按钮
-    self.navigationItem.leftBarButtonItems = @[leftItem,myItem];
+    // 设置自定义左侧按钮 + 中间加间距
+    UIBarButtonItem *spaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+    spaceItem.width = 15; // 调整间距
+    self.navigationItem.leftBarButtonItems = @[leftItem,spaceItem,myItem];
     
     self.subTitle = [UILabel new];
     self.subTitle.font = [UIFont boldSystemFontOfSize:8];
@@ -215,13 +230,16 @@ typedef NS_ENUM(NSInteger, SortType) {
 #pragma mark - action 函数
 
 //查看我的发布工具
-- (void)myToolTapped:(UIBarButtonItem*)item {
+- (void)myToolTapped:(UIButton*)button {
     
     
     self.isMyTool = !self.isMyTool;
     [self refreshLoadInitialData];
-    item.title = self.isMyTool ? @"ALL":@"ME";
-    
+    NSString *title = self.isMyTool ? @"ALL":@"ME";
+    [button setTitle:title forState:UIControlStateNormal];
+    [button sizeToFit];
+    button.titleLabel.textColor = [UIColor labelColor];
+    button.tintColor = [UIColor labelColor];
     self.title = self.isMyTool ? @"我的发布":@"热门工具";
     if(self.isMyTool){
         
@@ -237,7 +255,7 @@ typedef NS_ENUM(NSInteger, SortType) {
 }
 
 //排序
-- (void)rightTapped:(UIBarButtonItem*)item {
+- (void)rightTapped:(UIButton*)button {
     
     // 处理左边图标点击逻辑
    
@@ -264,7 +282,7 @@ typedef NS_ENUM(NSInteger, SortType) {
     ];
     VC.iconSize = CGSizeMake(20, 20);
     VC.delegate = self;
-    [VC presentMenuView:item];
+    [VC presentMenuView:button];
     
 }
 
@@ -446,7 +464,7 @@ typedef NS_ENUM(NSInteger, SortType) {
     [self setBackgroundUI];
     [self topBackageView];
     [self updateViewConstraints];
-
+    self.myButton.titleLabel.textColor = [UIColor labelColor];
     
 }
 
@@ -467,7 +485,6 @@ typedef NS_ENUM(NSInteger, SortType) {
 }
 
 
-
 - (void)topBackageView{
     //创建一个空视图渐变色
     
@@ -486,6 +503,12 @@ typedef NS_ENUM(NSInteger, SortType) {
         appearance.shadowImage = [UIImage new];
         appearance.shadowColor = nil;
         
+        // 按钮样式：彻底透明、无背景
+        appearance.buttonAppearance.normal.backgroundImage = [UIImage new];
+        appearance.buttonAppearance.highlighted.backgroundImage = [UIImage new];
+
+               
+        
         self.navigationController.navigationBar.standardAppearance = appearance;
         self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
         self.navigationController.navigationBar.compactAppearance = appearance;
@@ -500,6 +523,7 @@ typedef NS_ENUM(NSInteger, SortType) {
 }
 
 
+
 - (void)setBackgroundUI {
 
     // 设置背景颜色和透明度
@@ -511,7 +535,7 @@ typedef NS_ENUM(NSInteger, SortType) {
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
-    
+    self.myButton.titleLabel.textColor = [UIColor labelColor];
     NSLog(@"界面模式发生变化");
     [self setBackgroundUI];
     [self topBackageView];
@@ -523,7 +547,8 @@ typedef NS_ENUM(NSInteger, SortType) {
 
 - (void)menu:(BaseMenuViewController *)menu didClickedItemUnitWithTag:(NSInteger)tag andItemUnitTitle:(NSString *)title {
     self.sortType = tag;
-    self.rightItem.title = title;
+    
+    [self.rightButton setTitle:title forState:UIControlStateNormal];
     [self refreshLoadInitialData];
     
     self.subTitle.text = [NSString stringWithFormat:@"-- %@ --",title];

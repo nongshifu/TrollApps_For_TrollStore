@@ -41,6 +41,7 @@
     // 主容器（添加内边距，避免内容贴边）
     _contentContainer = [[UIView alloc] init];
     _contentContainer.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
+    _contentContainer.layer.cornerRadius = 10;
     [self.contentView addSubview:_contentContainer];
     
     // 套餐名称（主标题）
@@ -104,7 +105,7 @@
     
     [_priceLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(_packageTitleLabel);
-        make.right.equalTo(_contentContainer).offset(-40);;
+        make.right.equalTo(_contentContainer).offset(-10);;
         make.width.lessThanOrEqualTo(@100); // 价格最大宽度限制
     }];
     
@@ -117,7 +118,7 @@
     
     [_vipLevelLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(_timeLabel);
-        make.right.lessThanOrEqualTo(_contentContainer.mas_centerX).offset(-10); // 靠右但不超过中间
+        make.right.equalTo(_contentContainer).offset(-10);
     }];
     
     // 下载次数和状态（第三行，在时间下方）
@@ -129,13 +130,15 @@
     
     [_statusLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(_downloadsLabel);
-        make.right.equalTo(_contentContainer).offset(-40);
+        make.right.equalTo(_contentContainer).offset(-10);
         make.bottom.equalTo(_downloadsLabel);
     }];
     
     // 分割线（底部）
     [_separatorLine mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.right.bottom.equalTo(_contentContainer);
+        make.bottom.equalTo(_contentContainer);
+        make.width.equalTo(@200);
+        make.left.equalTo(_contentContainer.mas_left).offset(_contentContainer.layer.cornerRadius);
         make.height.equalTo(@0.5);
     }];
 }

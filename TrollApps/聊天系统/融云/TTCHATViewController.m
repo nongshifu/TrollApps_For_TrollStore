@@ -148,7 +148,11 @@
     UIBarButtonItem *closeItem = [[UIBarButtonItem alloc] initWithTitle:@"关闭" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     closeItem.tintColor = [UIColor labelColor];
     
-    UIBarButtonItem *chatItem = [[UIBarButtonItem alloc] initWithTitle:@"@ Ta" style:UIBarButtonItemStylePlain target:self action:@selector(contactButtonTap:)];
+    UIButton *ta = [UIButton buttonWithType:UIButtonTypeCustom];
+    [ta setTitle:@"@ Ta" forState:UIControlStateNormal];
+    [ta addTarget:self action:@selector(contactButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *chatItem = [[UIBarButtonItem alloc] initWithCustomView:ta];
     chatItem.tintColor = [UIColor labelColor];
     
     BOOL isModal = [self isModalPresented];
@@ -346,7 +350,7 @@
     return NO;
 }
 
-- (void)contactButtonTap:(UIBarButtonItem*)Item{
+- (void)contactButtonTap:(UIButton*)Item{
     [SVProgressHUD showWithStatus:nil];
     [UserModel getUserInfoWithUdid:self.targetId success:^(UserModel * _Nonnull userModel) {
         

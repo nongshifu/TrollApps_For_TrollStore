@@ -1,0 +1,8 @@
+${PODS_ROOT}/Target Support Files/RongCloudIM/RongCloudIM-xcframeworks.sh
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongChatRoom.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongCustomerService.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongDiscussion.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongIMKit.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongIMLib.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongIMLibCore.xcframework
+${PODS_ROOT}/RongCloudIM/RongCloudIM/RongPublicService.xcframework

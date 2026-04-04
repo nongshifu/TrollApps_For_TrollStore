@@ -38,8 +38,8 @@
 
 @property (nonatomic, strong) UISearchController *searchController;
 @property (nonatomic, assign) SquareVCType currentVCType; // 记录当前控制器类型
-@property (nonatomic, strong) UIBarButtonItem *leftButton;
-@property (nonatomic, strong) UIBarButtonItem *rightButton;
+@property (nonatomic, strong) UIButton *leftButton;
+@property (nonatomic, strong) UIButton *rightButton;
 @end
 
 @implementation ChatListViewController
@@ -152,14 +152,20 @@
     // 判断是否是模态弹出
     BOOL isPresentedModally = [self isModal];
     
-    self.rightButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"switch.2"] style:UIBarButtonItemStylePlain target:self action:@selector(switchMode:)];
+    self.rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.rightButton setImage:[UIImage systemImageNamed:@"switch.2"] forState:UIControlStateNormal];
+    [self.rightButton addTarget:self action:@selector(switchMode:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:self.rightButton];
     self.rightButton.tintColor = [UIColor labelColor];
     
     // 仅在模态时设置右侧关闭按钮，否则隐藏
-    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : self.rightButton;
+    self.navigationItem.rightBarButtonItem = isPresentedModally ? closeItem : rightItem;
     
     // 关闭按钮
-    self.leftButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"qrcode"] style:UIBarButtonItemStylePlain target:self action:@selector(camera:)];
+    self.leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.leftButton setImage:[UIImage systemImageNamed:@"qrcode"] forState:UIControlStateNormal];
+    [self.leftButton addTarget:self action:@selector(camera:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithCustomView:self.leftButton];
     self.leftButton.tintColor = [UIColor labelColor];
     
     // 关键：禁用系统默认的返回按钮
@@ -167,7 +173,7 @@
     self.navigationItem.hidesBackButton = YES; // 隐藏系统返回按钮
     
     // 设置自定义左侧按钮
-    self.navigationItem.leftBarButtonItem = self.leftButton;
+    self.navigationItem.leftBarButtonItem = leftItem;
 }
 
 
@@ -250,7 +256,7 @@
 #pragma mark - action 函数
 
 // 切换模式的点击事件
-- (void)switchMode:(UIBarButtonItem *)item  {
+- (void)switchMode:(UIButton *)item  {
     // 1. 切换控制器类型
     self.currentVCType = (self.currentVCType == SquareVCTypePostList) ? SquareVCTypeOther : SquareVCTypePostList;
     
@@ -262,7 +268,8 @@
     
     // 可选：更新按钮图标/颜色，提示切换状态
     NSString *iconName = (self.currentVCType == SquareVCTypeOther) ? @"switch.2.fill" : @"switch.2";
-    self.rightButton.image = [UIImage systemImageNamed:iconName];
+   
+    [self.rightButton setImage:[UIImage systemImageNamed:iconName] forState:UIControlStateNormal];
     self.rightButton.tintColor = (self.currentVCType == SquareVCTypeOther) ? [UIColor blueColor] : [UIColor redColor];
 }
 
@@ -281,7 +288,7 @@
 }
 
 //显示好友
-- (void)camera:(UIBarButtonItem *)item {
+- (void)camera:(UIButton *)item {
     
     
     NSArray *title = @[@"我的名片", @"扫一扫", @"发现好友"];

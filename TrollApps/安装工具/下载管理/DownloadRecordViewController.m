@@ -104,7 +104,7 @@
     
     // 排序按钮约束
     [self.sortTypeButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.searchBar.mas_bottom).offset(10);
+        make.top.equalTo(self.searchBar.mas_bottom).offset(7);
         make.right.equalTo(self.headerView).offset(-16);
     }];
     

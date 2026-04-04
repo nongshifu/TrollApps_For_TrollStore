@@ -11,7 +11,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface AppIconCell : UITableViewCell
-
+@property (nonatomic, strong) UIImageView *appIconView;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UILabel *subTitleLabel;
 @end
 
 NS_ASSUME_NONNULL_END

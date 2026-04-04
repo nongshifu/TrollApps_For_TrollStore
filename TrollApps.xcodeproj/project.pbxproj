@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,12 @@
 		4F639DF92272E94C00776206 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DF82272E94C00776206 /* Assets.xcassets */; };
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
 		4F639DFF2272E94C00776206 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DFE2272E94C00776206 /* main.m */; };
+		547DBD5E46CA6B19BF961D4B /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 008F02A476D2E662C273C5E8 /* Pods_TrollApps.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		607482872F7BEC8200C4D1F7 /* AppStoreAuth.m in Sources */ = {isa = PBXBuildFile; fileRef = 607482862F7BEC8200C4D1F7 /* AppStoreAuth.m */; };
+		6074828A2F7BFC9900C4D1F7 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 607482892F7BFC9900C4D1F7 /* LoginViewController.m */; };
+		6074828D2F7BFD1300C4D1F7 /* VersionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6074828C2F7BFD1300C4D1F7 /* VersionCell.m */; };
+		607483212F7C463F00C4D1F7 /* AppIconCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 607483202F7C463F00C4D1F7 /* AppIconCell.m */; };
+		60748D0F2F7D791C00C4D1F7 /* ldid.sh in Resources */ = {isa = PBXBuildFile; fileRef = 60748D0E2F7D791C00C4D1F7 /* ldid.sh */; };
 		C2531F372F055D8400966086 /* PostModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F362F055D8400966086 /* PostModel.m */; };
 		C2531F3A2F0562F800966086 /* PostPublishViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F392F0562F800966086 /* PostPublishViewController.m */; };
 		C2531F3D2F05806100966086 /* PostPublisher.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F3C2F05806100966086 /* PostPublisher.m */; };
@@ -18,6 +24,8 @@
 		C2531F432F05B37000966086 /* PostListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F422F05B37000966086 /* PostListViewController.m */; };
 		C2531F4D2F062CE600966086 /* ImageSelectCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F4C2F062CE600966086 /* ImageSelectCell.m */; };
 		C2531F502F0633A600966086 /* MediaItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F4F2F0633A600966086 /* MediaItem.m */; };
+		C26EEE792F7580D300E793F4 /* AppStoreListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C26EEE782F7580D300E793F4 /* AppStoreListViewController.m */; };
+		C26EEE7C2F75852200E793F4 /* AppDowngradeModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26EEE7B2F75852200E793F4 /* AppDowngradeModel.m */; };
 		C26FF4812EDDF67A00C3F195 /* YSMPaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */; };
 		C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4852EDEB38300C3F195 /* PaymentManager.m */; };
 		C26FF48B2EDED10500C3F195 /* YSMPayRequestModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C26FF4872EDED10300C3F195 /* YSMPayRequestModel.m */; };
@@ -86,19 +94,6 @@
 		C2E44C832EDAD35E00110348 /* BottomSheetPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B882EDAD35D00110348 /* BottomSheetPresentationController.m */; };
 		C2E44C842EDAD35E00110348 /* DemoBaseNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B8A2EDAD35D00110348 /* DemoBaseNavigationController.m */; };
 		C2E44C852EDAD35E00110348 /* loadData.mm in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B8B2EDAD35D00110348 /* loadData.mm */; };
-		C2E44C872EDAD35E00110348 /* CydiaSubstrate.framework.zip in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B902EDAD35D00110348 /* CydiaSubstrate.framework.zip */; };
-		C2E44C892EDAD35E00110348 /* ct_bypass in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B922EDAD35D00110348 /* ct_bypass */; };
-		C2E44C8B2EDAD35E00110348 /* optool in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B942EDAD35D00110348 /* optool */; };
-		C2E44C8D2EDAD35E00110348 /* mkdir in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B962EDAD35D00110348 /* mkdir */; };
-		C2E44C8E2EDAD35E00110348 /* ldid in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B972EDAD35D00110348 /* ldid */; };
-		C2E44C8F2EDAD35E00110348 /* mv in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B982EDAD35D00110348 /* mv */; };
-		C2E44C902EDAD35E00110348 /* cp-15 in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B992EDAD35D00110348 /* cp-15 */; };
-		C2E44C912EDAD35E00110348 /* cp in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9A2EDAD35D00110348 /* cp */; };
-		C2E44C922EDAD35E00110348 /* chown in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9B2EDAD35D00110348 /* chown */; };
-		C2E44C932EDAD35E00110348 /* insert_dylib in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9C2EDAD35D00110348 /* insert_dylib */; };
-		C2E44C942EDAD35E00110348 /* mv-15 in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9D2EDAD35D00110348 /* mv-15 */; };
-		C2E44C952EDAD35E00110348 /* rm in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9E2EDAD35D00110348 /* rm */; };
-		C2E44C962EDAD35E00110348 /* install_name_tool in Resources */ = {isa = PBXBuildFile; fileRef = C2E44B9F2EDAD35D00110348 /* install_name_tool */; };
 		C2E44C972EDAD35E00110348 /* CommandExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BA22EDAD35D00110348 /* CommandExecutor.m */; };
 		C2E44C982EDAD35E00110348 /* InjectionRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BA42EDAD35D00110348 /* InjectionRecord.m */; };
 		C2E44C992EDAD35E00110348 /* DylibInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44BA62EDAD35D00110348 /* DylibInfo.m */; };
@@ -168,8 +163,6 @@
 		C2E44CE02EDAE3F200110348 /* SendMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CDF2EDAE3F200110348 /* SendMessage.m */; };
 		C2E44CED2EDAFCA200110348 /* FileUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEC2EDAFCA200110348 /* FileUtils.m */; };
 		C2E44CF02EDAFCCD00110348 /* SandboxFileBrowserVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */; };
-		C2E44CF12EDC197700110348 /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; };
-		C2E44CF22EDC197700110348 /* Pods_TrollApps.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 068050F3072675203E6A8899 /* Pods_TrollApps.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -179,7 +172,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				C2E44CF22EDC197700110348 /* Pods_TrollApps.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -187,8 +179,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		068050F3072675203E6A8899 /* Pods_TrollApps.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrollApps.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		112BBBFD9B784D9191E54BF0 /* Pods-TrollApps.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.debug.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.debug.xcconfig"; sourceTree = "<group>"; };
+		008F02A476D2E662C273C5E8 /* Pods_TrollApps.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TrollApps.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F639DEC2272E94500776206 /* TrollApps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrollApps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F639DF22272E94500776206 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		4F639DF32272E94500776206 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
@@ -196,6 +187,17 @@
 		4F639DFB2272E94C00776206 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F639DFD2272E94C00776206 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F639DFE2272E94C00776206 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		607482852F7BEC8200C4D1F7 /* AppStoreAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppStoreAuth.h; sourceTree = "<group>"; };
+		607482862F7BEC8200C4D1F7 /* AppStoreAuth.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppStoreAuth.m; sourceTree = "<group>"; };
+		607482882F7BFC9900C4D1F7 /* LoginViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
+		607482892F7BFC9900C4D1F7 /* LoginViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
+		6074828B2F7BFD1300C4D1F7 /* VersionCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VersionCell.h; sourceTree = "<group>"; };
+		6074828C2F7BFD1300C4D1F7 /* VersionCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VersionCell.m; sourceTree = "<group>"; };
+		6074831F2F7C463F00C4D1F7 /* AppIconCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppIconCell.h; sourceTree = "<group>"; };
+		607483202F7C463F00C4D1F7 /* AppIconCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppIconCell.m; sourceTree = "<group>"; };
+		60748D0E2F7D791C00C4D1F7 /* ldid.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ldid.sh; sourceTree = "<group>"; };
+		84B0DD44AEE963C32706E883 /* Pods-TrollApps.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.debug.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.debug.xcconfig"; sourceTree = "<group>"; };
+		9E55653F99AAF82AC2A03084 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 		C2531F352F055D8400966086 /* PostModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostModel.h; sourceTree = "<group>"; };
 		C2531F362F055D8400966086 /* PostModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostModel.m; sourceTree = "<group>"; };
 		C2531F382F0562F800966086 /* PostPublishViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostPublishViewController.h; sourceTree = "<group>"; };
@@ -206,11 +208,14 @@
 		C2531F3F2F05B1EA00966086 /* PostCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostCell.m; sourceTree = "<group>"; };
 		C2531F412F05B37000966086 /* PostListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostListViewController.h; sourceTree = "<group>"; };
 		C2531F422F05B37000966086 /* PostListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostListViewController.m; sourceTree = "<group>"; };
-		C2531F472F0628D700966086 /* post_api.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = post_api.php; sourceTree = "<group>"; };
 		C2531F4B2F062CE600966086 /* ImageSelectCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageSelectCell.h; sourceTree = "<group>"; };
 		C2531F4C2F062CE600966086 /* ImageSelectCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageSelectCell.m; sourceTree = "<group>"; };
 		C2531F4E2F0633A600966086 /* MediaItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaItem.h; sourceTree = "<group>"; };
 		C2531F4F2F0633A600966086 /* MediaItem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaItem.m; sourceTree = "<group>"; };
+		C26EEE772F7580D300E793F4 /* AppStoreListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppStoreListViewController.h; sourceTree = "<group>"; };
+		C26EEE782F7580D300E793F4 /* AppStoreListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppStoreListViewController.m; sourceTree = "<group>"; };
+		C26EEE7A2F75852200E793F4 /* AppDowngradeModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDowngradeModel.h; sourceTree = "<group>"; };
+		C26EEE7B2F75852200E793F4 /* AppDowngradeModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDowngradeModel.m; sourceTree = "<group>"; };
 		C26FF4782EDDF5AB00C3F195 /* YSMPaymentConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentConfig.h; sourceTree = "<group>"; };
 		C26FF47F2EDDF67A00C3F195 /* YSMPaymentManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YSMPaymentManager.h; sourceTree = "<group>"; };
 		C26FF4802EDDF67A00C3F195 /* YSMPaymentManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YSMPaymentManager.m; sourceTree = "<group>"; };
@@ -236,7 +241,6 @@
 		C2A4D2732EE87E850091CF05 /* DownloadRecordViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordViewController.m; sourceTree = "<group>"; };
 		C2A4D2762EE8808A0091CF05 /* DownloadRecordCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DownloadRecordCell.h; sourceTree = "<group>"; };
 		C2A4D2772EE8808A0091CF05 /* DownloadRecordCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DownloadRecordCell.m; sourceTree = "<group>"; };
-		C2C639712F0695B00056FFF1 /* posts.sql */ = {isa = PBXFileReference; lastKnownFileType = text; path = posts.sql; sourceTree = "<group>"; };
 		C2C639722F0910180056FFF1 /* PostAttachmentModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostAttachmentModel.h; sourceTree = "<group>"; };
 		C2C639732F0910190056FFF1 /* PostAttachmentModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostAttachmentModel.m; sourceTree = "<group>"; };
 		C2E44AFA2EDAD35C00110348 /* ConfigField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConfigField.m; sourceTree = "<group>"; };
@@ -352,23 +356,6 @@
 		C2E44B892EDAD35D00110348 /* DemoBaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoBaseViewController.h; sourceTree = "<group>"; };
 		C2E44B8A2EDAD35D00110348 /* DemoBaseNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoBaseNavigationController.m; sourceTree = "<group>"; };
 		C2E44B8B2EDAD35D00110348 /* loadData.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = loadData.mm; sourceTree = "<group>"; };
-		C2E44B8F2EDAD35D00110348 /* libiosexec.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libiosexec.1.dylib; sourceTree = "<group>"; };
-		C2E44B902EDAD35D00110348 /* CydiaSubstrate.framework.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = CydiaSubstrate.framework.zip; sourceTree = "<group>"; };
-		C2E44B912EDAD35D00110348 /* libxar.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libxar.1.dylib; sourceTree = "<group>"; };
-		C2E44B922EDAD35D00110348 /* ct_bypass */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ct_bypass; sourceTree = "<group>"; };
-		C2E44B932EDAD35D00110348 /* libcrypto.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libcrypto.3.dylib; sourceTree = "<group>"; };
-		C2E44B942EDAD35D00110348 /* optool */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = optool; sourceTree = "<group>"; };
-		C2E44B952EDAD35D00110348 /* libintl.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libintl.8.dylib; sourceTree = "<group>"; };
-		C2E44B962EDAD35D00110348 /* mkdir */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = mkdir; sourceTree = "<group>"; };
-		C2E44B972EDAD35D00110348 /* ldid */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ldid; sourceTree = "<group>"; };
-		C2E44B982EDAD35D00110348 /* mv */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = mv; sourceTree = "<group>"; };
-		C2E44B992EDAD35D00110348 /* cp-15 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "cp-15"; sourceTree = "<group>"; };
-		C2E44B9A2EDAD35D00110348 /* cp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = cp; sourceTree = "<group>"; };
-		C2E44B9B2EDAD35D00110348 /* chown */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = chown; sourceTree = "<group>"; };
-		C2E44B9C2EDAD35D00110348 /* insert_dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = insert_dylib; sourceTree = "<group>"; };
-		C2E44B9D2EDAD35D00110348 /* mv-15 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "mv-15"; sourceTree = "<group>"; };
-		C2E44B9E2EDAD35D00110348 /* rm */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = rm; sourceTree = "<group>"; };
-		C2E44B9F2EDAD35D00110348 /* install_name_tool */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = install_name_tool; sourceTree = "<group>"; };
 		C2E44BA02EDAD35D00110348 /* CommandExecutor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommandExecutor.h; sourceTree = "<group>"; };
 		C2E44BA12EDAD35D00110348 /* NSTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSTask.h; sourceTree = "<group>"; };
 		C2E44BA22EDAD35D00110348 /* CommandExecutor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CommandExecutor.m; sourceTree = "<group>"; };
@@ -512,7 +499,6 @@
 		C2E44CEE2EDAFCCD00110348 /* SandboxFileBrowserVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SandboxFileBrowserVC.h; sourceTree = "<group>"; };
 		C2E44CEF2EDAFCCD00110348 /* SandboxFileBrowserVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SandboxFileBrowserVC.m; sourceTree = "<group>"; };
 		C2E44CF42EDC408300110348 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
-		DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -520,20 +506,28 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C2E44CF12EDC197700110348 /* Pods_TrollApps.framework in Frameworks */,
+				547DBD5E46CA6B19BF961D4B /* Pods_TrollApps.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0384742AF988FF755866180B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				008F02A476D2E662C273C5E8 /* Pods_TrollApps.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		4F639DE32272E94500776206 = {
 			isa = PBXGroup;
 			children = (
 				4F639DEE2272E94500776206 /* TrollApps */,
 				4F639DED2272E94500776206 /* Products */,
 				FB4CED287BAB4B284EDA8943 /* Pods */,
-				67ABF29B7E82C79B43DF5CF3 /* Frameworks */,
+				0384742AF988FF755866180B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -548,17 +542,17 @@
 		4F639DEE2272E94500776206 /* TrollApps */ = {
 			isa = PBXGroup;
 			children = (
-				C2531F312F055D0400966086 /* 帖子 */,
+				C26EEE722F75804E00E793F4 /* 工具 */,
+				C2531F312F055D0400966086 /* 帖子列表 */,
 				C26FF4822EDEB37300C3F195 /* 支付 */,
 				C2E44B8C2EDAD35D00110348 /* 安装工具 */,
 				C2E44C452EDAD35E00110348 /* 版本管理 */,
 				C2E44BC52EDAD35D00110348 /* 表格控制器模板TemplateListController */,
 				C2E44B5F2EDAD35C00110348 /* 导航 */,
-				C2E44B412EDAD35C00110348 /* 工具 */,
+				C2E44B412EDAD35C00110348 /* 网页web工具列表 */,
 				C2E44B3E2EDAD35C00110348 /* 联系作者 */,
 				C2E44B622EDAD35C00110348 /* 评论 */,
-				C2E44B772EDAD35D00110348 /* 融云 */,
-				C2E44BD02EDAD35D00110348 /* 社区 */,
+				C2E44BD02EDAD35D00110348 /* 聊天系统 */,
 				C2E44B802EDAD35D00110348 /* 视图控制器模版ViewController */,
 				C2E44B682EDAD35C00110348 /* 网络 */,
 				C2E44AF92EDAD35C00110348 /* 系统设置 */,
@@ -567,7 +561,7 @@
 				C2E44C142EDAD35D00110348 /* 组件 */,
 				C2E44B672EDAD35C00110348 /* AppDelegate.h */,
 				C2E44B002EDAD35C00110348 /* AppDelegate.m */,
-				C2E44BE02EDAD35D00110348 /* Apps */,
+				C2E44BE02EDAD35D00110348 /* 巨魔App列表 */,
 				4F639DF82272E94C00776206 /* Assets.xcassets */,
 				C28720712E25432100ABC6AE /* config.h */,
 				4F639DFD2272E94C00776206 /* Info.plist */,
@@ -583,40 +577,73 @@
 				4F639DF22272E94500776206 /* ViewController.h */,
 				4F639DF32272E94500776206 /* ViewController.m */,
 				C2E44CF42EDC408300110348 /* PrefixHeader.pch */,
+				60748D0E2F7D791C00C4D1F7 /* ldid.sh */,
 			);
 			path = TrollApps;
 			sourceTree = "<group>";
 		};
-		67ABF29B7E82C79B43DF5CF3 /* Frameworks */ = {
+		60302D3C2F803FD900E42F23 /* cell */ = {
 			isa = PBXGroup;
 			children = (
-				068050F3072675203E6A8899 /* Pods_TrollApps.framework */,
+				C2531F3E2F05B1EA00966086 /* PostCell.h */,
+				C2531F3F2F05B1EA00966086 /* PostCell.m */,
+				C2531F4B2F062CE600966086 /* ImageSelectCell.h */,
+				C2531F4C2F062CE600966086 /* ImageSelectCell.m */,
 			);
-			name = Frameworks;
+			path = cell;
 			sourceTree = "<group>";
 		};
-		C2531F312F055D0400966086 /* 帖子 */ = {
+		C2531F312F055D0400966086 /* 帖子列表 */ = {
 			isa = PBXGroup;
 			children = (
+				60302D3C2F803FD900E42F23 /* cell */,
 				C292B6DD2F719FBB004EE796 /* model */,
-				C2C639712F0695B00056FFF1 /* posts.sql */,
-				C2531F472F0628D700966086 /* post_api.php */,
 				C2531F382F0562F800966086 /* PostPublishViewController.h */,
 				C2531F392F0562F800966086 /* PostPublishViewController.m */,
 				C2531F3B2F05806100966086 /* PostPublisher.h */,
 				C2531F3C2F05806100966086 /* PostPublisher.m */,
-				C2531F3E2F05B1EA00966086 /* PostCell.h */,
-				C2531F3F2F05B1EA00966086 /* PostCell.m */,
 				C2531F412F05B37000966086 /* PostListViewController.h */,
 				C2531F422F05B37000966086 /* PostListViewController.m */,
-				C2531F4B2F062CE600966086 /* ImageSelectCell.h */,
-				C2531F4C2F062CE600966086 /* ImageSelectCell.m */,
-				C2531F4E2F0633A600966086 /* MediaItem.h */,
-				C2531F4F2F0633A600966086 /* MediaItem.m */,
 				C292B6DA2F719791004EE796 /* ShowOnePostViewController.h */,
 				C292B6DB2F719791004EE796 /* ShowOnePostViewController.m */,
 			);
-			path = "帖子";
+			path = "帖子列表";
+			sourceTree = "<group>";
+		};
+		C26EEE712F757FFE00E793F4 /* 状态 */ = {
+			isa = PBXGroup;
+			children = (
+				C26FF4922EDF0FD800C3F195 /* CustomMoodStatusNavView.h */,
+				C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */,
+			);
+			path = "状态";
+			sourceTree = "<group>";
+		};
+		C26EEE722F75804E00E793F4 /* 工具 */ = {
+			isa = PBXGroup;
+			children = (
+				C26EEE732F75805D00E793F4 /* App降级 */,
+			);
+			path = "工具";
+			sourceTree = "<group>";
+		};
+		C26EEE732F75805D00E793F4 /* App降级 */ = {
+			isa = PBXGroup;
+			children = (
+				C26EEE772F7580D300E793F4 /* AppStoreListViewController.h */,
+				C26EEE782F7580D300E793F4 /* AppStoreListViewController.m */,
+				C26EEE7A2F75852200E793F4 /* AppDowngradeModel.h */,
+				C26EEE7B2F75852200E793F4 /* AppDowngradeModel.m */,
+				607482852F7BEC8200C4D1F7 /* AppStoreAuth.h */,
+				607482862F7BEC8200C4D1F7 /* AppStoreAuth.m */,
+				607482882F7BFC9900C4D1F7 /* LoginViewController.h */,
+				607482892F7BFC9900C4D1F7 /* LoginViewController.m */,
+				6074828B2F7BFD1300C4D1F7 /* VersionCell.h */,
+				6074828C2F7BFD1300C4D1F7 /* VersionCell.m */,
+				6074831F2F7C463F00C4D1F7 /* AppIconCell.h */,
+				607483202F7C463F00C4D1F7 /* AppIconCell.m */,
+			);
+			path = "App降级";
 			sourceTree = "<group>";
 		};
 		C26FF4822EDEB37300C3F195 /* 支付 */ = {
@@ -663,6 +690,8 @@
 		C292B6DD2F719FBB004EE796 /* model */ = {
 			isa = PBXGroup;
 			children = (
+				C2531F4E2F0633A600966086 /* MediaItem.h */,
+				C2531F4F2F0633A600966086 /* MediaItem.m */,
 				C2C639722F0910180056FFF1 /* PostAttachmentModel.h */,
 				C2C639732F0910190056FFF1 /* PostAttachmentModel.m */,
 				C2531F352F055D8400966086 /* PostModel.h */,
@@ -812,6 +841,7 @@
 		C2E44B212EDAD35C00110348 /* 状态说说 */ = {
 			isa = PBXGroup;
 			children = (
+				C26EEE712F757FFE00E793F4 /* 状态 */,
 				C2E44B2A2EDAD35C00110348 /* moodStatusCell.h */,
 				C2E44B262EDAD35C00110348 /* moodStatusCell.m */,
 				C2E44B232EDAD35C00110348 /* MoodStatusModel.h */,
@@ -881,7 +911,7 @@
 			path = "联系作者";
 			sourceTree = "<group>";
 		};
-		C2E44B412EDAD35C00110348 /* 工具 */ = {
+		C2E44B412EDAD35C00110348 /* 网页web工具列表 */ = {
 			isa = PBXGroup;
 			children = (
 				C2E44B542EDAD35C00110348 /* 网页管理器 */,
@@ -899,7 +929,7 @@
 				C2E44B532EDAD35C00110348 /* ToolTagsView.h */,
 				C2E44B462EDAD35C00110348 /* ToolTagsView.m */,
 			);
-			path = "工具";
+			path = "网页web工具列表";
 			sourceTree = "<group>";
 		};
 		C2E44B492EDAD35C00110348 /* cell */ = {
@@ -1071,23 +1101,6 @@
 		C2E44B8E2EDAD35D00110348 /* Tools */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B8F2EDAD35D00110348 /* libiosexec.1.dylib */,
-				C2E44B902EDAD35D00110348 /* CydiaSubstrate.framework.zip */,
-				C2E44B912EDAD35D00110348 /* libxar.1.dylib */,
-				C2E44B922EDAD35D00110348 /* ct_bypass */,
-				C2E44B932EDAD35D00110348 /* libcrypto.3.dylib */,
-				C2E44B942EDAD35D00110348 /* optool */,
-				C2E44B952EDAD35D00110348 /* libintl.8.dylib */,
-				C2E44B962EDAD35D00110348 /* mkdir */,
-				C2E44B972EDAD35D00110348 /* ldid */,
-				C2E44B982EDAD35D00110348 /* mv */,
-				C2E44B992EDAD35D00110348 /* cp-15 */,
-				C2E44B9A2EDAD35D00110348 /* cp */,
-				C2E44B9B2EDAD35D00110348 /* chown */,
-				C2E44B9C2EDAD35D00110348 /* insert_dylib */,
-				C2E44B9D2EDAD35D00110348 /* mv-15 */,
-				C2E44B9E2EDAD35D00110348 /* rm */,
-				C2E44B9F2EDAD35D00110348 /* install_name_tool */,
 			);
 			path = Tools;
 			sourceTree = "<group>";
@@ -1189,11 +1202,10 @@
 			path = "表格控制器模板TemplateListController";
 			sourceTree = "<group>";
 		};
-		C2E44BD02EDAD35D00110348 /* 社区 */ = {
+		C2E44BD02EDAD35D00110348 /* 聊天系统 */ = {
 			isa = PBXGroup;
 			children = (
-				C26FF4922EDF0FD800C3F195 /* CustomMoodStatusNavView.h */,
-				C26FF4932EDF0FD900C3F195 /* CustomMoodStatusNavView.m */,
+				C2E44B772EDAD35D00110348 /* 融云 */,
 				C2E44BD42EDAD35D00110348 /* ChatListViewController.h */,
 				C2E44BD12EDAD35D00110348 /* ChatListViewController.m */,
 				C2E44BD52EDAD35D00110348 /* FindFriendsViewController.h */,
@@ -1201,7 +1213,7 @@
 				C2E44BD32EDAD35D00110348 /* HelpViewController.h */,
 				C2E44BD62EDAD35D00110348 /* HelpViewController.m */,
 			);
-			path = "社区";
+			path = "聊天系统";
 			sourceTree = "<group>";
 		};
 		C2E44BD72EDAD35D00110348 /* 用户反馈 */ = {
@@ -1233,7 +1245,7 @@
 			path = model;
 			sourceTree = "<group>";
 		};
-		C2E44BE02EDAD35D00110348 /* Apps */ = {
+		C2E44BE02EDAD35D00110348 /* 巨魔App列表 */ = {
 			isa = PBXGroup;
 			children = (
 				C2A4D26D2EE865AF0091CF05 /* model */,
@@ -1243,7 +1255,7 @@
 				C2E44BE12EDAD35D00110348 /* AppsViewController.h */,
 				C2E44C032EDAD35D00110348 /* AppsViewController.mm */,
 			);
-			path = Apps;
+			path = "巨魔App列表";
 			sourceTree = "<group>";
 		};
 		C2E44BE22EDAD35D00110348 /* 发布APP */ = {
@@ -1501,8 +1513,8 @@
 		FB4CED287BAB4B284EDA8943 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				112BBBFD9B784D9191E54BF0 /* Pods-TrollApps.debug.xcconfig */,
-				DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */,
+				84B0DD44AEE963C32706E883 /* Pods-TrollApps.debug.xcconfig */,
+				9E55653F99AAF82AC2A03084 /* Pods-TrollApps.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -1514,14 +1526,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4F639E182272E94C00776206 /* Build configuration list for PBXNativeTarget "TrollApps" */;
 			buildPhases = (
-				03D2917DACA22156100F20A0 /* [CP] Check Pods Manifest.lock */,
+				C4CB605A589597586282E054 /* [CP] Check Pods Manifest.lock */,
 				4F639DE82272E94500776206 /* Sources */,
 				4F639DE92272E94500776206 /* Frameworks */,
 				4F639DEA2272E94500776206 /* Resources */,
-				B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */,
 				C287212D2E28266500ABC6AE /* ShellScript */,
-				3C40C51D675A8D5792CFBF9B /* [CP] Copy Pods Resources */,
 				C2E44CF32EDC197700110348 /* Embed Frameworks */,
+				D8AEE8792D770F94B97DAFE7 /* [CP] Embed Pods Frameworks */,
+				DF3229665E395DCEF79753F9 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1572,21 +1584,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C2E44C952EDAD35E00110348 /* rm in Resources */,
-				C2E44C922EDAD35E00110348 /* chown in Resources */,
-				C2E44C942EDAD35E00110348 /* mv-15 in Resources */,
-				C2E44C872EDAD35E00110348 /* CydiaSubstrate.framework.zip in Resources */,
-				C2E44C8F2EDAD35E00110348 /* mv in Resources */,
-				C2E44C962EDAD35E00110348 /* install_name_tool in Resources */,
-				C2E44C8E2EDAD35E00110348 /* ldid in Resources */,
-				C2E44C902EDAD35E00110348 /* cp-15 in Resources */,
-				C2E44C8B2EDAD35E00110348 /* optool in Resources */,
-				C2E44C912EDAD35E00110348 /* cp in Resources */,
 				C287212E2E2A468800ABC6AE /* RootSign.entitlements in Resources */,
 				4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */,
-				C2E44C932EDAD35E00110348 /* insert_dylib in Resources */,
-				C2E44C892EDAD35E00110348 /* ct_bypass in Resources */,
-				C2E44C8D2EDAD35E00110348 /* mkdir in Resources */,
+				60748D0F2F7D791C00C4D1F7 /* ldid.sh in Resources */,
 				4F639DF92272E94C00776206 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1594,7 +1594,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		03D2917DACA22156100F20A0 /* [CP] Check Pods Manifest.lock */ = {
+		C287212D2E28266500ABC6AE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "\n# 赋予脚本执行权限（必须）\nchmod +x \"$PROJECT_DIR/TrollApps/ldid.sh\"\n\n# 执行你的签名脚本\n\"$PROJECT_DIR/TrollApps/ldid.sh\"\n\n\n";
+		};
+		C4CB605A589597586282E054 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1616,26 +1633,10 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		3C40C51D675A8D5792CFBF9B /* [CP] Copy Pods Resources */ = {
+		D8AEE8792D770F94B97DAFE7 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B6F0B393B34143E4664752B4 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1650,22 +1651,23 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C287212D2E28266500ABC6AE /* ShellScript */ = {
+		DF3229665E395DCEF79753F9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-			);
-			outputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# ==============================================\n# 配置参数（根据你的项目修改以下路径）\n# ==============================================\nLDID_PATH=\"ldid\"\nENTITLEMENTS_PATH=\"$PROJECT_DIR/TrollApps/RootSign.entitlements\"\nIPA_OUTPUT_DIR=\"/Users/shisange2026/Library/Mobile Documents/com~apple~CloudDocs/\"\nIPA_NAME=\"TrollApps.ipa\"\n\n# ==============================================\n# 自动获取路径\n# ==============================================\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\nEXECUTABLE_NAME=\"${PRODUCT_NAME}\"\nEXECUTABLE_PATH=\"${APP_PATH}/${EXECUTABLE_NAME}\"\n\n# ==============================================\n# 前置校验\n# ==============================================\necho \"🔍 开始前置校验...\"\n\nif [ ! -f \"${ENTITLEMENTS_PATH}\" ]; then echo \"❌ 权限文件不存在\"; exit 1; fi\nif [ ! -d \"${APP_PATH}\" ]; then echo \"❌ .app 不存在\"; exit 1; fi\nif [ ! -f \"${EXECUTABLE_PATH}\" ]; then echo \"❌ 可执行文件不存在\"; exit 1; fi\nif ! command -v \"${LDID_PATH}\" &> /dev/null; then echo \"❌ ldid 不可用\"; exit 1; fi\n\necho \"✅ 前置校验完成\"\n\n# ==============================================\n# 🔥 核心修复1：删除 Xcode 原有签名（必须加！）\n# ==============================================\necho \"🔧 移除 Xcode 自动签名...\"\ncodesign --remove-signature \"${EXECUTABLE_PATH}\"\nif [ $? -ne 0 ]; then\n    echo \"⚠️  移除签名失败（可能本来就没签名），继续执行\"\nfi\n\n# ==============================================\n# 🔥 核心修复2：最高权限（解决无法签名/无法写入）\n# ==============================================\necho \"🔧 修复文件权限...\"\nchmod -R 777 \"${APP_PATH}\"\nchmod +x \"${EXECUTABLE_PATH}\"\n\n# ==============================================\n# 🔥 核心修复3：ldid 签名（正确格式）\n# ==============================================\necho \"📝 开始 ldid 签名...\"\n\"${LDID_PATH}\" -S\"${ENTITLEMENTS_PATH}\" \"${EXECUTABLE_PATH}\"\n\nif [ $? -ne 0 ]; then\n    echo \"❌ ldid 签名失败\"\n    exit 1\nfi\n\n# ==============================================\n# 验证签名\n# ==============================================\necho \"🔍 验证签名...\"\nif \"${LDID_PATH}\" -e \"${EXECUTABLE_PATH}\" >/dev/null 2>&1; then\n    echo \"✅ 签名成功！\"\nelse\n    echo \"❌ 签名无效！\"\n    exit 1\nfi\n\n# ==============================================\n# 打包 IPA\n# ==============================================\necho \"📦 开始打包 IPA...\"\nTMP_IPA_DIR=\"${BUILT_PRODUCTS_DIR}/IPA_Temp\"\nrm -rf \"${TMP_IPA_DIR}\"\nmkdir -p \"${TMP_IPA_DIR}/Payload\"\ncp -R \"${APP_PATH}\" \"${TMP_IPA_DIR}/Payload/\"\n\nIPA_FULL_PATH=\"${IPA_OUTPUT_DIR}/${IPA_NAME}\"\nmkdir -p \"${IPA_OUTPUT_DIR}\"\ncd \"${TMP_IPA_DIR}\" && zip -q -r -X \"${IPA_FULL_PATH}\" .\n\nif [ $? -eq 0 ]; then\n    echo \"✅ IPA 打包完成！\"\n    echo \"📁 路径：${IPA_FULL_PATH}\"\nelse\n    echo \"❌ IPA 打包失败\"\n    exit 1\nfi\n\n# ==============================================\n# 清理\n# ==============================================\nrm -rf \"${TMP_IPA_DIR}\"\necho \"🧹 清理完成\"\necho \"🎉 全部完成！\"\n\nexit 0\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TrollApps/Pods-TrollApps-resources.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1703,6 +1705,7 @@
 				C26FF4942EDF0FD900C3F195 /* CustomMoodStatusNavView.m in Sources */,
 				C2E44CD72EDAD35F00110348 /* AppVersionHistoryCell.m in Sources */,
 				4F639DFF2272E94C00776206 /* main.m in Sources */,
+				6074828A2F7BFC9900C4D1F7 /* LoginViewController.m in Sources */,
 				C2E44CC42EDAD35F00110348 /* MiniButtonView.m in Sources */,
 				C2E44CC12EDAD35E00110348 /* TipBarModel.m in Sources */,
 				C2E44CD82EDAD35F00110348 /* AppVersionHistoryViewController.m in Sources */,
@@ -1735,8 +1738,10 @@
 				C2E44CC32EDAD35E00110348 /* LikeModel.m in Sources */,
 				C2E44CCD2EDAD35F00110348 /* TimeTool.m in Sources */,
 				C2E44CA42EDAD35E00110348 /* TemplateListController.m in Sources */,
+				607482872F7BEC8200C4D1F7 /* AppStoreAuth.m in Sources */,
 				C2E44C9D2EDAD35E00110348 /* InjectMainController.m in Sources */,
 				C2E44C552EDAD35E00110348 /* ProfileRightViewController.m in Sources */,
+				C26EEE7C2F75852200E793F4 /* AppDowngradeModel.m in Sources */,
 				C2E44C6D2EDAD35E00110348 /* WebToolModel.m in Sources */,
 				C2E44C4E2EDAD35E00110348 /* ConfigItem.m in Sources */,
 				C2E44CCE2EDAD35F00110348 /* UIColor.m in Sources */,
@@ -1765,6 +1770,8 @@
 				C2E44CBA2EDAD35E00110348 /* AppInfoCell.m in Sources */,
 				C2E44C662EDAD35E00110348 /* RunInBackground.mm in Sources */,
 				C2E44C9B2EDAD35E00110348 /* DylibHistoryController.m in Sources */,
+				607483212F7C463F00C4D1F7 /* AppIconCell.m in Sources */,
+				6074828D2F7BFD1300C4D1F7 /* VersionCell.m in Sources */,
 				C2E44C652EDAD35E00110348 /* PrivacyPolicyViewController.m in Sources */,
 				C2E44C762EDAD35E00110348 /* AppCommentCell.m in Sources */,
 				C2531F3D2F05806100966086 /* PostPublisher.m in Sources */,
@@ -1801,6 +1808,7 @@
 				C2E44CBE2EDAD35E00110348 /* NewAppFileModel.m in Sources */,
 				C2E44CD42EDAD35F00110348 /* MultiIconButton.m in Sources */,
 				C2E44CA22EDAD35E00110348 /* DownloadManagerViewController.m in Sources */,
+				C26EEE792F7580D300E793F4 /* AppStoreListViewController.m in Sources */,
 				C2E44C852EDAD35E00110348 /* loadData.mm in Sources */,
 				C2E44C582EDAD35E00110348 /* MyCollectionViewController.m in Sources */,
 				C2E44C542EDAD35E00110348 /* VipPurchaseHistoryModel.m in Sources */,
@@ -1950,9 +1958,11 @@
 		};
 		4F639E192272E94C00776206 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 112BBBFD9B784D9191E54BF0 /* Pods-TrollApps.debug.xcconfig */;
+			baseConfigurationReference = 84B0DD44AEE963C32706E883 /* Pods-TrollApps.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_ALLOWED = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_ENTITLMENTS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -1960,7 +1970,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch";
+				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch/";
 				INFOPLIST_FILE = TrollApps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1979,6 +1989,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1986,9 +1997,11 @@
 		};
 		4F639E1A2272E94C00776206 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DB30C0CD686641079CEA67C2 /* Pods-TrollApps.release.xcconfig */;
+			baseConfigurationReference = 9E55653F99AAF82AC2A03084 /* Pods-TrollApps.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_ALLOWED = YES;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_ENTITLMENTS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -1996,7 +2009,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 7RVGRL9LRW;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch";
+				GCC_PREFIX_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/PrefixHeader.pch/";
 				INFOPLIST_FILE = TrollApps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2015,6 +2028,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

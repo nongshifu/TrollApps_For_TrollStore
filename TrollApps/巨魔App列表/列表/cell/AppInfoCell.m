@@ -41,8 +41,8 @@
 @property (nonatomic, strong) UITextView *releaseNotesTextView;
 @property (nonatomic, strong) MiniButtonView *statsMiniButtonView; // 统计按钮容器
 @property (nonatomic, strong) MiniButtonView *tagMiniButtonView; // 标签容器
-@property (nonatomic, strong) UIButton *downloadButton;
-
+@property (nonatomic, strong) UIButton *downloadButton;//下载按钮
+@property (nonatomic, strong) UIButton *rmbButton;//左上角金额按钮
 
 //图片选择器
 @property (nonatomic, strong) UIView *imageStackView;
@@ -71,7 +71,7 @@
     ];
     self.contentView.layer.cornerRadius = 15;
     self.userInteractionEnabled = YES;
-    
+    self.contentView.layer.masksToBounds = YES;
     UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(buttonClicked:)];
     tapGesture.cancelsTouchesInView = NO; // 确保不影响其他控件的事件
     self.contentView.userInteractionEnabled = YES;
@@ -82,6 +82,7 @@
     // 应用图标
     self.appIconImageView = [[UIImageView alloc] init];
     self.appIconImageView.layer.cornerRadius = 15.0;
+    self.appIconImageView.image = [UIImage systemImageNamed:@"app.gift.fill"];
     self.appIconImageView.layer.masksToBounds = YES;
     self.appIconImageView.contentMode = UIViewContentModeScaleAspectFill;
     
@@ -98,12 +99,14 @@
     //下载统计
     self.downloadLabel = [UILabel new];
     self.downloadLabel.font = [UIFont systemFontOfSize:10];
+    self.downloadLabel.text = @"↓12.0k";
     self.downloadLabel.textColor = [UIColor secondaryLabelColor];
     
     // 应用名称
     self.appNameLabel = [[UILabel alloc] init];
     self.appNameLabel.font = [UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium];
     self.appNameLabel.textColor = [UIColor labelColor];
+    self.appNameLabel.text = @"加载中。。";
     self.appNameLabel.numberOfLines = 2;
     
     UIEdgeInsets edge = UIEdgeInsetsMake(2, 4, 2, 4);
@@ -112,6 +115,7 @@
     self.appTypeButton.titleLabel.font = [UIFont boldSystemFontOfSize:10.0];
     [self.appTypeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.appTypeButton.contentEdgeInsets = edge;
+    [self.appTypeButton setTitle:@"Type" forState:UIControlStateNormal];
     self.appTypeButton.backgroundColor = [[UIColor systemGreenColor] colorWithAlphaComponent:0.6];
     self.appTypeButton.layer.cornerRadius = 3;
     self.appTypeButton.tag = 100;
@@ -125,6 +129,7 @@
     self.appVersionButton.contentEdgeInsets = edge;
     self.appVersionButton.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.6];
     self.appVersionButton.layer.cornerRadius = 3;
+    [self.appVersionButton setTitle:@"v1.0.0" forState:UIControlStateNormal];
     self.appVersionButton.tag = 101;
     [self.appVersionButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -136,6 +141,7 @@
     self.appUpdateTimeButton.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.6];
     self.appUpdateTimeButton.layer.cornerRadius = 3;
     self.appUpdateTimeButton.tag = 102;
+    [self.appUpdateTimeButton setTitle:@"2026-03-22" forState:UIControlStateNormal];
     [self.appUpdateTimeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     // 标签堆栈视图
@@ -149,7 +155,7 @@
     self.tagMiniButtonView.fontSize = 10;
     self.tagMiniButtonView.tintIconColor = [UIColor whiteColor];
     self.tagMiniButtonView.buttonBackageColor = [[UIColor orangeColor] colorWithAlphaComponent:0.5];
-    
+    [self.tagMiniButtonView updateButtonsWithStrings:@[@"软件",@"辅助"] icons:nil];
     
     // 应用描述（替换为UITextView）
     self.appDescriptionTextView = [[UITextView alloc] init];
@@ -158,6 +164,7 @@
     self.appDescriptionTextView.editable = NO; // 禁止编辑
     self.appDescriptionTextView.selectable = NO; // 默认不用允许选中 展开才选择
     self.appDescriptionTextView.scrollEnabled = NO; // 禁用滚动（高度自适应）
+    self.appDescriptionTextView.text = @"简介";
     self.appDescriptionTextView.backgroundColor = [UIColor clearColor]; // 透明背景
     self.appDescriptionTextView.textContainerInset = UIEdgeInsetsZero; // 清除内边距
     self.appDescriptionTextView.textContainer.lineFragmentPadding = 0; // 清除文本内边距
@@ -192,6 +199,18 @@
     ];
     self.statsMiniButtonView.tintIconColor = [UIColor whiteColor];
     
+    //左上角金额
+    self.rmbButton = [[UIButton alloc] init];
+    self.rmbButton.titleLabel.font = [UIFont boldSystemFontOfSize:10.0];
+    [self.rmbButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.rmbButton.contentEdgeInsets = edge;
+    [self.rmbButton setTitle:@"Free" forState:UIControlStateNormal];
+    self.rmbButton.backgroundColor = [[UIColor orangeColor] colorWithAlphaComponent:0.6];
+    self.rmbButton.hidden = YES;
+    
+    
+    
+    
     //照片容器
     self.imageStackView = [[UIView alloc] init];
     
@@ -220,18 +239,13 @@
     [self.contentView addSubview:self.statsMiniButtonView];
     //底部图片视图
     [self.contentView addSubview:self.imageStackView];
+    //左上角的金额按钮
+    [self.contentView addSubview:self.rmbButton];
     
     [self setupConstraints];
 }
 
 - (void)setupConstraints {
-    // 应用图标约束
-    
-    // 应用图标约束
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self); // 仅约束边缘，高度由内容决定
-        make.width.equalTo(@(kWidth-20));
-    }];
     
     // 应用图标约束
     [self.appIconImageView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -317,9 +331,22 @@
     [self.imageStackView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
         make.left.equalTo(self.contentView).offset(16);
-        make.right.equalTo(self.contentView);
-        make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
+        make.right.equalTo(self.contentView).offset(-16);
+        make.bottom.equalTo(self.contentView).offset(-8);
     }];
+    
+    // 左上角斜角按钮
+    [self.rmbButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.width.equalTo(@80);
+        make.height.equalTo(@18);
+        // 定位到父视图左上角
+        make.top.equalTo(self.contentView.mas_top).offset(10);
+        make.left.equalTo(self.contentView.mas_left).offset(-20);
+    }];
+    // 向左旋转 45 度（逆时针）
+    self.rmbButton.transform = CGAffineTransformMakeRotation(-M_PI_4);
+
+
     
 }
 
@@ -331,54 +358,81 @@
 #pragma mark - 数据绑定
 
 - (void)bindViewModel:(id)viewModel {
-    if ([viewModel isKindOfClass:[AppInfoModel class]]) {
-        AppInfoModel *appInfo = (AppInfoModel *)viewModel;
-        self.model = appInfo;
-        self.appInfoModel = appInfo;
-        
-        // 设置应用图标
-        NSLog(@"iconURL:%@",appInfo.icon_url);
-        
-        [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if(image){
-                self.appIconImageView.image = image;
-            }
-        }];
-        NSLog(@"附件列表:%@",self.appInfoModel.fileNames);
-        // 根据应用状态调整下载按钮
-        [self updateDownloadButtonForAppStatus:appInfo.app_status];
-        
-        // 设置应用名称
-        self.appNameLabel.text = appInfo.app_name;
-        
-        // 设置应用类型
-        NSString *appTypeTitle = [NewAppFileModel chineseDescriptionForFileType:appInfo.app_type];
-        [self.appTypeButton setTitle:[NSString stringWithFormat:@"类型:%@",appTypeTitle] forState:UIControlStateNormal];
-        
-        //版本
-        NSString *appVersionTitle = [NSString stringWithFormat:@"v%@",appInfo.version_name];
-        [self.appVersionButton setTitle:appVersionTitle forState:UIControlStateNormal];
-        
-        //时间
-        NSString *appUpdateTimeTitle = [NSString stringWithFormat:@"更新: %@",[TimeTool getTimeDiyWithString:appInfo.update_date]];
-        [self.appUpdateTimeButton setTitle:appUpdateTimeTitle forState:UIControlStateNormal];
-        
-        // 配置标签
-        [self configureTagsWithArray:appInfo.tags];
-        
-        //设置描述（TextView版本）
-        [self configureDescriptionTextViewWith:appInfo.app_description];
-        
-        //更新说明（TextView版本）
-        [self configureReleaseNotesTextViewWith:appInfo.release_notes];
-        
-        // 配置统计按钮
-        [self configureStatsButtonsWithAppInfo:appInfo];
-        
-        //视频图片
-        [self configureFilesWithAppInfo:appInfo];
+    self.model = viewModel;
+    
+    AppInfoModel *appInfo = (AppInfoModel *)viewModel;
+    self.appInfoModel = appInfo;
+    
+    // 设置应用图标
+    NSLog(@"iconURL:%@",appInfo.icon_url);
+    
+    [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+        if(image){
+            self.appIconImageView.image = image;
+        }
+    }];
+    NSLog(@"附件列表:%@",self.appInfoModel.fileNames);
+    // 根据应用状态调整下载按钮
+    [self updateDownloadButtonForAppStatus:appInfo.app_status];
+    
+    // 设置应用名称
+    self.appNameLabel.text = appInfo.app_name;
+    
+    //购买按钮
+    NSString *downloadButtonTitle = @"下载";
+    if(appInfo.hasPurchased || appInfo.app_rmb == 0){
+        downloadButtonTitle = @"下载";
+        self.downloadButton.backgroundColor = [UIColor systemBlueColor];
+    }else{
+        downloadButtonTitle = @"购买";
+        self.downloadButton.backgroundColor = [UIColor systemOrangeColor];
         
     }
+    if(appInfo.app_rmb > 0){
+        
+        NSString *rmbButtonTitle = [NSString stringWithFormat:@"¥ %ld",appInfo.app_rmb];
+        self.rmbButton.hidden = NO;
+        if(appInfo.hasPurchased){
+            rmbButtonTitle = [NSString stringWithFormat:@"已购 ¥%ld",appInfo.app_rmb];
+        }
+        [self.rmbButton setTitle:rmbButtonTitle forState:UIControlStateNormal];
+    }else{
+        self.rmbButton.hidden = YES;
+    }
+    
+    
+    [self.downloadButton setTitle:downloadButtonTitle forState:UIControlStateNormal];
+    
+    // 设置应用类型
+    NSString *appTypeTitle = [NewAppFileModel chineseDescriptionForFileType:appInfo.app_type];
+    [self.appTypeButton setTitle:[NSString stringWithFormat:@"类型:%@",appTypeTitle] forState:UIControlStateNormal];
+    
+    //版本
+    NSString *appVersionTitle = [NSString stringWithFormat:@"v%@",appInfo.version_name];
+    [self.appVersionButton setTitle:appVersionTitle forState:UIControlStateNormal];
+    
+    //时间
+    NSString *appUpdateTimeTitle = [NSString stringWithFormat:@"更新: %@",[TimeTool getTimeDiyWithString:appInfo.update_date]];
+    [self.appUpdateTimeButton setTitle:appUpdateTimeTitle forState:UIControlStateNormal];
+    
+    // 配置标签
+    [self configureTagsWithArray:appInfo.tags];
+    
+    //设置描述（TextView版本）
+    [self configureDescriptionTextViewWith:appInfo.app_description];
+    
+    //更新说明（TextView版本）
+    [self configureReleaseNotesTextViewWith:appInfo.release_notes];
+    
+    // 配置统计按钮
+    [self configureStatsButtonsWithAppInfo:appInfo];
+    
+    //视频图片
+    [self configureFilesWithAppInfo:appInfo];
+    
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    
 }
 
 // 根据应用状态调整下载按钮
@@ -429,8 +483,7 @@
     [self.tagMiniButtonView updateButtonsWithStrings:tags icons:nil];
     [self.tagMiniButtonView refreshHeight];
     
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
+   
     [self.tagMiniButtonView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.height.equalTo(@(self.tagMiniButtonView.refreshHeight));
     }];
@@ -461,8 +514,7 @@
         make.height.equalTo(@(self.descriptionTextHeight));
     }];
     
-    // 强制刷新布局
-    [self.appDescriptionTextView layoutIfNeeded];
+    
 }
 
 // 设置应用更新说明（TextView版本，支持选中+高度自适应）
@@ -479,13 +531,13 @@
             make.height.equalTo(@(self.releaseNotesTextHeight));
         }];
     } else {
+        self.releaseNotesTextView.text = @"";
         // 折叠状态：高度设为0（隐藏）
         [self.releaseNotesTextView mas_updateConstraints:^(MASConstraintMaker *make) {
             make.height.equalTo(@0);
         }];
     }
     
-    [self.releaseNotesTextView layoutIfNeeded];
 }
 
 // 计算文本高度（核心工具方法）
@@ -568,8 +620,8 @@
             make.height.equalTo(@0);
             make.bottom.lessThanOrEqualTo(self.contentView).offset(-16);
         }];
-        [self.photoView removeFromSuperview];
-        self.photoView = nil;
+//        [self.photoView removeFromSuperview];
+//        self.photoView = nil;
     }
 }
 
@@ -637,9 +689,9 @@
 #pragma mark - 交互处理
 
 - (void)downloadButtonTapped:(UIButton*)button {
-    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.phone);
-    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.qq);
-    NSLog(@"点击了下载userModel:%@",self.appInfoModel.userModel.wechat);
+    // 如果是再列表点击下载 那就不触发下载 只能再详情页触发
+    if(!self.appInfoModel.isShowAll) return;
+    
     if([NewProfileViewController sharedInstance].userInfo.user_id == 0){
         [self showAlertWithConfirmationFromViewController:[self getTopViewController] title:@"请先登录哦" message:@"点击底部导航-我-登录绑定UDID" confirmTitle:@"登录" cancelTitle:@"取消" onConfirmed:^{
             
@@ -648,11 +700,13 @@
         }];
         return;
     }
+    
     // 查看详情可以催更
     if(self.appInfoModel.app_status != 0 && self.appInfoModel.isShowAll) {
         [[ContactHelper shared] showContactActionSheetWithUserInfo:self.appInfoModel.userModel title:@"联系作者催更"];
         return;
     }
+    
     //列表模式 跳过 不显示
     if(self.appInfoModel.app_status != 0) {
         [self showAlertWithConfirmationFromViewController:[self getTopViewController] title:button.titleLabel.text message:@"可查看详情\n点击电话图标催更" confirmTitle:@"查看" cancelTitle:@"关闭" onConfirmed:^{
@@ -665,183 +719,232 @@
         }];
         return;
     }
+    
     [SVProgressHUD showWithStatus:@"请求下载地址中"];
     [AppInfoModel getDownloadLinkWithAppId:self.appInfoModel.app_id
                                    success:^(NSURL * _Nonnull downloadURL, NSDictionary *json) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
-            if(!downloadURL){
+            
+            if (!downloadURL) {
                 [SVProgressHUD showErrorWithStatus:@"读取下载链接失败"];
                 [SVProgressHUD dismissWithDelay:2];
                 return;
             }
             
-            NSString * mainURL = [NSString stringWithFormat:@"%@",downloadURL];
-            NSString * title = json[@"app_name"]?:@"下载提示";
-            NSString * message =  self.appInfoModel.is_cloud ? @"当前为云端网盘\n自行拷贝连接下载\n" :@"可在下载管理中管理历史下载文件\n";
-            NSString * version_name = json[@"version_name"];
-            NSString * file_size = json[@"file_size"];
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
-                                                                           message:[NSString stringWithFormat:@"%@ 版本:%@ 大小:%@",message,version_name,file_size]
-                                                                    preferredStyle:UIAlertControllerStyleActionSheet];
-            if(self.appInfoModel.is_cloud){
-                
-                // 1. 拷贝链接按钮
-                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"拷贝链接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    // 将链接拷贝到剪贴板
-                    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-                    pasteboard.string = [NSString stringWithFormat:@"%@",downloadURL]; // 直接拷贝字符串（确保链接完整）
-                    
-                    // 显示拷贝成功提示
-                    UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"成功" message:@"链接已拷贝到剪贴板" preferredStyle:UIAlertControllerStyleAlert];
-                    [successAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-                    [[self getTopViewController] presentViewController:successAlert animated:YES completion:nil];
-                }];
-                [alert addAction:cancelAction];
-                
-                // 2. 在Safari中打开按钮
-                UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Safari中打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    // 检查URL是否有效
-                    if ([mainURL containsString:@"http://"] || [mainURL containsString:@"https://"]) {
-                        [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
-                            
-                        } failure:^(NSError * _Nonnull error) {
-                            
-                        }];
-                        // 用Safari打开链接
-                        [[UIApplication sharedApplication] openURL:downloadURL options:@{} completionHandler:^(BOOL success) {
-                            if (!success) {
-                                // 打开失败提示
-                                UIAlertController *failAlert = [UIAlertController alertControllerWithTitle:@"失败" message:@"无法打开链接，请检查URL是否有效" preferredStyle:UIAlertControllerStyleAlert];
-                                [failAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-                                [[self getTopViewController] presentViewController:failAlert animated:YES completion:nil];
-                            }
-                        }];
-                    } else {
-                        // URL无效提示
-                        UIAlertController *invalidAlert = [UIAlertController alertControllerWithTitle:@"无效链接" message:@"链接格式不正确，请检查" preferredStyle:UIAlertControllerStyleAlert];
-                        [invalidAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
-                        [[self getTopViewController] presentViewController:invalidAlert animated:YES completion:nil];
-                    }
-                }];
-                [alert addAction:confirmAction];
-            }else{
-                // 添加取消按钮
-                UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
-                        
-                    } failure:^(NSError * _Nonnull error) {
-                        
-                    }];
-                    [[FileInstallManager sharedManager] downloadFileWithURLString:mainURL completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
-                        if (error) {
-                            // 判断错误类型并显示友好提示
-                            switch (error.code) {
-                                case NSURLErrorCancelled: // -999
-                                    NSLog(@"下载已取消（用户主动操作）");
-                                    break;
-                                case NSURLErrorTimedOut: // -1001
-                                    [self showAlertFromViewController:[self getTopViewController]
-                                                                title:@"下载超时"
-                                                              message:@"连接超时，请检查网络连接后重试"];
-                                    break;
-                                case NSURLErrorCannotFindHost: // -1003
-                                case NSURLErrorCannotConnectToHost: // -1004
-                                    [self showAlertFromViewController:[self getTopViewController]
-                                                                title:@"连接失败"
-                                                              message:@"无法连接到服务器，请检查URL或网络连接"];
-                                    break;
-                                case NSURLErrorNetworkConnectionLost: // -1005
-                                    [self showAlertFromViewController:[self getTopViewController]
-                                                                title:@"网络中断"
-                                                              message:@"下载过程中网络连接丢失，请重试"];
-                                    break;
-                                case NSURLErrorFileDoesNotExist: // -1100
-                                    [self showAlertFromViewController:[self getTopViewController]
-                                                                title:@"文件不存在"
-                                                              message:@"请求的文件不存在或已被删除"];
-                                    break;
-                                default:
-                                    [self showAlertFromViewController:[self getTopViewController]
-                                                                title:@"下载失败"
-                                                              message:[NSString stringWithFormat:@"错误代码: %ld\n%@", (long)error.code, error.localizedDescription]];
-                                    break;
-                            }
-                            return;
-                        }
-                        // 获取当前顶层视图控制器
-                        UIViewController *topVC = [self getTopViewController];
-                        
-                        // 如果顶层是UIAlertController，先dismiss它
-                        if ([topVC isKindOfClass:[UIAlertController class]]) {
-                            [topVC dismissViewControllerAnimated:YES completion:^{
-                                // 在dismiss完成后，重新获取顶层控制器
-                                UIViewController *newTopVC = [self getTopViewController];
-                                
-                                // 检查新的顶层控制器是否是DownloadManagerViewController
-                                if (![newTopVC isKindOfClass:[DownloadManagerViewController class]]) {
-                                    // 如果不是，创建并present DownloadManagerViewController
-                                    DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-                                    [newTopVC presentPanModal:vc];
-                                } else {
-                                    // 如果是，调用更新方法
-                                    DownloadManagerViewController *vc = (DownloadManagerViewController *)newTopVC;
-                                    [vc handleTaskStatusChanged];
-                                }
-                            }];
-                        } else {
-                            // 如果顶层不是UIAlertController，直接处理
-                            if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
-                                DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-                                [topVC presentPanModal:vc];
-                            } else {
-                                DownloadManagerViewController *vc = (DownloadManagerViewController *)topVC;
-                                [vc handleTaskStatusChanged];
-                            }
-                        }
-                    }];
-                }];
-                [alert addAction:cancelAction];
-                
-                UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
-                        
-                    } failure:^(NSError * _Nonnull error) {
-                        
-                    }];
-                    [[FileInstallManager sharedManager] installFileWithURLString:mainURL completion:^(BOOL success, NSError * _Nullable error) {
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if(error){
-                                NSLog(@"安装失败：%@",error);
-                                [self showAlertFromViewController:[self getviewController] title:@"安装失败" message:[NSString stringWithFormat:@"%@",error]];
-                                return;
-                            }
-                        });
-                    }];
-                }];
-                [alert addAction:confirmAction];
-                
-                UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
-                    [[self getTopViewController] presentPanModal:vc];
-                }];
-                [alert addAction:edit];
+            // 后端返回的真实状态（最准确）
+            NSInteger app_rmb = [json[@"app_rmb"] integerValue];
+            BOOL hasPurchased  = [json[@"hasPurchased"] boolValue];
+            
+            // ==============================================
+            // 🎯 【完整正确逻辑】
+            // ==============================================
+            
+            // 1. 免费APP → 直接下载
+            if (app_rmb == 0) {
+                [self showDownloadAlert:json];
+                return;
             }
             
-            UIAlertAction*noAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                
+            // 2. 收费APP，但【已经购买过】→ 直接下载
+            if (hasPurchased) {
+                [self showDownloadAlert:json];
+                return;
+            }
+            
+            // 3. 收费APP + 未购买 → 弹确认购买
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认购买"
+                                                                           message:[NSString stringWithFormat:@"此应用需要扣除 %ld 积分下载，确认购买？", app_rmb]
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+            UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"确认购买" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                // 确认后 → 弹下载
+                [self showDownloadAlert:json];
             }];
-            [alert addAction:noAction];
+            
+            [alert addAction:cancel];
+            [alert addAction:confirm];
             [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
         });
         
-        
     } failure:^(NSError * _Nonnull error) {
-        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"读取下载链接失败\n%@",error]];
-        [SVProgressHUD dismissWithDelay:2];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"获取失败\n%@", error.localizedDescription]];
+            [SVProgressHUD dismissWithDelay:2.5];
+        });
+        
     }];
+}
+
+- (void)showDownloadAlert:(NSDictionary *)json{
+    NSString *downloadURL = json[@"download_url"];
     
+    NSString * title = json[@"app_name"]?:@"下载提示";
+    NSString * message =  self.appInfoModel.is_cloud ? @"当前为云端网盘\n自行拷贝连接下载\n" :@"可在下载管理中管理历史下载文件\n";
+    NSString * version_name = json[@"version_name"];
+    NSString * file_size = json[@"file_size"];
+    NSInteger app_rmb = [json[@"app_rmb"] intValue];
     
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:[NSString stringWithFormat:@"%@ 版本:%@ 大小:%@\n本次扣除:%ld积分",message,version_name,file_size, app_rmb]
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    if(self.appInfoModel.is_cloud){
+        
+        // 1. 拷贝链接按钮
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"拷贝链接" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            // 将链接拷贝到剪贴板
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = [NSString stringWithFormat:@"%@",downloadURL]; // 直接拷贝字符串（确保链接完整）
+            
+            // 显示拷贝成功提示
+            UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"成功" message:@"链接已拷贝到剪贴板" preferredStyle:UIAlertControllerStyleAlert];
+            [successAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+            [[self getTopViewController] presentViewController:successAlert animated:YES completion:nil];
+            
+            [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                
+            } failure:^(NSError * _Nonnull error) {
+                
+            }];
+            
+        }];
+        [alert addAction:cancelAction];
+        
+        // 2. 在Safari中打开按钮
+        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Safari中打开" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            // 检查URL是否有效
+            if ([downloadURL containsString:@"http://"] || [downloadURL containsString:@"https://"]) {
+                [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                    
+                } failure:^(NSError * _Nonnull error) {
+                    
+                }];
+                // 用Safari打开链接
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:downloadURL] options:@{} completionHandler:^(BOOL success) {
+                    if (!success) {
+                        // 打开失败提示
+                        UIAlertController *failAlert = [UIAlertController alertControllerWithTitle:@"失败" message:@"无法打开链接，请检查URL是否有效" preferredStyle:UIAlertControllerStyleAlert];
+                        [failAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                        [[self getTopViewController] presentViewController:failAlert animated:YES completion:nil];
+                    }
+                }];
+            } else {
+                // URL无效提示
+                UIAlertController *invalidAlert = [UIAlertController alertControllerWithTitle:@"无效链接" message:@"链接格式不正确，请检查" preferredStyle:UIAlertControllerStyleAlert];
+                [invalidAlert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+                [[self getTopViewController] presentViewController:invalidAlert animated:YES completion:nil];
+            }
+        }];
+        [alert addAction:confirmAction];
+    }else{
+        // 添加取消按钮
+        UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"仅下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                
+            } failure:^(NSError * _Nonnull error) {
+                
+            }];
+            [[FileInstallManager sharedManager] downloadFileWithURLString:downloadURL completion:^(NSURL * _Nullable fileLocalURL, NSError * _Nullable error) {
+                if (error) {
+                    // 判断错误类型并显示友好提示
+                    switch (error.code) {
+                        case NSURLErrorCancelled: // -999
+                            NSLog(@"下载已取消（用户主动操作）");
+                            break;
+                        case NSURLErrorTimedOut: // -1001
+                            [self showAlertFromViewController:[self getTopViewController]
+                                                        title:@"下载超时"
+                                                      message:@"连接超时，请检查网络连接后重试"];
+                            break;
+                        case NSURLErrorCannotFindHost: // -1003
+                        case NSURLErrorCannotConnectToHost: // -1004
+                            [self showAlertFromViewController:[self getTopViewController]
+                                                        title:@"连接失败"
+                                                      message:@"无法连接到服务器，请检查URL或网络连接"];
+                            break;
+                        case NSURLErrorNetworkConnectionLost: // -1005
+                            [self showAlertFromViewController:[self getTopViewController]
+                                                        title:@"网络中断"
+                                                      message:@"下载过程中网络连接丢失，请重试"];
+                            break;
+                        case NSURLErrorFileDoesNotExist: // -1100
+                            [self showAlertFromViewController:[self getTopViewController]
+                                                        title:@"文件不存在"
+                                                      message:@"请求的文件不存在或已被删除"];
+                            break;
+                        default:
+                            [self showAlertFromViewController:[self getTopViewController]
+                                                        title:@"下载失败"
+                                                      message:[NSString stringWithFormat:@"错误代码: %ld\n%@", (long)error.code, error.localizedDescription]];
+                            break;
+                    }
+                    return;
+                }
+                // 获取当前顶层视图控制器
+                UIViewController *topVC = [self getTopViewController];
+                
+                // 如果顶层是UIAlertController，先dismiss它
+                if ([topVC isKindOfClass:[UIAlertController class]]) {
+                    [topVC dismissViewControllerAnimated:YES completion:^{
+                        // 在dismiss完成后，重新获取顶层控制器
+                        UIViewController *newTopVC = [self getTopViewController];
+                        
+                        // 检查新的顶层控制器是否是DownloadManagerViewController
+                        if (![newTopVC isKindOfClass:[DownloadManagerViewController class]]) {
+                            // 如果不是，创建并present DownloadManagerViewController
+                            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                            [newTopVC presentPanModal:vc];
+                        } else {
+                            // 如果是，调用更新方法
+                            DownloadManagerViewController *vc = (DownloadManagerViewController *)newTopVC;
+                            [vc handleTaskStatusChanged];
+                        }
+                    }];
+                } else {
+                    // 如果顶层不是UIAlertController，直接处理
+                    if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
+                        DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+                        [topVC presentPanModal:vc];
+                    } else {
+                        DownloadManagerViewController *vc = (DownloadManagerViewController *)topVC;
+                        [vc handleTaskStatusChanged];
+                    }
+                }
+            }];
+        }];
+        [alert addAction:cancelAction];
+        
+        UIAlertAction*confirmAction = [UIAlertAction actionWithTitle:@"下载并安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [AppInfoModel getDownloadLinkAndRecordHistoryWithAppId:self.appInfoModel.app_id success:^(DownloadRecordModel * _Nonnull recordModel, NSDictionary * _Nonnull json) {
+                
+            } failure:^(NSError * _Nonnull error) {
+                
+            }];
+            [[FileInstallManager sharedManager] installFileWithURLString:downloadURL completion:^(BOOL success, NSError * _Nullable error) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if(error){
+                        NSLog(@"安装失败：%@",error);
+                        [self showAlertFromViewController:[self getviewController] title:@"安装失败" message:[NSString stringWithFormat:@"%@",error]];
+                        return;
+                    }
+                });
+            }];
+        }];
+        [alert addAction:confirmAction];
+        
+        UIAlertAction*edit = [UIAlertAction actionWithTitle:@"管理历史下载" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];
+            [[self getTopViewController] presentPanModal:vc];
+        }];
+        [alert addAction:edit];
+    }
+    
+    UIAlertAction*noAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+    }];
+    [alert addAction:noAction];
+    [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)collectButtonTapped:(NSString *)action successMessage:(NSString *)message button:(UIButton *)button {
@@ -1076,7 +1179,7 @@
 
 - (void)buttonClicked:(UIButton*)button{
     NSLog(@"点击了按钮tag:%ld",button.tag);
-    
+    if(self.appInfoModel.isShowAll) return;
     ShowOneAppViewController *vc = [ShowOneAppViewController new];
     vc.app_id = self.appInfoModel.app_id;
     UIViewController *topVc = [self getTopViewController];
@@ -1315,11 +1418,20 @@
         totalHeight = cellWidth *4 +9;
     }
     
-    [self.photoView removeFromSuperview];
-    self.photoView = nil;
+//    [self.photoView removeFromSuperview];
+//    self.photoView = nil;
     
     //照片选择器
-    self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectMake(0, 0, maxWidth, totalHeight) manager:self.manager];
+    // 只在 photoView 为 nil 时创建
+    if (!self.photoView) {
+        self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectZero manager:self.manager];
+        // ... 一次性配置固定属性（cornerRadius、delegate 等）...
+        [self.imageStackView addSubview:self.photoView];
+        // ... 只做一次的约束（比如 left/top/right）...
+    }
+    
+//    self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectMake(0, 0, maxWidth, totalHeight) manager:self.manager];
+    self.photoView.frame = CGRectMake(0, 0, maxWidth, totalHeight);
     self.photoView.delegate = self;
     self.photoView.layer.cornerRadius = 10;
     self.photoView.layer.masksToBounds = YES;
@@ -1335,7 +1447,7 @@
     // 刷新视图
     [self.photoView refreshView];
     
-    [self.imageStackView addSubview:self.photoView];
+//    [self.imageStackView addSubview:self.photoView];
     
     // 图片容器
     [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
@@ -1343,8 +1455,6 @@
         make.height.equalTo(@(totalHeight));
     }];
     
-    // 更新布局
-    [self layoutIfNeeded];
 }
 
 #pragma mark - 工具方法（原代码中缺失，补充以避免编译错误）

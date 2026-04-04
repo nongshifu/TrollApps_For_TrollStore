@@ -76,10 +76,16 @@
     }];
 }
 
-- (void)setTags:(NSArray *)tags {
-    [self.tags removeAllObjects];
-    // 使用mutableCopy确保我们得到一个可变数组
-    [self.tags addObjectsFromArray:[tags mutableCopy]];
+- (void)setTags:(NSMutableArray *)tags {
+    if (tags == _tags) return;
+    
+    _tags = tags;
+    
+    // 如果你需要确保一定是可变数组（推荐）
+    if (![_tags isKindOfClass:[NSMutableArray class]]) {
+        _tags = [tags mutableCopy];
+    }
+    
     [self refreshTagsView];
 }
 

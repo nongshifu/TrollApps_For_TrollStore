@@ -82,6 +82,7 @@
                     
                     for (NSDictionary *dic in appInfo_data) {
                         AppInfoModel *model = [AppInfoModel yy_modelWithDictionary:dic];
+                        NSLog(@"打印app数据:%@",dic);
                         [self.dataSource addObject:model];
                     }
                    

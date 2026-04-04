@@ -9,7 +9,12 @@
 #import "VersionCell.h"
 
 @implementation VersionCell
-
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    if (self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier]) {
+        self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    }
+    return self;
+}
 - (void)awakeFromNib {
     [super awakeFromNib];
     // Initialization code

@@ -162,10 +162,7 @@ static UIImage *imageWithColor(UIColor *color) {
 
 - (void)setupConstraints {
     // 卡片容器（宽度固定，高度自适应）
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@(kWidth - 20));
-        // 移除固定高度约束，让contentView高度由子视图撑开
-    }];
+   
     
     // 卡片容器（ edges 绑定contentView，高度随子视图自适应）
     [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -339,6 +336,10 @@ static UIImage *imageWithColor(UIColor *color) {
 
     // 昵称
     self.nicknameLabel.text = model.nickname ?: @"未知用户";
+    if(self.userModel.role){
+        self.nicknameLabel.text = [NSString stringWithFormat:@"%@(超管)",self.nicknameLabel.text];
+        
+    }
 
     // VIP标签 (原来的大标签)
     BOOL isVipExpired = [UserModel isVIPExpiredWithDate:model.vip_expire_date];

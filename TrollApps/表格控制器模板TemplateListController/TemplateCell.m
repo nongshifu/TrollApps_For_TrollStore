@@ -15,9 +15,16 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        
+        self.contentView.translatesAutoresizingMaskIntoConstraints = NO;
+ 
+        [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.edges.equalTo(self); // 仅约束边缘，高度由内容决定
+            make.width.equalTo(@(CGRectGetWidth(self.frame)));
+        }];
         [self setupUI];
         [self setupConstraints];
+//        self.contentView.backgroundColor = [UIColor redColor];
+//        self.backgroundColor = [UIColor grayColor];
     }
     return self;
 }
@@ -74,9 +81,7 @@
     self.cachedHeight = 0;
     // 强制布局更新
     [self setNeedsLayout];
-    [UIView animateWithDuration:0.1 animations:^{
-        [self layoutIfNeeded];
-    }];
+    [self layoutIfNeeded];
     
     if (self.delegate) {
         [self.delegate refreshCell:self];

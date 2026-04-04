@@ -37,10 +37,10 @@
  配置布局约束（必须由子类实现）
  */
 - (void)setupConstraints{
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@(kWidth - 40));
-        
-    }];
+//    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.width.equalTo(@(kWidth - 40));
+//        
+//    }];
     
     // 内容文本框约束（上下左右留边距，宽度适应cell）
     [self.moodStatusTextView mas_makeConstraints:^(MASConstraintMaker *make) {

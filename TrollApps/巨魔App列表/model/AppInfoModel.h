@@ -46,18 +46,33 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *update_date;
 @property (nonatomic, copy) NSString *udid;
 @property (nonatomic, copy) NSString *idfv;
-
+///点赞数量
 @property (nonatomic, assign) NSInteger like_count;
+/// 是否已经点赞
 @property (nonatomic, assign) BOOL isLike;
+/// 收藏数量
 @property (nonatomic, assign) NSInteger collect_count;
+/// 是否收藏
 @property (nonatomic, assign) BOOL isCollect;
+/// 踩一踩数量
 @property (nonatomic, assign) NSInteger dislike_count;
+/// 是否踩一踩
 @property (nonatomic, assign) BOOL isDislike;
+/// 评论数量
 @property (nonatomic, assign) NSInteger comment_count;
+/// 是否已经评论
 @property (nonatomic, assign) BOOL isComment;
+/// 分享数量
 @property (nonatomic, assign) NSInteger share_count;
+/// 是否已经分析
 @property (nonatomic, assign) BOOL isShare;
+/// 下载数量
 @property (nonatomic, assign) NSInteger download_count;
+/// 购买所需要的积分
+@property (nonatomic, assign) NSInteger app_rmb;
+/// 是否已经购买
+@property (nonatomic, assign) BOOL hasPurchased;
+
 @property (nonatomic, copy) NSString *app_remark;
 @property (nonatomic, copy) NSString *app_description;
 @property (nonatomic, assign) NSInteger app_status;

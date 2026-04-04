@@ -25,6 +25,10 @@
 
 @property (nonatomic, strong) UIButton *editButton;//编辑软件更新按钮
 @property (nonatomic, strong) UIButton *editAppStatuButton;//删除软件按照
+
+/// 数据模型
+@property (nonatomic, strong) PostModel *postModel;
+
 @end
 
 @implementation ShowOnePostViewController
@@ -177,14 +181,13 @@
     
     NSDictionary *dic = @{
         @"action":@"getOnePostData",
-        @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
-        @"post_id":@(self.postModel.post_id),
+//        @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
+        @"post_id":@(self.post_id),
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -213,7 +216,7 @@
             if (model) {
                 self.postModel = model;
                 self.post_id = model.post_id;
-                self.post_uuid = model.post_uuid;
+                
                 [self.dataSource insertObject:model atIndex:0];
                 
                 if(!self.tipBarModel){

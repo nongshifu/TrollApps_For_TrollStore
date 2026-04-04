@@ -8,7 +8,7 @@
 #import "DemoBaseViewController.h"
 #import "config.h"
 #import "AppInfoModel.h"
-#import "AppVersionModel.h"
+
 #import "NewAppFileModel.h"
 #import "UploadManager.h"
 #import "UploadTask.h"

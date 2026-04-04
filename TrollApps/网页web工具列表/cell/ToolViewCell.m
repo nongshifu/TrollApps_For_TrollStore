@@ -140,12 +140,6 @@
 
 - (void)setupConstraints {
     
-    // 正确约束：contentView 撑满 cell，不限制高度
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self); // 仅约束边缘，高度由内容决定
-        make.width.equalTo(@(kWidth -20));
-//        make.height.greaterThanOrEqualTo(@100); // 确保最小高度
-    }];
     // 左侧头像：固定宽高60，左、上、下有间距
     [self.avatarImgView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(15);
@@ -261,14 +255,14 @@
     // 更新按钮状态
     [self configuseButtonWithStatus:self.toolModel.tool_status];
     
-    // 更新约束
-    [self setNeedsUpdateConstraints];
-    [self updateConstraintsIfNeeded];
-    
-    // 使用异步布局更新，避免在主线程中阻塞
-    [UIView setAnimationsEnabled:NO];
-    [self layoutIfNeeded];
-    [UIView setAnimationsEnabled:YES];
+//    // 更新约束
+//    [self setNeedsUpdateConstraints];
+//    [self updateConstraintsIfNeeded];
+//    
+//    // 使用异步布局更新，避免在主线程中阻塞
+//    [UIView setAnimationsEnabled:NO];
+//    [self layoutIfNeeded];
+//    [UIView setAnimationsEnabled:YES];
 }
 
 // 配置统计按钮
@@ -477,38 +471,79 @@
 }
 
 - (void)openHtml:(WebToolModel*)model {
-   
-    // 直接初始化，内部会自动判断单例中是否存在
-    WebViewController *webVC = [[WebViewController alloc] initWithToolModel:model];
-    
-    // 显示控制器（无论新创建还是复用已有实例，直接 present 即可）
-    [[self getTopViewController] presentPanModal:webVC];
-    
-    
-     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
-     // 构建请求参数
-     NSDictionary *dic = @{
-         @"action": @"incrementToolViewCount",
-         @"tool_id": @(self.toolModel.tool_id),
-         @"udid": udid,
-        
-     };
-     
-     NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-     NSLog(@"请求URL:%@ 参数:%@", url, dic);
-    
-     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+    // 统计逻辑（保留不动）
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
+    NSDictionary *dic = @{
+        @"action": @"incrementToolViewCount",
+        @"tool_id": @(model.tool_id),
+        @"udid": udid,
+    };
+    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                                urlString:url
                                               parameters:dic
                                                     udid:udid
-                                                progress:^(NSProgress *progress) {
-         
-     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {}
-                                                 failure:^(NSError *error) {
-        
-     }];
+                                                progress:^(NSProgress *progress) {}
+                                                 success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {}
+                                                 failure:^(NSError *error) {}];
 
+    // ====================== 核心：根据类型打开不同页面 ======================
+    switch (model.tool_type) {
+        case WebToolTypeHtml:
+        case WebToolTypeURL: {
+            // 原有逻辑：HTML / URL → 打开网页控制器
+            WebViewController *webVC = [[WebViewController alloc] initWithToolModel:model];
+            [[self getTopViewController] presentPanModal:webVC];
+            break;
+        }
+        case WebToolTypeViewController: {
+            // 新增逻辑：类名字符串 → 打开原生控制器
+            [self openNativeViewControllerWithModel:model];
+            break;
+        }
+        default:
+            break;
+    }
 }
+
+- (void)openNativeViewControllerWithModel:(WebToolModel*)model {
+    NSString *vcClassName = model.html_content;
+    if (!vcClassName || vcClassName.length == 0) {
+        [SVProgressHUD showErrorWithStatus:@"控制器类名不能为空"];
+        [SVProgressHUD dismissWithDelay:1.0];
+        return;
+    }
+
+    WebToolManager *manager = [WebToolManager sharedManager];
+    UIViewController *existingVC = [manager getControllerForToolId:model.tool_id];
+    
+    // 1. 已存在 → 直接显示
+    if (existingVC) {
+//        [manager showWebToolWithId:model.tool_id inParentViewController:[self getTopViewController]];
+        [[self getTopViewController] presentPanModal:existingVC];
+        return;
+    }
+
+    // 2. 不存在 → 动态创建
+    Class vcClass = NSClassFromString(vcClassName);
+    if (!vcClass || ![vcClass isSubclassOfClass:[UIViewController class]]) {
+        [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"类 %@ 无效", vcClassName]];
+        [SVProgressHUD dismissWithDelay:1.5];
+        return;
+    }
+
+    UIViewController *targetVC = [[vcClass alloc] init];
+    targetVC.title = model.tool_name;
+    
+    // 3. 加入管理器管理（复用）
+    [manager addWebToolWithModel:model controller:targetVC];
+    
+    // 4. 展示
+    [[self getTopViewController] presentPanModal:targetVC];
+    
+}
+
+
 
 - (void)buttonActionWith:(NSString *)action button:(UIButton *)button{
     NSString *udid = [loadData sharedInstance].userModel.udid;

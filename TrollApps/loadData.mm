@@ -10,6 +10,7 @@
 #include <dlfcn.h>
 #import "AppVersionHistoryViewController.h"
 #import "AppVersionHistoryModel.h"
+#import "SystemViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED NO // .M当前文件单独启用
@@ -35,6 +36,7 @@
         [self loadLocalTags];
         [self loadTagsFromRemote];
         [self loadVIPPackagesFromRemote];
+        
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self getVersionUpdateInfo];
         });

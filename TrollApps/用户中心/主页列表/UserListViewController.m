@@ -7,7 +7,9 @@
 
 #import "UserListViewController.h"
 #import "ShowOneAppViewController.h"
+#import "ShowOnePostViewController.h"
 #import "NewProfileViewController.h"
+#import "ShowOneToolViewController.h"
 #import "UserModelCell.h"
 #import "AppInfoCell.h"
 #import "AppInfoModel.h"
@@ -17,6 +19,8 @@
 #import "MoodStatusModel.h"
 #import "moodStatusCell.h"
 #import "ToolViewCell.h"
+#import "PostModel.h"
+#import "PostCell.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -51,6 +55,8 @@
         [self loadUserReplyDataWithPage:self.page];
     }else if(self.selectedIndex ==3){
         [self loadUserMoodDataWithPage:self.page];
+    }else if(self.selectedIndex ==4){
+        [self loadPostDataWithPage:self.page];
     }
     
 }
@@ -416,6 +422,97 @@
         });
     }];
 }
+/**
+ 获取用户帖子
+ @param page 当前请求的页码
+ */
+- (void)loadPostDataWithPage:(NSInteger)page{
+    NSString *udid = self.user_udid;
+    // 修正参数：补充topic_id，修复udid/keyword的空值处理
+    NSLog(@"搜索：%@",self.keyword);
+    NSDictionary *dic = @{
+        @"action":@"search_posts",
+        @"queryUdid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
+        @"page":@(page), // 用传入的page，而非self.page（避免页码错乱）
+        @"keyword":self.keyword ?: @"",
+        @"user_id":@(self.user_id),
+        
+//        @"category_id":@(self.category_id),
+//        @"topic_id":@(self.topic_id), // 新增：标签筛选参数
+//        @"start_time":@(self.start_time),
+//        @"end_time":@(self.end_time),
+        @"sort_type":@(self.sort)
+    };
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self endRefreshing];
+            
+            if(!jsonResult){
+                [SVProgressHUD showErrorWithStatus:@"返回数据错误"];
+                [SVProgressHUD dismissWithDelay:1];
+                NSLog(@"返回格式错误：%@",stringResult);
+                return;
+            }
+            
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString * msg = jsonResult[@"msg"] ?: @"";
+            
+            if(code != 200){
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"返回错误码:%ld\n%@",(long)code,msg]];
+                [SVProgressHUD dismissWithDelay:3];
+                return;
+            }
+            
+            NSDictionary *data = jsonResult[@"data"] ?: @{};
+            NSLog(@"返回data：%@",data);
+            
+            if(page <=1){
+                [self.dataSource removeAllObjects];
+            }
+            
+            NSArray *posts = data[@"posts"] ?: @[];
+            NSLog(@"返回posts：%@",posts);
+            
+            for (NSDictionary *dic in posts) {
+                PostModel *model = [PostModel yy_modelWithDictionary:dic];
+                if (model) { // 非空判断：避免nil模型加入数据源
+                    if(model.post_video_url){
+                        NSLog(@"视频地址：%@",model.post_video_url);
+                        NSLog(@"视频缩略图地址：%@",model.post_video_thumb_url);
+                        NSLog(@"视频时长：%f",model.post_video_duration);
+                    }
+                    
+                    
+                    [self.dataSource addObject:model];
+                }
+            }
+            
+            [self refreshTable];
+            
+            NSDictionary *pagination = data[@"pagination"] ?: @{};
+            BOOL has_more = [pagination[@"has_more"] boolValue];
+            if(!has_more){
+                [self handleNoMoreData];
+            }else{
+                self.page = page + 1; // 修正：用当前page+1，而非self.page+=1
+            }
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self endRefreshing];
+            NSLog(@"读取错误:%@",error.localizedDescription);
+            [SVProgressHUD showErrorWithStatus:@"网络请求失败"];
+            [SVProgressHUD dismissWithDelay:1];
+        });
+    }];
+}
+
 
 
 /**
@@ -435,6 +532,8 @@
         return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class] modelClass:[CommentModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
     }else if([object isKindOfClass:[MoodStatusModel class]]){
         return [[TemplateSectionController alloc] initWithCellClass:[moodStatusCell class] modelClass:[MoodStatusModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
+    }else if([object isKindOfClass:[PostModel class]]){
+        return [[TemplateSectionController alloc] initWithCellClass:[PostCell class] modelClass:[PostModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 20, 10, 20) usingCacheHeight:NO];
     }
     return nil;
 }
@@ -451,8 +550,42 @@
     if([model isKindOfClass:[AppInfoModel class]]){
         AppInfoModel *appInfoModel = (AppInfoModel *)model;
         NSLog(@"appInfoModel：%@",appInfoModel.app_name);
+        if(appInfoModel.app_id == 0){
+            [SVProgressHUD showInfoWithStatus:@"获取id为空"];
+            [SVProgressHUD dismissWithDelay:1];
+            return;
+        }
         ShowOneAppViewController *vc = [ShowOneAppViewController new];
         vc.app_id = appInfoModel.app_id;
+        [self presentPanModal:vc];
+        
+        
+    }else if([model isKindOfClass:[WebToolModel class]]){
+        WebToolModel *webToolModel = (WebToolModel *)model;
+        if(webToolModel.tool_id == 0){
+            [SVProgressHUD showInfoWithStatus:@"获取id为空"];
+            [SVProgressHUD dismissWithDelay:1];
+            return;
+        }
+        NSLog(@"webToolModel：%@",webToolModel.tool_name);
+        ShowOneToolViewController *vc = [ShowOneToolViewController new];
+        vc.tool_id = webToolModel.tool_id;
+        
+        [self presentPanModal:vc];
+        
+        
+    }else if([model isKindOfClass:[PostModel class]]){
+        PostModel *postModel = (PostModel *)model;
+        NSLog(@"postModel：%@",postModel.post_title);
+        if(postModel.post_id == 0){
+            [SVProgressHUD showInfoWithStatus:@"获取id为空"];
+            [SVProgressHUD dismissWithDelay:1];
+            return;
+        }
+        ShowOnePostViewController *vc = [ShowOnePostViewController new];
+       
+        vc.post_id = postModel.post_id;
+        
         [self presentPanModal:vc];
         
         

@@ -270,7 +270,7 @@
 - (void)topBackageView{
     
     //创建一个空视图渐变色
-    self.gradientNavigationView =[[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, 110)];
+    self.gradientNavigationView = [[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, 110)];
     self.gradientNavigationView.backgroundColor = [UIColor systemBackgroundColor];
     
     

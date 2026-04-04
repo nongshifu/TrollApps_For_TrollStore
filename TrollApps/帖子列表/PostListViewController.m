@@ -25,11 +25,11 @@
 /// 搜索控制器（导航栏搜索框）
 @property (nonatomic, strong) UISearchController *searchController;
 /// 排序按钮（导航栏右侧）
-@property (nonatomic, strong) UIBarButtonItem *sortButton;
+@property (nonatomic, strong) UIButton *sortButton;
 /// 筛选按钮（导航栏右侧，排序按钮左边）
-@property (nonatomic, strong) UIBarButtonItem *filterButton;
+@property (nonatomic, strong) UIButton *filterButton;
 /// 发帖按钮
-@property (nonatomic, strong) UIBarButtonItem *postPublisPostButton;
+@property (nonatomic, strong) UIButton *switchButton;
 /// 时间筛选弹窗（开始/结束时间选择）
 @property (nonatomic, strong) UIAlertController *timeFilterAlert;
 
@@ -92,22 +92,32 @@
     }
     
     // 2. 筛选按钮（分类/标签/时间）
-    self.filterButton = [[UIBarButtonItem alloc] initWithTitle:@"筛选" style:UIBarButtonItemStyleDone target:self action:@selector(filterButtonClicked)];
+    self.filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.filterButton setTitle:@"筛选" forState:UIControlStateNormal];
+    [self.filterButton addTarget:self action:@selector(filterButtonClicked) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *filterItem = [[UIBarButtonItem alloc] initWithCustomView:self.filterButton];
     self.filterButton.tintColor = [UIColor labelColor];
-    
+    self.filterButton.titleLabel.textColor = [UIColor labelColor];
     
     // 3. 排序按钮
-    self.sortButton = [[UIBarButtonItem alloc] initWithTitle:@"排序" style:UIBarButtonItemStyleDone target:self action:@selector(sortButtonClicked)];
+    self.sortButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.sortButton setTitle:@"排序" forState:UIControlStateNormal];
+    [self.sortButton addTarget:self action:@selector(sortButtonClicked) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *sortItem = [[UIBarButtonItem alloc] initWithCustomView:self.sortButton];
     self.sortButton.tintColor = [UIColor labelColor];
+    self.sortButton.titleLabel.textColor = [UIColor labelColor];
+    
     
     // 4. 导航栏右侧按钮
-    self.navigationItem.leftBarButtonItems = @[self.sortButton, self.filterButton];
+    self.navigationItem.leftBarButtonItems = @[sortItem, filterItem];
     
-    // 5. 发帖按钮switch.2
-    
-    self.postPublisPostButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"switch.2"] style:UIBarButtonItemStylePlain target:self action:@selector(switchMode)];
-    self.postPublisPostButton.tintColor = [UIColor redColor];
-    self.navigationItem.rightBarButtonItem = self.postPublisPostButton;
+    // 5. 切换聊天按钮
+    self.switchButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.switchButton setImage:[UIImage systemImageNamed:@"switch.2"] forState:UIControlStateNormal];
+    [self.switchButton addTarget:self action:@selector(switchMode) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *switchModeItem = [[UIBarButtonItem alloc] initWithCustomView:self.switchButton];
+    self.switchButton.tintColor = [UIColor redColor];
+    self.navigationItem.rightBarButtonItem = switchModeItem;
 }
 
 #pragma mark - 搜索框代理（UISearchBarDelegate）
@@ -236,8 +246,9 @@
     
     // 可选：更新按钮图标/颜色，提示切换状态
     NSString *iconName = (self.currentVCType == SquareVCTypeOther) ? @"switch.2.fill" : @"switch.2";
-    self.postPublisPostButton.image = [UIImage systemImageNamed:iconName];
-    self.postPublisPostButton.tintColor = (self.currentVCType == SquareVCTypeOther) ? [UIColor blueColor] : [UIColor redColor];
+    
+    [self.switchButton setImage:[UIImage systemImageNamed:iconName] forState:UIControlStateNormal];
+    self.switchButton.tintColor = (self.currentVCType == SquareVCTypeOther) ? [UIColor blueColor] : [UIColor redColor];
 }
 
 #pragma mark - 分类筛选（示例：需替换为真实分类数据）
@@ -391,7 +402,7 @@
     NSLog(@"搜索：%@",self.keyword);
     NSDictionary *dic = @{
         @"action":@"search_posts",
-        @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
+        
         @"page":@(page), // 用传入的page，而非self.page（避免页码错乱）
         @"keyword":self.keyword ?: @"",
         @"category_id":@(self.category_id),
@@ -493,7 +504,7 @@
         NSLog(@"点击了帖子ID：%lld，标题：%@",postModel.post_id,postModel.post_title);
         // 这里可添加跳转到帖子详情页的逻辑
         ShowOnePostViewController *vc = [ShowOnePostViewController new];
-        vc.postModel = postModel;
+        vc.post_id = postModel.post_id;
         [self presentPanModal:vc];
     }
 }
@@ -519,7 +530,12 @@
     [self setBackgroundUI];
     [self topBackageView];
     [self updateViewConstraints];
-
+    self.filterButton.tintColor = [UIColor labelColor];
+    self.filterButton.titleLabel.textColor = [UIColor labelColor];
+    
+    self.sortButton.tintColor = [UIColor labelColor];
+    self.sortButton.titleLabel.textColor = [UIColor labelColor];
+    
     
 }
 
@@ -586,7 +602,11 @@
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
+    self.filterButton.tintColor = [UIColor labelColor];
+    self.filterButton.titleLabel.textColor = [UIColor labelColor];
     
+    self.sortButton.tintColor = [UIColor labelColor];
+    self.sortButton.titleLabel.textColor = [UIColor labelColor];
     NSLog(@"界面模式发生变化");
     [self setBackgroundUI];
     [self topBackageView];

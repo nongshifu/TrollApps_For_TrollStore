@@ -21,12 +21,15 @@
 #import "MyCollectionViewController.h"
 #import "loadData.h"
 #import "MultiIconButton.h"
+#import "ConfigItem.h"
+#import "SystemViewController.h"
+
 
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // 当前文件单独启用
 
-@interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
+@interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
 @property (nonatomic, strong) UserModel *userInfo;
 
@@ -56,6 +59,9 @@
 @property (nonatomic, strong) UISearchBar *searchBar; // 搜索框
 @property (nonatomic, assign) BOOL isSearch; // 搜索状态
 
+
+
+
 @end
 
 @implementation UserProfileViewController
@@ -70,6 +76,8 @@
     self.originalInputHeight = 50;
     self.expandedInputHeight = 80;
     self.keyboardIsShow = NO;
+    
+    
 
     // 初始化UI
     [self setupSubviews];
@@ -203,7 +211,7 @@
     
     
     // 选项卡标题
-    NSArray *titles = @[@"App",@"工具", @"评论", @"动态"];
+    NSArray *titles = @[@"App",@"工具", @"评论", @"动态", @"帖子"];
     self.segmentedControl = [[UISegmentedControl alloc] initWithItems:titles];
     self.segmentedControl.selectedSegmentIndex = 0;
     // 绑定事件（值改变时触发）
@@ -237,7 +245,7 @@
     
     //排序
     self.sortButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.sortButton.layer.cornerRadius = 15;
+    self.sortButton.layer.cornerRadius = 10;
     self.sortButton.titleLabel.font = [UIFont systemFontOfSize:13];
     [self.sortButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
     self.sortButton.backgroundColor = [UIColor colorWithLightColor:[UIColor whiteColor] darkColor:[[UIColor whiteColor] colorWithAlphaComponent:0.2]];
@@ -261,9 +269,9 @@
 // 初始化子页面控制器
 - (void)setupViewControllers {
     self.viewControllers = [NSMutableArray array];
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         UserListViewController *controller = [[UserListViewController alloc] init];
-        controller.templateListDelegate = self;
+        
         controller.hidesVerticalScrollIndicator = YES;
         controller.sort = self.sortButton.selected;
         controller.selectedIndex = i;
@@ -323,24 +331,26 @@
         make.top.equalTo(self.view).offset(15);
         make.height.mas_equalTo(@25);
     }];
-    
+    //  头像
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view).offset(25);
         make.centerX.equalTo(self.view);
         make.width.height.equalTo(@140);
        
     }];
+    // 关注按钮
     [self.followButtom mas_makeConstraints:^(MASConstraintMaker *make) {
         make.bottom.right.equalTo(self.avatarImageView);
         make.height.mas_equalTo(@25);
     }];
-    
+    // 昵称
     [self.nicknameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
         make.width.equalTo(@200);
        
     }];
+    // 个性签名
     [self.bioLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.nicknameLabel.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
@@ -354,17 +364,27 @@
         make.width.equalTo(@(kWidth-40));
        
     }];
+    
+    //排序按钮
+    [self.sortButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.jianjie.mas_bottom).offset(15);
+        make.left.equalTo(self.view.mas_left).offset(20);
+        make.width.mas_equalTo(@45);
+        make.height.mas_equalTo(25);
+    }];
+    
     //粉丝列表按钮
     [self.showFollowListButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.jianjie.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
+        make.centerY.equalTo(self.sortButton);
         make.height.mas_equalTo(25);
     }];
     
     //编辑资料
     [self.editButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.view).offset(-15);
-        make.bottom.equalTo(self.showFollowListButton.mas_bottom);
+        make.centerY.equalTo(self.sortButton);
         make.height.mas_equalTo(25);
     }];
     
@@ -375,27 +395,17 @@
         make.height.mas_equalTo(height);
     }];
     
-    
-    
-    //排序按钮
-    [self.sortButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerY.equalTo(self.segmentedControl);
-        make.right.equalTo(self.view.mas_right).offset(-20);
-        make.height.mas_equalTo(height);
-        make.width.equalTo(@45);
-    }];
-    
     // 搜索框约束（新增）
     [self.searchBar mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.segmentedControl.mas_right).offset(5);
-        make.right.equalTo(self.sortButton.mas_left).offset(-5);
+        make.right.equalTo(self.view).offset(-20);
         make.height.mas_equalTo(height);
         make.centerY.equalTo(self.segmentedControl);
     }];
     
     // 表格视图约束（合并冲突的旧约束）
     [self.pageViewController.view mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.sortButton.mas_bottom).offset(15);
+        make.top.equalTo(self.segmentedControl.mas_bottom).offset(15);
         make.left.equalTo(self.view.mas_left);
         make.right.equalTo(self.view.mas_right);
         make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight);
@@ -416,7 +426,7 @@
     //调用父类
     [super updateViewConstraints];
     
-    
+    //缩小版的
     if(self.currentVC.isScrollingUp && self.currentVC.scrollY >0 && self.currentVC.scrollY <=50){
         CGFloat width = 60;
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
@@ -449,7 +459,7 @@
         }];
         self.jianjie.textAlignment = NSTextAlignmentLeft;
         
-        
+        // 关注按钮
         [self.followButtom mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.avatarImageView.mas_bottom).offset(-10);
             make.height.mas_equalTo(@20);
@@ -457,9 +467,10 @@
         }];
         self.followButtom.layer.cornerRadius = 10;
         
+        // 关注列表按钮
         [self.showFollowListButton mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.jianjie.mas_bottom).offset(15);
-            make.left.equalTo(self.avatarImageView);
+            make.left.equalTo(self.sortButton.mas_right).offset(15);
             make.height.mas_equalTo(25);
         }];
         
@@ -520,6 +531,8 @@
             
         }];
         self.jianjie.textAlignment = NSTextAlignmentCenter;
+        
+        
         
         [self.showFollowListButton mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.jianjie.mas_bottom).offset(15);
@@ -704,6 +717,7 @@
         controller.showMyApp = NO;
         controller.user_udid = self.userInfo.udid;
         controller.keyword = self.searchBar.text;
+        controller.user_id = self.userInfo.user_id;
         if(i == 0) [controller loadDataWithPage:1];
         
     }
@@ -790,34 +804,7 @@
     [self updateViewConstraints];
 }
 
-#pragma mark - SectionController 代理协议
 
-// 扩展回调：传递模型和 Cell
-- (void)templateSectionController:(TemplateSectionController *)sectionController
-                    didSelectItem:(id)model
-                          atIndex:(NSInteger)index
-                             cell:(UICollectionViewCell *)cell {
-    NSLog(@"点击了model:%@  index:%ld cell:%@",model,index,cell);
-    if([model isKindOfClass:[AppInfoModel class]]){
-        
-        AppInfoModel *appInfoModel = (AppInfoModel *)model;
-        if([appInfoModel.udid isEqualToString:self.userInfo.udid] || [self.user_udid isEqualToString:self.userInfo.udid]) return;
-        NSLog(@"appInfoModel：%@",appInfoModel.app_name);
-        ShowOneAppViewController *vc = [ShowOneAppViewController new];
-        vc.app_id = appInfoModel.app_id;
-        [self presentPanModal:vc];
-        
-        
-    }
-    else if([model isKindOfClass:[MoodStatusModel class]]){
-        
-        MoodStatusModel *moodStatusModel = (MoodStatusModel *)model;
-        
-        
-        
-    }
-    
-}
 
 
 

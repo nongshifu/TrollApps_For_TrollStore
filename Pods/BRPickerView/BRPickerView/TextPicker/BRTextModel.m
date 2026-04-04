@@ -80,6 +80,9 @@
 
 /// 数组 转 模型数组
 + (NSArray *)br_modelArrayWithJson:(NSArray *)dataArr mapper:(nullable NSDictionary *)mapper {
+    if (!dataArr || dataArr.count == 0) {
+        return nil;
+    }
     if (!mapper) {
         // 如果属性映射字典为空，就使用下面默认的
         mapper = @{
@@ -93,21 +96,25 @@
     NSMutableArray *tempArr = [NSMutableArray array];
     for (NSDictionary *dic in dataArr) {
         BRTextModel *model = [[BRTextModel alloc]init];
-        if (mapper[@"code"]) {
-            model.code = [NSString stringWithFormat:@"%@", dic[mapper[@"code"]]];
+        
+        NSString *codeMappingKey = mapper[@"code"] ?: @"code";
+        model.code = dic[codeMappingKey] ? [NSString stringWithFormat:@"%@", dic[codeMappingKey]] : nil;
+                      
+        NSString *textMappingKey = mapper[@"text"] ?: @"text";
+        model.text = dic[textMappingKey];
+        
+        NSString *parentCodeMappingKey = mapper[@"parentCode"] ?: @"parentCode";
+        model.parentCode = dic[parentCodeMappingKey] ? [NSString stringWithFormat:@"%@", dic[parentCodeMappingKey]] : nil;
+        
+        NSString *extrasMappingKey = mapper[@"extras"] ?: @"extras";
+        model.extras = dic[extrasMappingKey];
+        
+        NSString *childrenMappingKey = mapper[@"children"] ?: @"children";
+        NSArray *children = dic[childrenMappingKey];
+        if (children && children.count > 0) {
+            model.children = [self br_modelArrayWithJson:children mapper:mapper]; // 递归处理子list
         }
-        if (mapper[@"text"]) {
-            model.text = dic[mapper[@"text"]];
-        }
-        if (mapper[@"parentCode"]) {
-            model.parentCode = [NSString stringWithFormat:@"%@", dic[mapper[@"parentCode"]]];
-        }
-        if (mapper[@"extras"]) {
-            model.extras = dic[mapper[@"extras"]];
-        }
-        if (dic[mapper[@"children"]]) {
-            model.children = [self br_modelArrayWithJson:dic[mapper[@"children"]] mapper:mapper]; // 递归处理子list
-        }
+        
         [tempArr addObject:model];
     }
 

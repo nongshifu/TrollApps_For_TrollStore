@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL showMyApp;
 //查询用户的UDID
 @property (nonatomic, strong) NSString *user_udid;
+//查询用户的id
+@property (nonatomic, assign) NSInteger user_id;
 //切换列表
 @property (nonatomic, assign) BOOL sort;
 //列表类型

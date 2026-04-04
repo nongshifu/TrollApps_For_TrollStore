@@ -235,7 +235,7 @@
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if([object isKindOfClass:[VipPurchaseHistoryModel class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[vip_purchase_historyCell class] modelClass:[VipPurchaseHistoryModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 0, 5, 0) usingCacheHeight:NO];
+        return [[TemplateSectionController alloc] initWithCellClass:[vip_purchase_historyCell class] modelClass:[VipPurchaseHistoryModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 15, 10, 15) usingCacheHeight:NO];
     }
     return nil;
 }

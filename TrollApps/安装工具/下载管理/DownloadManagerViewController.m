@@ -2,7 +2,6 @@
 #import "FileInstallManager.h"
 #import "NewAppFileModel.h"
 #import "config.h"
-#import "Masonry.h"
 #import "EmptyView.h"
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"

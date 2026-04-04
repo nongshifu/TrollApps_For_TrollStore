@@ -31,6 +31,7 @@
     self.iconImageView.userInteractionEnabled = YES;
     UITapGestureRecognizer *iconTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(iconImageViewTapped)];
     [self.iconImageView addGestureRecognizer:iconTapGesture];
+    self.iconImageView.layer.cornerRadius = 3;
     [self.contentView addSubview:self.iconImageView];
 
     // 初始化文本标签

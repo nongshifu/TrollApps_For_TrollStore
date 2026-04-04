@@ -80,10 +80,6 @@
 - (void)setupConstraints {
     CGFloat padding = 5;
     
-    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-        make.width.equalTo(@(kWidth - 40));
-    }];
     // 下载按钮
     [_downloadButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.contentView).offset(padding);

@@ -67,6 +67,8 @@ static NSSet *kAllowedMainFileTypes() {
 @property (nonatomic, strong) UITextField *appNameField; // 应用名称
 @property (nonatomic, strong) UITextField *versionField; // 版本号
 @property (nonatomic, strong) UIButton *incrementButton; // 版本号增加按钮
+@property (nonatomic, strong) UILabel *app_rmbLabel;     // 积分提示条
+@property (nonatomic, strong) UITextField *app_rmbField; // 积分
 
 
 @property (nonatomic, strong) UILabel *tagsLabel; // 标签标题
@@ -265,8 +267,21 @@ static NSSet *kAllowedMainFileTypes() {
     [self.incrementButton.titleLabel setFont:[UIFont systemFontOfSize:24]];
     [self.incrementButton addTarget:self action:@selector(incrementVersion) forControlEvents:UIControlEventTouchUpInside];
     [self.contentView addSubview:self.incrementButton];
-
     
+    //积分提示条app_rmbLabel
+    self.app_rmbLabel = [self createTitleLabelWithText:@"下载所需积分"];
+    [self.contentView addSubview:self.app_rmbLabel];
+    
+    // 积分输入框
+    self.app_rmbField = [self createTextFieldWithPlaceholder:@"0"];
+    self.app_rmbField.returnKeyType = UIReturnKeyNext;
+    self.app_rmbField.keyboardType = UIKeyboardTypeNumberPad;
+    self.app_rmbField.delegate = self;
+    self.app_rmbField.text = @"0"; // 默认积分
+    self.app_rmbField.enabled = YES;
+    self.app_rmbField.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.7];
+    [self.contentView addSubview:self.app_rmbField];
+
     
     // 标签
     self.tagsLabel = [self createTitleLabelWithText:@"应用标签（可多选）"];
@@ -461,10 +476,25 @@ static NSSet *kAllowedMainFileTypes() {
         // 同时设置最小宽度（可选）
         make.width.greaterThanOrEqualTo(@80);
     }];
+    
+    // 积分标签
+    [self.app_rmbLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.fileUploadButton.mas_bottom).offset(25);
+        make.left.equalTo(self.contentView).inset(20);
+        make.height.equalTo(@20);
+    }];
+    
+    // 积分输入条
+    [self.app_rmbField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.app_rmbLabel.mas_bottom).offset(15);
+        make.left.equalTo(self.app_rmbLabel);
+        make.height.equalTo(@40);
+        make.width.equalTo(@120);
+    }];
   
     // 标签
     [self.tagsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.fileUploadButton.mas_bottom).offset(25);
+        make.top.equalTo(self.app_rmbField.mas_bottom).offset(25);
         make.left.equalTo(self.contentView).inset(20);
         make.height.equalTo(@20);
     }];
@@ -1200,6 +1230,25 @@ static NSSet *kAllowedMainFileTypes() {
 }
 
 
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    
+    // 👇 只对【需要数字】的输入框做限制
+    if (textField == self.app_rmbField)
+    {
+        // 允许删除
+        if (string.length == 0) {
+            return YES;
+        }
+        
+        // 只允许 0-9
+        NSCharacterSet *nonNumberSet = [[NSCharacterSet characterSetWithCharactersInString:@"0123456789"] invertedSet];
+        NSString *filtered = [[string componentsSeparatedByCharactersInSet:nonNumberSet] componentsJoinedByString:@""];
+        return [string isEqualToString:filtered];
+    }
+    
+    // 👇 其他输入框：不限制，正常输入
+    return YES;
+}
 
 #pragma mark - 工具方法
 - (UITextField *)createTextFieldWithPlaceholder:(NSString *)placeholder {
@@ -1762,6 +1811,9 @@ static NSSet *kAllowedMainFileTypes() {
         
     }
     
+    // 10.积分输入条
+    self.app_rmbField.text = [NSString stringWithFormat:@"%ld",appInfo.app_rmb];
+    
     
 }
 
@@ -2083,6 +2135,7 @@ static NSSet *kAllowedMainFileTypes() {
     self.app_info.tags = self.selectedTags;//标签
     self.app_info.app_name = self.appNameField.text;//文件名
     self.app_info.version_name = self.versionField.text;//版本号
+    self.app_info.app_rmb = [self.app_rmbField.text integerValue];//人民币积分
     
     self.app_info.app_description = self.descriptionTextView.text;//简介
     self.app_info.bundle_id = self.app_info.bundle_id?:@"com.apple.shisange";//bundle 如果从商店搜索赋值会有 否则重新赋值个默认的

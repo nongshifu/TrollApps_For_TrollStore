@@ -32,6 +32,8 @@
 
 @property (nonatomic, assign) BOOL hasShownTipBarBubble; // 新增：标记是否已显示气泡提示
 
+@property (nonatomic, strong) TipBarModel *tipBarModel;
+
 
 @end
 
@@ -327,15 +329,15 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page {
-    // 记录当前页码（避免多线程问题）
     NSInteger currentPage = page;
     
-    // 第一页时清空数据源
     if (currentPage <= 1) {
         [self.dataSource removeAllObjects];
+        self.page = 1;      // 🔴 强制锁死页码 = 1，防止自增混乱
     }
-    NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
-    // 构建请求参数
+    
+    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: [[NewProfileViewController sharedInstance] getIDFV];
+    
     NSDictionary *dic = @{
         @"action": @"getAppDetail",
         @"sort": @(self.sort),
@@ -358,31 +360,29 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"请求成功，返回数据stringResult: %@", stringResult);
             [self endRefreshing];
-            // 验证返回数据格式
+            
             if (!jsonResult) {
                 NSLog(@"返回数据格式错误: %@", stringResult);
                 [self handleErrorWithMessage:@"返回数据格式错误"];
                 return;
             }
-            NSInteger code = [jsonResult[@"code"] intValue];
-            NSLog(@"请求成功，返回数据: %@", stringResult);
             
+            NSInteger code = [jsonResult[@"code"] intValue];
             NSString *message = jsonResult[@"msg"];
+            
             if(code == 200){
-                // 解析数据
                 NSDictionary *data = jsonResult[@"data"];
                 NSLog(@"请求查看帖子成功，返回数据: %@", data);
-                // 解析应用信息（始终放在数据源的第一个位置）
+                
+                // ==========================
+                // 解析应用信息（安全版）
+                // ==========================
                 NSDictionary *appInfoDic = data[@"appInfo"];
-                NSLog(@"请求查看帖子成功，返回数据userModel: %@", appInfoDic[@"userModel"]);
                 self.appInfo = [AppInfoModel yy_modelWithDictionary:appInfoDic];
-                NSLog(@"请求查看帖子成功，返回数据self.appInfo.userModel: %@", self.appInfo.userModel);
-                NSLog(@"请求查看帖子成功，返回数据sself.appInfoPhone: %@", self.appInfo.userModel.phone);
-                // 确保应用信息有效
+                
                 if (self.appInfo && self.appInfo.app_name) {
                     self.appInfo.isShowAll = YES;
-                    NSLog(@"请求查看帖子成功，返回数据fileNames: %@", self.appInfo.fileNames);
-                    // 如果是第一页，替换原有应用信息；否则忽略（避免重复添加）
+                    
                     if (currentPage <= 1) {
                         if (self.dataSource.count > 0 && [self.dataSource[0] isKindOfClass:[AppInfoModel class]]) {
                             [self.dataSource replaceObjectAtIndex:0 withObject:self.appInfo];
@@ -390,65 +390,76 @@
                             [self.dataSource insertObject:self.appInfo atIndex:0];
                         }
                     }
-                    //显示更新按钮
+                    
                     BOOL isUpdateAPP = [self.appInfo.udid isEqualToString:[NewProfileViewController sharedInstance].userInfo.udid];
                     BOOL isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
                     self.editButton.alpha = isUpdateAPP || isAdmin;
                     self.editAppStatuButton.alpha = isUpdateAPP || isAdmin;
-                    if(isUpdateAPP){
-                        NSLog(@"显示更新按钮 准备更新软件:%@",self.appInfo.app_name);
-                    }
-                    
                 }
                 
-                
-                // 解析评论数据
+                // ==========================
+                // 解析评论（安全版）
+                // ==========================
                 NSDictionary *commentsData = data[@"commentsData"];
-                BOOL hasMore = YES;
-                NSLog(@"请求查看帖子成功，commentsData: %@", commentsData);
+                BOOL hasMore = NO;
+                
                 if(commentsData){
-                    NSArray * comments = commentsData[@"comments"];
+                    NSArray *comments = commentsData[@"comments"];
                     for (NSDictionary *commentDic in comments) {
-                        NSLog(@"评论数据:%@",commentDic);
                         CommentModel *comment = [CommentModel yy_modelWithDictionary:commentDic];
-                        comment.action_type = 0;//标记为软件评论
+                        comment.action_type = 0;
                         comment.userInfo = [UserModel yy_modelWithDictionary:commentDic[@"userInfo"]];
-                        NSLog(@"评论用户数据nickname:%@",comment.userInfo.nickname);
                         if (comment) {
-                            [self.dataSource  addObject:comment];
+                            [self.dataSource addObject:comment];
                         }
                     }
-                    
-                    
                     hasMore = [commentsData[@"hasMore"] boolValue];
-                    if(hasMore){
+                    if (hasMore && currentPage > 1) {
                         self.page +=1;
                     }
                 }
-                NSString *tipmMessage =  self.appInfo.app_status != 0 ? @"点击左侧图标可联系作者催更\n应用怎么样 点评下吧！" :@"这个应用怎么样？点评下吧！";
-                TipBarModel *tipBarModel = [[TipBarModel alloc] initWithIconURL:@"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256" tipText:tipmMessage leftButtonText:@"New" rightButtonText:@"Hot"];
                 
-                if(self.dataSource.count >= 2){
-                    id model = [self.dataSource objectAtIndex:1];
-                    if (![model isKindOfClass:[TipBarModel class]]){
-                        [self.dataSource insertObject:tipBarModel atIndex:1];
+                // ==========================
+                // 🔴 修复：安全插入提示条（绝对不崩溃）
+                // ==========================
+                NSString *tipMsg = self.appInfo.app_status != 0 ? @"点击左侧图标可联系作者催更\n应用怎么样 点评下吧！" : @"这个应用怎么样？点评下吧！";
+                if(!self.tipBarModel){
+                    NSString *url = @"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256";
+                    if(self.appInfo.userModel.avatar.length>0 && [self.appInfo.userModel.avatar containsString:@"http"]){
+                        url = self.appInfo.userModel.avatar;
                     }
-                }else{
-                    [self.dataSource insertObject:tipBarModel atIndex:1];
+                    self.tipBarModel = [[TipBarModel alloc] initWithIconURL:url tipText:tipMsg leftButtonText:@"New" rightButtonText:@"Hot"];
+                    
                 }
-                NSLog(@"最后数组：%@",self.dataSource);
                 
-                //刷新
+
+                // 安全判断：数组至少有1个元素（appInfo），才在第2位插入提示条
+                // 否则直接追加到末尾
+                if (self.dataSource.count >= 1) {
+                    BOOL alreadyHasTip = NO;
+                    if (self.dataSource.count >= 2) {
+                        alreadyHasTip = [self.dataSource[1] isKindOfClass:[TipBarModel class]];
+                    }
+                    if (!alreadyHasTip) {
+                        [self.dataSource insertObject:self.tipBarModel atIndex:1];
+                    }
+                } else {
+                    // 空数组 → 直接加，不指定index
+                    [self.dataSource addObject:self.tipBarModel];
+                }
+                
+                // ==========================
+                // 刷新 UI
+                // ==========================
                 [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
                     [self updateEmptyViewVisibility];
-                    [self showBubbleOnTipBarIcon];
                 }];
-                
-                
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self showBubbleOnTipBarIcon];
+                });
                 if(!hasMore){
                     [self handleNoMoreData];
                 }
-                
                 
             } else {
                 [self handleErrorWithMessage:[NSString stringWithFormat:@"请求失败: %@", message]];
@@ -484,8 +495,7 @@
                                                          modelClass:[AppInfoModel class]
                                                           delegate:self
                                                         edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10)
-                                                   usingCacheHeight:NO
-                                                         cellHeight:150];
+                                                   usingCacheHeight:YES];
     } else if ([object isKindOfClass:[CommentModel class]]) {
         // 同理，移除 cellHeight
         return [[TemplateSectionController alloc] initWithCellClass:[AppCommentCell class]
@@ -498,7 +508,9 @@
         return [[TemplateSectionController alloc] initWithCellClass:[TipBarCell class]
                                                          modelClass:[TipBarModel class]
                                                           delegate:self
-                                                        edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) cellHeight:50];
+                                                        edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) 
+                                                   usingCacheHeight:YES
+                                                         cellHeight:50];
     }
     return nil;
 }
@@ -525,15 +537,15 @@
     NSLog(@"点击了model:%@  index:%ld cell:%@",model,index,cell);
     [[UIApplication sharedApplication] sendAction:@selector(resignFirstResponder) to:nil from:nil forEvent:nil];
     
-    if([model isKindOfClass:[AppInfoModel class]]){
-        AppInfoModel *appInfo = (AppInfoModel *)model;
-        if(appInfo.app_id != self.app_id){
-            ShowOneAppViewController *vc = [ShowOneAppViewController new];
-            vc.app_id = appInfo.app_id;
-            [self presentPanModal:vc];
-        }
-        
-    }
+//    if([model isKindOfClass:[AppInfoModel class]]){
+//        AppInfoModel *appInfo = (AppInfoModel *)model;
+//        if(appInfo.app_id != self.app_id){
+//            ShowOneAppViewController *vc = [ShowOneAppViewController new];
+//            vc.app_id = appInfo.app_id;
+//            [self presentPanModal:vc];
+//        }
+//        
+//    }
     
 }
 
@@ -678,7 +690,8 @@
                                            dismissDelay:1.5
                                          arrowDirection:UIPopoverArrowDirectionDown];
                 [tipBarCell.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.appInfo.userModel.avatar] placeholderImage:tipBarCell.iconImageView.image];
-                
+                tipBarCell.iconImageView.layer.cornerRadius = 3;
+                tipBarCell.iconImageView.layer.masksToBounds = YES;
                 // 5. 标记为已显示，避免重复弹出
                 self.hasShownTipBarBubble = YES;
                 break; // 找到第一个 TipBarCell 即可，无需继续遍历

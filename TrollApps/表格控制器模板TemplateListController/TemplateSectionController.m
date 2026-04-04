@@ -109,69 +109,26 @@
 // MARK: 数据更新
 /// 数据模型更新（IGListKit自动调用）
 - (void)didUpdateToObject:(id)object {
-    // 类型安全检查
-    if (_modelClass && ![object isKindOfClass:_modelClass]) {
-        NSAssert(NO, @"⚠️ 模型类型不匹配！期望类型: %@，实际类型: %@",
-                _modelClass, [object class]);
-        return;
-    }
     _model = object;
 }
 
 // MARK: 单元格尺寸计算
 /// 返回单元格尺寸
 - (CGSize)sizeForItemAtIndex:(NSInteger)index {
-    if (!_UsingCacheHeight) {
-        // 创建临时cell并绑定数据
-        UICollectionViewCell *tempCell = [[_cellClass alloc] initWithFrame:CGRectMake(0, 0,
-                                                                      self.collectionContext.containerSize.width - self.inset.left - self.inset.right,
-                                                                      100)];
-        if ([tempCell respondsToSelector:@selector(bindViewModel:)]) {
-            [tempCell performSelector:@selector(bindViewModel:) withObject:_model];
+    // 创建临时cell并绑定数据
+    UICollectionViewCell *tempCell = [[_cellClass alloc] initWithFrame:CGRectZero];
+    CGFloat width = self.collectionContext.containerSize.width - self.inset.left - self.inset.right;
+    if(_UsingCacheHeight){
+        if(_cellHeight == 0){
+            _cellHeight = [CellHeightCache getCachedHeightForModel:_model];
         }
-        
-        // 强制布局并计算高度
-        [tempCell setNeedsLayout];
-        [tempCell layoutIfNeeded];
-        
-        // 使用 systemLayoutSizeFittingSize: 计算高度
-        CGSize fittingSize = [tempCell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
-        CGFloat autoHeight = self.cellHeight >0 ?self.cellHeight : fittingSize.height;
-        
-        return CGSizeMake(
-            self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-            autoHeight
-        );
+        return CGSizeMake(width,_cellHeight);
     }
     
-    // 从缓存获取高度
-    CGFloat cachedHeight = [CellHeightCache getCachedHeightForModel:_model];
-    if (cachedHeight > 0) {
-        return CGSizeMake(
-            self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-                          self.cellHeight >0 ? self.cellHeight : cachedHeight
-        );
-    }
-    
-    // 缓存未命中时，计算一次高度并缓存
-    UICollectionViewCell *tempCell = [[_cellClass alloc] initWithFrame:CGRectMake(0, 0,
-                                                                  self.collectionContext.containerSize.width - self.inset.left - self.inset.right,
-                                                                  100)];
-    if ([tempCell respondsToSelector:@selector(bindViewModel:)]) {
-        [tempCell performSelector:@selector(bindViewModel:) withObject:_model];
-    }
-    
-    [tempCell setNeedsLayout];
-    [tempCell layoutIfNeeded];
-    
-    CGSize fittingSize = [tempCell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
-    CGFloat autoHeight = fittingSize.height;
-    [CellHeightCache cacheHeightForModel:_model height:autoHeight]; // 缓存计算结果
-    
-    return CGSizeMake(
-        self.collectionContext.containerSize.width - self.inset.right - self.inset.left,
-        autoHeight
-    );
+    CGFloat height = [tempCell systemLayoutSizeFittingSize:CGSizeMake(width, 0)
+             withHorizontalFittingPriority:UILayoutPriorityRequired
+                   verticalFittingPriority:UILayoutPriorityFittingSizeLevel].height;
+    return CGSizeMake(width, height);
 }
 
 // MARK: 单元格配置
@@ -183,20 +140,15 @@
                           atIndex:index];
     
     // 配置TemplateCell特有属性
-    if ([cell isKindOfClass:[TemplateCell class]]) {
-        TemplateCell *templateCell = (TemplateCell *)cell;
-        templateCell.delegate = self;
-        templateCell.collectionView = self.collectionView;
-        templateCell.tag = self.section;
-        templateCell.idObjc = self.idObjc;
-        templateCell.dataSource = self.dataSource;
-    }
+    TemplateCell *templateCell = (TemplateCell *)cell;
+    templateCell.delegate = self;
+    templateCell.collectionView = self.collectionView;
+    templateCell.tag = self.section;
+    templateCell.idObjc = self.idObjc;
+    templateCell.dataSource = self.dataSource;
     
     // 绑定数据（如果cell实现了bindViewModel:方法）
-    if ([cell respondsToSelector:@selector(bindViewModel:)]) {
-        [cell performSelector:@selector(bindViewModel:) withObject:_model];
-    }
-    
+    [cell performSelector:@selector(bindViewModel:) withObject:_model];
     return cell;
 }
 
@@ -205,12 +157,10 @@
 /// 处理单元格刷新请求
 - (void)refreshCell:(UICollectionViewCell *)cell {
     // 更新高度缓存
-    if ([cell isKindOfClass:[TemplateCell class]]) {
-        TemplateCell *templateCell = (TemplateCell *)cell;
-        [templateCell layoutIfNeeded];
-        CGFloat height = CGRectGetHeight(templateCell.contentView.frame);
-        [CellHeightCache cacheHeightForModel:templateCell.model height:height];
-    }
+    TemplateCell *templateCell = (TemplateCell *)cell;
+    [templateCell layoutIfNeeded];
+    CGFloat height = CGRectGetHeight(templateCell.contentView.frame);
+    [CellHeightCache cacheHeightForModel:templateCell.model height:height];
     
     // 通知代理
     if ([_delegate respondsToSelector:@selector(refreshCell:)]) {
