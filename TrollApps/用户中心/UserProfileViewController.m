@@ -421,13 +421,13 @@
     
 }
 
-//更新约束 拖动等会调用 适配UI
+//更新约束 拖动等会调用 适配UI2w
 - (void)updateViewConstraints{
     //调用父类
     [super updateViewConstraints];
     
     //缩小版的
-    if(self.currentVC.isScrollingUp && self.currentVC.scrollY >0 && self.currentVC.scrollY <=50){
+    if((self.currentVC.isScrollingUp && self.currentVC.scrollY >0 && self.currentVC.scrollY <=50) || self.viewHeight <= self.mediumFormHeight.height){
         CGFloat width = 60;
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.view).offset(20);
@@ -1077,6 +1077,9 @@
     if (completed) {
         // 获取当前显示的页面索引
         UserListViewController *VC = (UserListViewController*)pageViewController.viewControllers.firstObject;
+        VC.view.backgroundColor = [UIColor clearColor];
+        VC.collectionView.backgroundColor = [UIColor clearColor];
+        [VC.view removeDynamicBackground];
         NSInteger index = [self.viewControllers indexOfObject:VC];
         self.selectedIndex = index;
         self.segmentedControl.selectedSegmentIndex = index;

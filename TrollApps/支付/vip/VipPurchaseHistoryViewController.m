@@ -14,21 +14,34 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <IGListKit/IGListKit.h>
 #import "ShowOneOrderViewController.h"
+#import "NewProfileViewController.h"
 
+#undef MY_NSLog_ENABLED
+#define MY_NSLog_ENABLED YES
 
-// 顶部容器高度
-#define kTopContainerHeight 64
-// 间距常量
+#define kTopContainerHeight 160
 #define kMargin 15
 
 @interface VipPurchaseHistoryViewController ()<TemplateSectionControllerDelegate, UITextFieldDelegate>
-@property (nonatomic, assign) BOOL sort;//排序 默认NO 按最新时间
-@property (nonatomic, strong) NSString * keyword;//关键词
+@property (nonatomic, assign) BOOL sort;
+@property (nonatomic, strong) NSString *keyword;
+@property (nonatomic, copy) NSString *startTime;
+@property (nonatomic, copy) NSString *endTime;
+@property (nonatomic, assign) BOOL isAdmin;
+@property (nonatomic, assign) BOOL isLoading;
+@property (nonatomic, strong) UISwitch *orderSwitch;
+@property (nonatomic, assign) BOOL isShowAllOrder;
+
+// 🔥 新增：订单状态筛选
+@property (nonatomic, assign) OrderStatusType selectStatus;
+@property (nonatomic, strong) UIButton *statusFilterBtn;
 
 // 顶部视图
-@property (nonatomic, strong) UIView *topContainer; // 顶部容器
-@property (nonatomic, strong) UILabel *titleLabel;  // 标题
-@property (nonatomic, strong) UITextField *searchField; // 搜索框
+@property (nonatomic, strong) UIView *topContainer;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UITextField *searchField;
+@property (nonatomic, strong) UITextField *startTimeField;
+@property (nonatomic, strong) UITextField *endTimeField;
 
 @end
 
@@ -37,202 +50,297 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    self.page = 1; // 初始化页码
+    self.page = 1;
     self.dataSource = [NSMutableArray array];
+    self.isLoading = NO;
+    self.selectStatus = -1; // 默认：全部状态
     
-    // 初始化顶部视图
+    self.isAdmin = [loadData sharedInstance].userModel.role == 1;
+    self.isShowAllOrder = NO;
+    
     [self setupTopView];
-    
-    // 首次加载数据
+    [self setupTimePickers];
     [self loadDataWithPage:self.page];
 }
 
-#pragma mark - 初始化顶部视图
 - (void)setupTopView {
-    // 顶部容器
     self.topContainer = [[UIView alloc] init];
     self.topContainer.backgroundColor = [UIColor systemBackgroundColor];
-    // 添加顶部阴影（可选）
     self.topContainer.layer.shadowColor = [UIColor lightGrayColor].CGColor;
     self.topContainer.layer.shadowOpacity = 0.1;
     self.topContainer.layer.shadowOffset = CGSizeMake(0, 2);
     [self.view addSubview:self.topContainer];
     
-    // 标题
     self.titleLabel = [[UILabel alloc] init];
     self.titleLabel.text = @"VIP购买历史";
     self.titleLabel.font = [UIFont boldSystemFontOfSize:18];
     self.titleLabel.textColor = [UIColor labelColor];
     [self.topContainer addSubview:self.titleLabel];
     
+    self.orderSwitch = [[UISwitch alloc] init];
+    [self.orderSwitch addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
+    self.orderSwitch.hidden = ![NewProfileViewController sharedInstance].userInfo.role;
+    [self.topContainer addSubview:self.orderSwitch];
+    
+    self.startTimeField = [[UITextField alloc] init];
+    self.startTimeField.placeholder = @"起始时间(yyyy-MM-dd)";
+    self.startTimeField.font = [UIFont systemFontOfSize:13];
+    self.startTimeField.borderStyle = UITextBorderStyleRoundedRect;
+    self.startTimeField.delegate = self;
+    self.startTimeField.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 0)];
+    self.startTimeField.leftViewMode = UITextFieldViewModeAlways;
+    [self.topContainer addSubview:self.startTimeField];
+    
+    self.endTimeField = [[UITextField alloc] init];
+    self.endTimeField.placeholder = @"截止时间(yyyy-MM-dd)";
+    self.endTimeField.font = [UIFont systemFontOfSize:13];
+    self.endTimeField.borderStyle = UITextBorderStyleRoundedRect;
+    self.endTimeField.delegate = self;
+    self.endTimeField.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 0)];
+    self.endTimeField.leftViewMode = UITextFieldViewModeAlways;
+    [self.topContainer addSubview:self.endTimeField];
+    
     // 搜索框
     self.searchField = [[UITextField alloc] init];
-    self.searchField.placeholder = @"搜索订单号/套餐名称";
+    self.searchField.placeholder = @"搜索订单号/UDID/套餐名称";
     self.searchField.font = [UIFont systemFontOfSize:14];
     self.searchField.borderStyle = UITextBorderStyleRoundedRect;
     self.searchField.returnKeyType = UIReturnKeySearch;
     self.searchField.delegate = self;
-    // 搜索框内边距调整
     self.searchField.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 0)];
     self.searchField.leftViewMode = UITextFieldViewModeAlways;
     [self.topContainer addSubview:self.searchField];
     
-    //移除父视图约束
+    // 🔥 新增：状态筛选按钮
+    self.statusFilterBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.statusFilterBtn setTitle:@"筛选" forState:UIControlStateNormal];
+    [self.statusFilterBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.statusFilterBtn.backgroundColor = [UIColor systemBlueColor];
+    self.statusFilterBtn.layer.cornerRadius = 6;
+    self.statusFilterBtn.titleLabel.font = [UIFont systemFontOfSize:12];
+    [self.statusFilterBtn addTarget:self action:@selector(showStatusFilterAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.topContainer addSubview:self.statusFilterBtn];
+    
     [self.collectionView removeFromSuperview];
-    //重新添加
     [self.view addSubview:self.collectionView];
-    // 设置顶部视图约束
     [self setupViewConstraints];
 }
 
-#pragma mark - 顶部视图约束
+// 🔥 显示筛选菜单
+- (void)showStatusFilterAction {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"筛选订单状态" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    NSArray *titles = @[@"全部", @"支付成功", @"已退款", @"已关闭", @"处理中"];
+    NSArray *values = @[@(-1), @(1), @(2), @(3), @(4)];
+    
+    for (int i=0; i<titles.count; i++) {
+        [alert addAction:[UIAlertAction actionWithTitle:titles[i] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            self.selectStatus = [values[i] integerValue];
+            [self.statusFilterBtn setTitle:titles[i] forState:UIControlStateNormal];
+            [self refreshWithResetPage:YES];
+        }]];
+    }
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        alert.popoverPresentationController.sourceView = self.statusFilterBtn;
+        alert.popoverPresentationController.sourceRect = self.statusFilterBtn.bounds;
+    }
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)setupTimePickers {
+    UIDatePicker *datePicker = [[UIDatePicker alloc] init];
+    datePicker.datePickerMode = UIDatePickerModeDate;
+    if (@available(iOS 13.4, *) ) {
+        datePicker.preferredDatePickerStyle = UIDatePickerStyleWheels;
+    }
+    UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 44)];
+    UIBarButtonItem *cancelBtn = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelPickTime)];
+    UIBarButtonItem *spaceBtn = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    UIBarButtonItem *confirmBtn = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStyleDone target:self action:@selector(confirmPickTime:)];
+    toolbar.items = @[cancelBtn, spaceBtn, confirmBtn];
+    
+    self.startTimeField.inputView = datePicker;
+    self.startTimeField.inputAccessoryView = toolbar;
+    self.endTimeField.inputView = datePicker;
+    self.endTimeField.inputAccessoryView = toolbar;
+}
+
+- (void)cancelPickTime {
+    [self.view endEditing:YES];
+}
+
+- (void)confirmPickTime:(UIBarButtonItem *)sender {
+    UIDatePicker *picker = (UIDatePicker *)self.startTimeField.inputView;
+    NSDateFormatter *fmt = [[NSDateFormatter alloc] init];
+    fmt.dateFormat = @"yyyy-MM-dd";
+    NSString *timeStr = [fmt stringFromDate:picker.date];
+    
+    if (self.startTimeField.isFirstResponder) {
+        self.startTimeField.text = timeStr;
+        self.startTime = timeStr;
+    } else if (self.endTimeField.isFirstResponder) {
+        self.endTimeField.text = timeStr;
+        self.endTime = timeStr;
+    }
+    [self.view endEditing:YES];
+    [self refreshWithResetPage:YES];
+}
+
+- (void)switchValueChanged:(UISwitch *)sender {
+    self.isShowAllOrder = sender.isOn;
+    [self refreshWithResetPage:YES];
+    NSString *tip = sender.isOn ? @"已切换：全网订单" : @"已切换：我的订单";
+    [SVProgressHUD showSuccessWithStatus:tip];
+    [SVProgressHUD dismissWithDelay:1];
+}
+
 - (void)setupViewConstraints {
-    // 顶部容器约束
     [self.topContainer mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self.view);
         make.height.equalTo(@(kTopContainerHeight));
     }];
     
-    // 标题约束（左侧）
     [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerY.equalTo(self.topContainer);
+        make.top.equalTo(self.topContainer).offset(15);
         make.left.equalTo(self.topContainer).offset(kMargin);
     }];
     
-    // 搜索框约束（右侧）
-    [self.searchField mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerY.equalTo(self.topContainer);
-        make.right.equalTo(self.topContainer).offset(-kMargin);
-        make.left.greaterThanOrEqualTo(self.titleLabel.mas_right).offset(kMargin); // 与标题保持间距
-        make.height.equalTo(@36);
-        make.width.greaterThanOrEqualTo(@150); // 最小宽度
-        make.width.lessThanOrEqualTo(@250); // 最大宽度
+    [self.orderSwitch mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.titleLabel);
+        make.right.equalTo(self.topContainer.mas_right).offset(-kMargin);
     }];
+    
+    CGFloat timeUiWidth = (kWidth - kMargin *3)/2;
+    [self.startTimeField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.titleLabel.mas_bottom).offset(20);
+        make.left.equalTo(self.topContainer).offset(kMargin);
+        make.width.equalTo(@(timeUiWidth));
+        make.height.equalTo(@36);
+    }];
+    
+    [self.endTimeField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.startTimeField);
+        make.left.equalTo(self.startTimeField.mas_right).offset(kMargin);
+        make.width.equalTo(@(timeUiWidth));
+        make.height.equalTo(@36);
+    }];
+    
+    // 筛选按钮
+    [self.statusFilterBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.searchField);
+        make.right.equalTo(self.topContainer).offset(-kMargin);
+        make.width.equalTo(@80);
+        make.height.equalTo(@36);
+    }];
+    
+    //搜索框
+    [self.searchField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.endTimeField.mas_bottom).offset(kMargin);
+        make.left.equalTo(self.topContainer).offset(kMargin);
+        make.right.equalTo(self.statusFilterBtn.mas_left).offset(-kMargin);
+        make.height.equalTo(@36);
+    }];
+    
     
     [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.topContainer.mas_bottom).offset(10); // 表格顶部与顶部容器底部对齐
-        make.left.right.equalTo(self.view); // 左右下贴边
-        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight - 10); // 左右下贴边
+        make.top.equalTo(self.topContainer.mas_bottom).offset(10);
+        make.left.right.bottom.equalTo(self.view);
     }];
 }
 
-
-
-#pragma mark - 调整表格约束（核心：让表格在顶部视图下方）
-- (void)updateViewConstraints {
-    [super updateViewConstraints];
-    
-    [self.collectionView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.topContainer.mas_bottom).offset(10); // 表格顶部与顶部容器底部对齐
-        make.left.right.equalTo(self.view); // 左右下贴边
-        make.bottom.equalTo(self.view.mas_top).offset(self.viewHeight - 10); // 左右下贴边
-    }];
+- (void)refreshWithResetPage:(BOOL)reset {
+    if (reset) self.page = 1;
+    [self loadDataWithPage:self.page];
 }
 
-#pragma mark - 子类必须重写的方法
-/**
- 加载指定页数数据
- @param page 当前请求的页码
- */
 - (void)loadDataWithPage:(NSInteger)page{
+    if (self.isLoading) return;
+    self.isLoading = YES;
+    
     NSString *udid = [loadData sharedInstance].userModel.udid;
-    if(!udid || udid.length<5){
+    if((!udid || udid.length<5) && !self.isAdmin){
         [SVProgressHUD showInfoWithStatus:@"获取UDID失败 请先登录"];
         [SVProgressHUD dismissWithDelay:1];
+        self.isLoading = NO;
         return;
     }
     
-    NSDictionary *dic = @{
-        @"page": @(page),
-        @"udid": udid,
-        @"sort": @(self.sort),
-        @"keyword": self.keyword ?: @"",
-        @"action": @"getVipPurchaseHistory"
-    };
+    NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+    dic[@"page"] = @(page);
+    dic[@"sort"] = @(self.sort);
+    dic[@"keyword"] = self.keyword ?: @"";
+    dic[@"action"] = @"getVipPurchaseHistory";
+    dic[@"startTime"] = self.startTime ?: @"";
+    dic[@"endTime"] = self.endTime ?: @"";
     
-    // 接口地址
+    // 🔥 新增：状态筛选
+    if (self.selectStatus >= 0) {
+        dic[@"status"] = @(self.selectStatus);
+    }
+    
+    if (self.isAdmin && self.isShowAllOrder) {
+        dic[@"target_udid"] = @"";
+    } else {
+        dic[@"target_udid"] = udid;
+    }
+    
     NSString *url = [NSString stringWithFormat:@"%@/vip/vip_purchase_history_api.php", localURL];
+    NSLog(@"查询参数：%@", dic);
     
-    // 发送请求
+    [SVProgressHUD showWithStatus:@"加载中..."];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                           urlString:url
-                                          parameters:dic
-                                               udid:udid
-                                             progress:^(NSProgress *progress) {
+                                             urlString:url
+                                            parameters:dic
+                                                 udid:udid
+                                               progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [SVProgressHUD dismiss];
-            // 结束刷新状态
             [self endRefreshing];
+            self.isLoading = NO;
             
-            // 数据合法性校验
             if (!jsonResult) {
-                NSLog(@"返回数据格式错误: %@", stringResult);
-                [SVProgressHUD showErrorWithStatus:@"数据格式错误，请重试"];
-                [SVProgressHUD dismissWithDelay:2];
+                [SVProgressHUD showErrorWithStatus:@"数据格式错误"];
                 return;
             }
             
-            NSLog(@"订单列表数据: %@", jsonResult);
             NSInteger code = [jsonResult[@"code"] integerValue];
-            NSString *message = jsonResult[@"msg"] ?: @"获取数据失败，请稍后重试";
-            
             if (code == 200) {
                 NSDictionary *data = jsonResult[@"data"];
                 NSArray *list = data[@"list"] ?: @[];
-                [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"加载了%ld条",list.count]];
-                [SVProgressHUD dismissWithDelay:1];
                 
-                // 解析数据
                 NSMutableArray *newModels = [NSMutableArray array];
                 for (NSDictionary *item in list) {
                     VipPurchaseHistoryModel *model = [VipPurchaseHistoryModel yy_modelWithDictionary:item];
-                    if (model) {
-                        [newModels addObject:model];
-                    }
+                    if (model) [newModels addObject:model];
                 }
                 
-                // 处理分页
-                NSDictionary *pagination = data[@"pagination"] ?: @{};
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                
-                if (page == 1) {
+                self.hasMore = [data[@"pagination"][@"hasMore"] boolValue];
+                if (page <= 1) {
                     self.dataSource = newModels;
                 } else {
                     [self.dataSource addObjectsFromArray:newModels];
                 }
                 
-                // 更新页码或标记无更多数据
-                if (hasMore) {
-                    self.page++;
-                } else {
-                    [self handleNoMoreData];
-                }
-                
-                // 刷新表格
                 [self refreshTable];
                 
             } else {
-                NSLog(@"获取订单列表失败: %@（错误码：%ld）", message, (long)code);
-                [SVProgressHUD showErrorWithStatus:message];
-                [SVProgressHUD dismissWithDelay:2];
+                [SVProgressHUD showErrorWithStatus:jsonResult[@"msg"]];
             }
         });
     } failure:^(NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self endRefreshing];
-            NSLog(@"网络请求错误: %@", error.localizedDescription);
-            [SVProgressHUD showErrorWithStatus:@"网络连接失败，请检查网络"];
-            [SVProgressHUD dismissWithDelay:2];
+            self.isLoading = NO;
+            [SVProgressHUD showErrorWithStatus:@"网络请求失败"];
         });
     }];
 }
 
-/**
- 返回对应的 SectionController
- @param object 数据模型对象
- @return 返回具体的 SectionController 实例
- */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if([object isKindOfClass:[VipPurchaseHistoryModel class]]){
         return [[TemplateSectionController alloc] initWithCellClass:[vip_purchase_historyCell class] modelClass:[VipPurchaseHistoryModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 15, 10, 15) usingCacheHeight:NO];
@@ -240,67 +348,40 @@
     return nil;
 }
 
-// 点击单元格回调
 - (void)templateSectionController:(TemplateSectionController *)sectionController
                     didSelectItem:(id)model
                           atIndex:(NSInteger)index
                              cell:(UICollectionViewCell *)cell {
-    // 可添加点击订单的逻辑（如查看详情）
     if ([model isKindOfClass:[VipPurchaseHistoryModel class]]) {
         VipPurchaseHistoryModel *orderModel = (VipPurchaseHistoryModel *)model;
-        NSLog(@"点击了订单: %@", orderModel.mch_orderid);
         ShowOneOrderViewController *vc = [ShowOneOrderViewController new];
-        vc.udid = orderModel.udid;
         vc.targetOrderNo = orderModel.mch_orderid;
         [self presentViewController:vc animated:YES completion:nil];
-
     }
 }
 
-
-#pragma mark - 搜索框代理（核心搜索逻辑）
-// 点击键盘搜索按钮
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [self performSearchWithText:textField.text];
     return YES;
 }
 
-// 点击清除按钮
 - (BOOL)textFieldShouldClear:(UITextField *)textField {
-    [self performSearchWithText:@""]; // 清空文本时搜索全部
+    [self performSearchWithText:@""];
     return YES;
 }
 
-// 结束编辑时（如点击空白处），如果内容有变化则触发搜索
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    // 避免与return/clear事件重复触发
     if (![textField.text isEqualToString:self.keyword]) {
         [self performSearchWithText:textField.text];
     }
 }
 
-#pragma mark - 搜索执行函数（统一处理搜索逻辑）
 - (void)performSearchWithText:(NSString *)searchText {
-    [self.searchField resignFirstResponder]; // 收起键盘
-    
-    // 去空格处理
+    [self.searchField resignFirstResponder];
     NSString *trimmedText = [searchText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    
-    // 关键词无变化则不重复请求
-    if ([trimmedText isEqualToString:self.keyword]) {
-        return;
-    }
-    
-    // 赋值关键词
+    if ([trimmedText isEqualToString:self.keyword]) return;
     self.keyword = trimmedText;
-    
-    // 显示加载状态
-    [SVProgressHUD showWithStatus:@"搜索中..."];
-    
-    // 重置页码并加载数据
-    self.page = 1;
-    [self loadDataWithPage:self.page];
+    [self refreshWithResetPage:YES];
 }
-
 
 @end

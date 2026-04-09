@@ -63,6 +63,7 @@ typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
 
 @property (nonatomic, assign) BOOL isShowFollows;//是否显示收藏列表 关注列表等隐私内容
 @property (nonatomic, assign) BOOL is_online;//是否在线
+
 /**
  判断VIP是否到期
  @param vipDateString VIP到期日期字符串（格式：yyyy-MM-dd HH:mm:ss）
@@ -106,8 +107,7 @@ typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
 
 
 #pragma mark - 多用户内存缓存管理
-///获取内存缓存单例管理
-+ (instancetype)cachedUserModel;
+
 
 /// 缓存指定用户（自动根据模型属性生成唯一键）
 + (void)cacheUserModel:(UserModel *)userModel;
@@ -157,6 +157,12 @@ typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
 + (void)setOnlineStatusWithTargetUdid:(NSString *)targetUdid
                                status:(BOOL)status
                                success:(void(^)(NSString *message))success
+                               failure:(UserInfoFailureBlock)failure;
+
+/// 获取管理员列表（网络请求，内部调用）
+/// @param success 成功回调：返回 UserModel 数组
+/// @param failure 失败回调：返回错误
++ (void)getAdminListFromNetworkSuccess:(void (^)(NSArray<UserModel *> *adminList))success
                                failure:(UserInfoFailureBlock)failure;
 
 

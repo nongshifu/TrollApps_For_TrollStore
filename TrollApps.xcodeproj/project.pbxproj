@@ -80,7 +80,7 @@
 		C2E44C742EDAD35E00110348 /* MyTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B602EDAD35C00110348 /* MyTabBarController.m */; };
 		C2E44C752EDAD35E00110348 /* CommentModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B652EDAD35C00110348 /* CommentModel.m */; };
 		C2E44C762EDAD35E00110348 /* AppCommentCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B662EDAD35C00110348 /* AppCommentCell.m */; };
-		C2E44C772EDAD35E00110348 /* NetworkClient.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B6A2EDAD35C00110348 /* NetworkClient.m */; };
+		C2E44C772EDAD35E00110348 /* NetworkClient.mm in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B6A2EDAD35C00110348 /* NetworkClient.mm */; };
 		C2E44C782EDAD35E00110348 /* TokenGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B6B2EDAD35C00110348 /* TokenGenerator.m */; };
 		C2E44C792EDAD35E00110348 /* AppSearchCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B712EDAD35C00110348 /* AppSearchCell.m */; };
 		C2E44C7A2EDAD35E00110348 /* ITunesAppModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B732EDAD35C00110348 /* ITunesAppModel.m */; };
@@ -89,7 +89,7 @@
 		C2E44C7E2EDAD35E00110348 /* ToolMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B7C2EDAD35D00110348 /* ToolMessage.m */; };
 		C2E44C7F2EDAD35E00110348 /* TTCHATViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B7F2EDAD35D00110348 /* TTCHATViewController.m */; };
 		C2E44C802EDAD35E00110348 /* BaseBottomSheetVC.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B812EDAD35D00110348 /* BaseBottomSheetVC.m */; };
-		C2E44C812EDAD35E00110348 /* DemoBaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */; };
+		C2E44C812EDAD35E00110348 /* DemoBaseViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B822EDAD35D00110348 /* DemoBaseViewController.mm */; };
 		C2E44C822EDAD35E00110348 /* BottomSheetTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B872EDAD35D00110348 /* BottomSheetTransition.m */; };
 		C2E44C832EDAD35E00110348 /* BottomSheetPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B882EDAD35D00110348 /* BottomSheetPresentationController.m */; };
 		C2E44C842EDAD35E00110348 /* DemoBaseNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2E44B8A2EDAD35D00110348 /* DemoBaseNavigationController.m */; };
@@ -329,7 +329,7 @@
 		C2E44B662EDAD35C00110348 /* AppCommentCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppCommentCell.m; sourceTree = "<group>"; };
 		C2E44B672EDAD35C00110348 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		C2E44B692EDAD35C00110348 /* TokenGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TokenGenerator.h; sourceTree = "<group>"; };
-		C2E44B6A2EDAD35C00110348 /* NetworkClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkClient.m; sourceTree = "<group>"; };
+		C2E44B6A2EDAD35C00110348 /* NetworkClient.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NetworkClient.mm; sourceTree = "<group>"; };
 		C2E44B6B2EDAD35C00110348 /* TokenGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TokenGenerator.m; sourceTree = "<group>"; };
 		C2E44B6C2EDAD35C00110348 /* NetworkClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkClient.h; sourceTree = "<group>"; };
 		C2E44B6E2EDAD35C00110348 /* AppSearchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppSearchViewController.h; sourceTree = "<group>"; };
@@ -346,7 +346,7 @@
 		C2E44B7D2EDAD35D00110348 /* ToolMessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToolMessageCell.h; sourceTree = "<group>"; };
 		C2E44B7F2EDAD35D00110348 /* TTCHATViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTCHATViewController.m; sourceTree = "<group>"; };
 		C2E44B812EDAD35D00110348 /* BaseBottomSheetVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseBottomSheetVC.m; sourceTree = "<group>"; };
-		C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoBaseViewController.m; sourceTree = "<group>"; };
+		C2E44B822EDAD35D00110348 /* DemoBaseViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DemoBaseViewController.mm; sourceTree = "<group>"; };
 		C2E44B832EDAD35D00110348 /* BottomSheetPresentationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BottomSheetPresentationController.h; sourceTree = "<group>"; };
 		C2E44B842EDAD35D00110348 /* BottomSheetTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BottomSheetTransition.h; sourceTree = "<group>"; };
 		C2E44B852EDAD35D00110348 /* DemoBaseNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoBaseNavigationController.h; sourceTree = "<group>"; };
@@ -1006,7 +1006,7 @@
 			isa = PBXGroup;
 			children = (
 				C2E44B6C2EDAD35C00110348 /* NetworkClient.h */,
-				C2E44B6A2EDAD35C00110348 /* NetworkClient.m */,
+				C2E44B6A2EDAD35C00110348 /* NetworkClient.mm */,
 				C2E44B692EDAD35C00110348 /* TokenGenerator.h */,
 				C2E44B6B2EDAD35C00110348 /* TokenGenerator.m */,
 			);
@@ -1069,7 +1069,7 @@
 				C2E44B852EDAD35D00110348 /* DemoBaseNavigationController.h */,
 				C2E44B8A2EDAD35D00110348 /* DemoBaseNavigationController.m */,
 				C2E44B892EDAD35D00110348 /* DemoBaseViewController.h */,
-				C2E44B822EDAD35D00110348 /* DemoBaseViewController.m */,
+				C2E44B822EDAD35D00110348 /* DemoBaseViewController.mm */,
 			);
 			path = "视图控制器模版ViewController";
 			sourceTree = "<group>";
@@ -1596,7 +1596,8 @@
 /* Begin PBXShellScriptBuildPhase section */
 		C287212D2E28266500ABC6AE /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
+			alwaysOutOfDate = 1;
+			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (
@@ -1607,9 +1608,10 @@
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\n# 赋予脚本执行权限（必须）\nchmod +x \"$PROJECT_DIR/TrollApps/ldid.sh\"\n\n# 执行你的签名脚本\n\"$PROJECT_DIR/TrollApps/ldid.sh\"\n\n\n";
+			showEnvVarsInLog = 0;
 		};
 		C4CB605A589597586282E054 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1725,7 +1727,7 @@
 				C2E44C822EDAD35E00110348 /* BottomSheetTransition.m in Sources */,
 				C2E44C602EDAD35E00110348 /* MoodStatusModel.m in Sources */,
 				C2E44CBD2EDAD35E00110348 /* CategoryManagerViewController.m in Sources */,
-				C2E44C812EDAD35E00110348 /* DemoBaseViewController.m in Sources */,
+				C2E44C812EDAD35E00110348 /* DemoBaseViewController.mm in Sources */,
 				C2E44CD92EDAD35F00110348 /* AppVersionHistoryModel.m in Sources */,
 				C2E44CC92EDAD35F00110348 /* UIView.m in Sources */,
 				C2E44C9F2EDAD35E00110348 /* Root.m in Sources */,
@@ -1792,7 +1794,7 @@
 				C2E44CAE2EDAD35E00110348 /* FeedbackViewController.m in Sources */,
 				C2E44C592EDAD35E00110348 /* UserModelCell.m in Sources */,
 				C2531F4D2F062CE600966086 /* ImageSelectCell.m in Sources */,
-				C2E44C772EDAD35E00110348 /* NetworkClient.m in Sources */,
+				C2E44C772EDAD35E00110348 /* NetworkClient.mm in Sources */,
 				C2E44C7F2EDAD35E00110348 /* TTCHATViewController.m in Sources */,
 				C2E44C7D2EDAD35E00110348 /* ToolMessageCell.m in Sources */,
 				C2E44C972EDAD35E00110348 /* CommandExecutor.m in Sources */,
@@ -1961,9 +1963,9 @@
 			baseConfigurationReference = 84B0DD44AEE963C32706E883 /* Pods-TrollApps.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGN_ALLOWED = YES;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = TrollApps/Root.entitlements;
 				CODE_SIGN_ENTITLMENTS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
@@ -2000,9 +2002,9 @@
 			baseConfigurationReference = 9E55653F99AAF82AC2A03084 /* Pods-TrollApps.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGN_ALLOWED = YES;
-				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_ENTITLEMENTS = TrollApps/Root.entitlements;
 				CODE_SIGN_ENTITLMENTS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;

@@ -122,12 +122,12 @@
                         return;
                     }];
                 }
-                [self refreshTable];
-                BOOL hasMore = [jsonResult[@"hasMore"] boolValue];
+                self.hasMore = [jsonResult[@"hasMore"] boolValue];
+                
+                
                 NSLog(@"noMoreData:%@",jsonResult[@"hasMore"]);
-                if(!hasMore){
-                    [self handleNoMoreData];
-                }
+               
+                [self refreshTable];
             });
         } failure:^(NSError *error) {
             NSLog(@"异步请求Error: %@", error);
@@ -198,14 +198,11 @@
                             WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
                             [self.dataSource addObject:model];
                         }
-                        [self refreshTable];
-                        BOOL hasMore = [jsonResult[@"hasMore"] boolValue];
+                        self.hasMore = [jsonResult[@"hasMore"] boolValue];
+                        [self refreshTableAnimated:NO];
+                        
                         NSLog(@"noMoreData:%@",jsonResult[@"hasMore"]);
-                        if(!hasMore){
-                            [self handleNoMoreData];
-                        }else{
-                            self.page+=1;
-                        }
+                        
                     }
                     
                     
@@ -304,11 +301,9 @@
                 
                 NSDictionary * pagination = data[@"pagination"];
                 NSLog(@"读取数据pagination: %@", pagination);
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                NSLog(@"hasMore:%d",hasMore);
-                if(!hasMore){
-                    [self handleNoMoreData];
-                }
+                self.hasMore = [pagination[@"hasMore"] boolValue];
+                NSLog(@"hasMore:%d",self.hasMore);
+                
                 
             });
         } failure:^(NSError *error) {
@@ -387,19 +382,12 @@
                 
                 // 处理分页
                 NSDictionary *pagination = data[@"pagination"] ?: @{};
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
+                self.hasMore = [pagination[@"hasMore"] boolValue];
                 
                 if (self.page == 1) { // 第一页清空旧数据
                     self.dataSource = newModels;
                 } else { // 分页加载追加数据
                     [self.dataSource addObjectsFromArray:newModels];
-                }
-                
-                // 更新页码或标记无更多数据
-                if (hasMore) {
-                    self.page++;
-                } else {
-                    [self handleNoMoreData];
                 }
                 
                 // 刷新表格

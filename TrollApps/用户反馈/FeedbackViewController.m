@@ -384,22 +384,15 @@
                     [self.dataSource addObject:model];
                 }
             }
-            //刷新表格
-            [self refreshTable];
             
             //解析页码等信息
             NSDictionary *pagination = data[@"pagination"];
-            NSInteger pages = [pagination[@"pages"] intValue];
+            self.hasMore = [pagination[@"hasMore"] boolValue];
             NSLog(@"返回的pagination：%@",pagination);
             
-            //还有数据
-            if(pages >self.page){
-                //请求页面加1 加载下一页
-                self.page+=1;
-            }else{
-                //结束尾部加载更多
-                [self handleNoMoreData];
-            }
+            //刷新表格
+            [self refreshTable];
+            
             
         });
     } failure:^(NSError *error) {

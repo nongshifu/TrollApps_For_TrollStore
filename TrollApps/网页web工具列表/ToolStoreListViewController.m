@@ -365,40 +365,39 @@ typedef NS_ENUM(NSInteger, SortType) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"请求读取工具stringResult：%@",stringResult);
             [self endRefreshing];
-            if(self.page <=1){
-                [self.dataSource removeAllObjects];
-            }
+            
             if(!jsonResult){
                 [self showAlertFromViewController:self title:@"返回数据错误" message:stringResult];
                 return;
             }
+            
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString *msg = jsonResult[@"msg"];
-            if(code == 200){
-                NSDictionary *data = jsonResult[@"data"];
-                NSArray *tools = data[@"tools"];
-                for (NSDictionary *dic in tools) {
-                    NSLog(@"遍历请求读取工具dic：%@",dic);
-                    WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
-                    if(model){
-                        [self.dataSource addObject:model];
-                    }
-                }
-                //刷新表格
-                [self refreshTable];
-                //解析页码信息
-                NSDictionary *pagination = data[@"pagination"];
-                NSLog(@"请求读取工具pagination：%@",pagination);
-                NSInteger total_pages = [pagination[@"total_pages"] intValue];
-                if(total_pages > self.page){
-                    self.page +=1;
-                }else{
-                    [self handleNoMoreData];
-                }
-            }else{
+            if(code != 200){
                 [self showAlertFromViewController:self title:@"数据错误" message:msg];
+                return;
             }
-            self.emptyView.hidden = self.dataSource.count>0;
+            
+            NSDictionary *data = jsonResult[@"data"];
+            NSArray *tools = data[@"tools"];
+            //解析页码信息
+            NSDictionary *pagination = data[@"pagination"];
+            NSLog(@"请求读取工具pagination：%@",pagination);
+            
+            self.hasMore = [pagination[@"hasMore"] intValue];
+            
+            
+            for (NSDictionary *dic in tools) {
+                NSLog(@"遍历请求读取工具dic：%@",dic);
+                WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
+                if(model){
+                    [self.dataSource addObject:model];
+                }
+            }
+            
+            //刷新表格
+            [self refreshTable];
+            
         });
         
     } failure:^(NSError *error) {

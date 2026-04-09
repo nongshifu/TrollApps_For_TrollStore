@@ -128,6 +128,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) MJRefreshFooter *refreshFooter; // 上拉加载控件
 @property (nonatomic, strong) NSString *uniqueIdentifier;//生成的控制器唯一标识符 负责缓存高度冲突
 @property (nonatomic, assign) BOOL isScrollingUp;//滚动方向
+@property (nonatomic, assign) BOOL hasMore;//是否存在更多数据
+@property (nonatomic, assign) CGFloat tempSavedContentOffset;//上次储存的滚的位置
 
 #pragma mark - 公共方法
 
@@ -191,6 +193,10 @@ NS_ASSUME_NONNULL_BEGIN
  刷新表格
  */
 - (void)refreshTable;
+/**
+ 刷新表格
+ */
+- (void)refreshTableAnimated:(BOOL)animated;
 /**
  更新空视图状态
  */

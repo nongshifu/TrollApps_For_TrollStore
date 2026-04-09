@@ -12,8 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ShowOneOrderViewController : DemoBaseViewController
 
-/// 用户UDID（默认为自己从个人中心获取 可赋值其他用户）
-@property (nonatomic, copy) NSString *udid;
 /// 目标订单号（外部传入）
 @property (nonatomic, copy) NSString *targetOrderNo;
 

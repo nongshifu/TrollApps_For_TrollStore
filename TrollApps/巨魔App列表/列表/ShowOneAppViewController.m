@@ -401,7 +401,7 @@
                 // 解析评论（安全版）
                 // ==========================
                 NSDictionary *commentsData = data[@"commentsData"];
-                BOOL hasMore = NO;
+                
                 
                 if(commentsData){
                     NSArray *comments = commentsData[@"comments"];
@@ -413,10 +413,8 @@
                             [self.dataSource addObject:comment];
                         }
                     }
-                    hasMore = [commentsData[@"hasMore"] boolValue];
-                    if (hasMore && currentPage > 1) {
-                        self.page +=1;
-                    }
+                    self.hasMore = [commentsData[@"hasMore"] boolValue];
+                    
                 }
                 
                 // ==========================
@@ -451,15 +449,11 @@
                 // ==========================
                 // 刷新 UI
                 // ==========================
-                [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
-                    [self updateEmptyViewVisibility];
-                }];
+                [self refreshTable];
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self showBubbleOnTipBarIcon];
                 });
-                if(!hasMore){
-                    [self handleNoMoreData];
-                }
+                
                 
             } else {
                 [self handleErrorWithMessage:[NSString stringWithFormat:@"请求失败: %@", message]];
@@ -570,6 +564,11 @@
     // 隐藏键盘
     [self.commentInputView.textView resignFirstResponder];
     NSString *udid =[NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    if(udid.length==0 || !udid){
+        [SVProgressHUD showInfoWithStatus:@"请先登录,使用巨魔安装本程序自动登录"];
+        [SVProgressHUD dismissWithDelay:5];
+        return;
+    }
     // 构建请求参数（根据实际接口调整）
     Action_type comment_type = Comment_type_AppComment;
     NSDictionary *params = @{

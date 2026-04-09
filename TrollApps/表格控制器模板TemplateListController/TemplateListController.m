@@ -28,7 +28,7 @@
     self.lastContentOffset = 0;
     // 生成唯一标识符
     self.uniqueIdentifier = [[NSUUID UUID] UUIDString];
-    
+    self.hasMore = YES;
     [self setupUI];
     [self setupRefresh];
 
@@ -46,7 +46,7 @@
     layout.scrollDirection = UICollectionViewScrollDirectionVertical;
     //横向布局
     //    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    
+ 
     self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     self.collectionView.backgroundColor = [UIColor clearColor];
     self.collectionView.delegate = self;
@@ -194,34 +194,50 @@
         [self.dataSource removeAllObjects];
         
     }
-    
+    self.hasMore = YES;
     self.page = 1;
     [self loadDataWithPage:self.page];
+    // 刷新的时候记录为0
+    self.tempSavedContentOffset = 0;
     // 调用代理方法
     if ([self.templateListDelegate respondsToSelector:@selector(willLoadDataWithPage:currentDataSource:)]) {
         [self.templateListDelegate willLoadDataWithPage:self.page currentDataSource:self.dataSource];
     }
-    [self updateEmptyViewVisibility];
+    
     
 }
 
 - (void)loadMoreData{
-    if(self.dataSource.count>0){
-        self.page++; // 页码自增
-    }
+    self.page += 1;
+    // 🔥 加载更多：保存当前滚动位置
+    self.tempSavedContentOffset = self.collectionView.contentOffset.y;
     [self loadDataWithPage:self.page];
-    [self updateEmptyViewVisibility];
+    
 }
 
 - (void)refreshTable{
+    [self refreshTableAnimated:YES];
+}
+- (void)refreshTableAnimated:(BOOL)animated {
+    // 🔥 第一步：先结束刷新状态（必须放最前面）
     [self endRefreshing];
-    //刷新
-    [self.adapter performUpdatesAnimated:YES completion:^(BOOL finished) {
+    
+    // 🔥 第二步：判断无更多数据，设置footer状态（必须放刷新列表前）
+    if(!self.hasMore){
+        [self handleNoMoreData];
+    }
+    
+    // 第三步：刷新列表数据
+    [self.adapter performUpdatesAnimated:animated completion:^(BOOL finished) {
+        // 刷新完成后，恢复滚动偏移（防止跳回顶部）
+        if (self.tempSavedContentOffset > 0) {
+            self.collectionView.contentOffset = CGPointMake(0, self.tempSavedContentOffset);
+        }
+        // 闭包内只做：刷新完后的UI处理（如空状态视图）
         [self updateEmptyViewVisibility];
     }];
     
 }
-
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];

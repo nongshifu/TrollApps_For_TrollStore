@@ -187,7 +187,7 @@ static dispatch_once_t _onceToken;
     
     
     NSString *url = [NSString stringWithFormat:@"%@/admin/system_api.php",localURL];
-    NSString *udid = [loadData sharedInstance].userModel.udid?:@"";
+    NSString *udid = [self getUDID]?:[self getIDFV];
     NSDictionary *dic =@{
         @"action":@"getAllConfigs",
         @"udid":udid,
@@ -207,7 +207,7 @@ static dispatch_once_t _onceToken;
                 [SVProgressHUD dismissWithDelay:5];
                 return;
             }
-           
+            NSLog(@"读取配置jsonResult：%@",jsonResult);
             
             // 检查响应状态
             NSInteger code = [jsonResult[@"code"] integerValue];
@@ -228,6 +228,7 @@ static dispatch_once_t _onceToken;
                 [self.tableView reloadData];
             } else {
                 NSString *errorMsg = jsonResult[@"msg"] ?: @"获取配置失败";
+                NSLog(@"读取系统配置失败:%@",errorMsg);
 //                [SVProgressHUD showErrorWithStatus:errorMsg];
 //                [SVProgressHUD dismissWithDelay:5];
             }

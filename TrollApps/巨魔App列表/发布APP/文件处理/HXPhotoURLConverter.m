@@ -13,7 +13,7 @@
 #import "AppInfoModel.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @implementation HXPhotoURLConverter
 
@@ -202,12 +202,12 @@
         }
         
         // 排除缩略图文件
-        if ([urlString containsString:@"thumbnail"]) {
-            NSLog(@"跳过缩略图文件：%@", urlString);
-            continue;
-        }
+//        if ([urlString containsString:@"thumbnail"]) {
+//            NSLog(@"跳过缩略图文件：%@", urlString);
+//            continue;
+//        }
         
-        if ([self isImageFileWithURL:fileURL]) {
+        if ([self isImageFileWithURL:fileURL] && ![urlString containsString:@"thumbnail"]) {
             // 执行封装模型（图片文件）
             HXCustomAssetModel *assetModel = [HXCustomAssetModel assetWithNetworkImageURL:fileURL networkThumbURL:fileURL selected:YES];
             [assetModels addObject:assetModel];
@@ -217,19 +217,12 @@
             NSString *thumbnailURLString = nil;
             CGFloat videoDuration = 0;
             
-            // 获取视频文件名（不含扩展名）
-            NSString *videoNameWithoutExt = [urlString stringByDeletingPathExtension];
-            
-            // 构建可能的缩略图文件名
-            NSString *expectedThumbnailName = [NSString stringWithFormat:@"%@_thumbnail", videoNameWithoutExt];
-            
             // 在映射中查找匹配的缩略图
             for (NSString *possibleThumbnailName in fileNameToURLMap.keyEnumerator) {
-                if ([possibleThumbnailName containsString:expectedThumbnailName] &&
-                    [possibleThumbnailName containsString:@"thumbnail"] &&
+                if ([possibleThumbnailName containsString:@"_thumbnail_"] &&
                     [self isImageFileWithURL:[NSURL URLWithString:fileNameToURLMap[possibleThumbnailName]]]) {
                     thumbnailURLString = fileNameToURLMap[possibleThumbnailName];
-                    
+                    NSLog(@"缩略图:%@",thumbnailURLString);
                     // 从缩略图文件名中提取时长信息
                     NSArray *components = [possibleThumbnailName componentsSeparatedByString:@"_thumbnail_"];
                     if (components.count == 2) {

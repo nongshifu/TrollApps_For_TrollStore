@@ -16,7 +16,7 @@
 #import <YYModel/YYModel.h> // 用于JSON转模型（若未集成，可替换为手动解析）
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 // 颜色配置（现代化配色，可按需修改）
 #define kMainColor [UIColor colorWithRed:0.22 green:0.66 blue:0.96 alpha:1.0]     // 主色（蓝）
@@ -53,11 +53,12 @@
 @property (nonatomic, strong) UILabel *transactionIdLabel;// 交易ID
 @property (nonatomic, strong) UILabel *udidLabel;       // UDID
 @property (nonatomic, strong) UILabel *idfvLabel;       // IDFV
-
+@property (nonatomic, strong) UIButton *operateOrderButton;        // 操作订单
 @property (nonatomic, strong) UIButton *contactHelperButton;       // 联系作者
 /// 状态视图
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView; // 加载中
 @property (nonatomic, strong) UIView *emptyView;        // 空数据/请求失败视图
+@property (nonatomic, assign) BOOL isAdmin;        // 是否是管理员
 
 @end
 
@@ -66,16 +67,14 @@
 #pragma mark - 生命周期
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    self.view.backgroundColor = [UIColor clearColor];
+    self.isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
     [self setupBaseConfig];
     [self setupUI];
     [self setupConstraints];
     [self fetchOrderData]; // 加载订单数据
 }
 
-- (void)setUdid:(NSString *)udid{
-    _udid = udid;
-}
 
 #pragma mark - 基础配置
 - (void)setupBaseConfig {
@@ -113,7 +112,16 @@
     _statusLabel.layer.cornerRadius = 20;
     _statusLabel.layer.masksToBounds = YES;
     [_cardView addSubview:_statusLabel];
-    
+    //操作订单按钮
+    _operateOrderButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_operateOrderButton setTitle:@"编辑状态" forState:UIControlStateNormal];
+    [_operateOrderButton setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
+    [_operateOrderButton setBackgroundColor:[UIColor systemBackgroundColor]];
+    _operateOrderButton.layer.cornerRadius = 15;
+    _operateOrderButton.hidden = ![NewProfileViewController sharedInstance].userInfo.role;
+    [_operateOrderButton addTarget:self action:@selector(operateOrderButtonTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_operateOrderButton];
+    // 联系客服
     _contactHelperButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [_contactHelperButton setTitle:@"联系客服" forState:UIControlStateNormal];
     [_contactHelperButton addTarget:self action:@selector(contactHelperButtonTap:) forControlEvents:UIControlEventTouchUpInside];
@@ -224,7 +232,7 @@
     [self.view addSubview:_emptyView];
     
     // 图标（替换为更贴合订单的图标）
-    UIImageView *emptyIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"receipt.slash"]];
+    UIImageView *emptyIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"star"]];
     emptyIcon.tintColor = kSubtitleColor;
     emptyIcon.contentMode = UIViewContentModeScaleAspectFit;
     [_emptyView addSubview:emptyIcon];
@@ -331,13 +339,21 @@
         make.width.mas_equalTo(120);
         make.height.mas_equalTo(40);
     }];
+    
+    // 状态标签约束（顶部居中，宽120，高40）
+    [_operateOrderButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.cardView.mas_bottom).offset(20);
+        make.centerX.equalTo(_cardView);
+        make.width.mas_equalTo(120);
+        make.height.mas_equalTo(40);
+    }];
 }
 
 #pragma mark - 网络请求：查询订单数据
 - (void)fetchOrderData {
-    if (!self.targetOrderNo.length || !self.udid.length) {
-        [SVProgressHUD showErrorWithStatus:@"订单号或用户信息为空"];
-        [self showEmptyViewWithMsg:@"订单号或用户信息为空"];
+    if (!self.targetOrderNo || self.targetOrderNo.length ==0) {
+        [SVProgressHUD showErrorWithStatus:@"订单号为空"];
+        
         return;
     }
     
@@ -345,50 +361,44 @@
     [_loadingView startAnimating];
     _cardView.hidden = YES;
     _emptyView.hidden = YES;
-    
-    // 构建请求URL（新增路由：action=queryOrderDetail）
-    NSString *baseUrl = @"https://niceiphone.com/vip/purchase_vip.php";
-    NSString *requestUrl = [NSString stringWithFormat:@"%@?action=queryOrderDetail&mch_orderid=%@&udid=%@",
-                           baseUrl,
-                           [self.targetOrderNo stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]],
-                           [self.udid stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-    
-    // 发起网络请求（与之前逻辑一致）
-    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:[NSURL URLWithString:requestUrl] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+    NSDictionary *dic = @{
+        @"action":@"queryOrderDetail",
+        @"mch_orderid":self.targetOrderNo
+    };
+    NSString *baseUrl = [NSString stringWithFormat:@"%@/vip/purchase_vip.php",localURL];
+   
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:baseUrl
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
+        
+    } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        //返回主线程UI操作
         dispatch_async(dispatch_get_main_queue(), ^{
             
             [self.loadingView stopAnimating];
             
-            if (error) {
-                [SVProgressHUD showErrorWithStatus:@"查询失败，请检查网络"];
-                [self showEmptyViewWithMsg:@"查询失败，请检查网络"];
+            if (!jsonResult) {
+                NSString *message = [NSString stringWithFormat:@"查询失败，返回数据错误\n%@",jsonResult];
+               
+                [SVProgressHUD showErrorWithStatus:message];
                 return;
             }
-            
-            // 解析JSON（沿用原有逻辑，code=0为成功，注意：PHP端成功code是SUCCESS常量，可能为0）
-            NSError *jsonError;
-            NSDictionary *responseDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
-            if (!responseDict || jsonError) {
-                [SVProgressHUD showErrorWithStatus:@"数据解析失败"];
-                [self showEmptyViewWithMsg:@"数据解析失败"];
-                return;
-            }
-            NSLog(@"订单查询返回:%@",responseDict);
-            
+            NSLog(@"查询订单返回jsonResult：%@",jsonResult);
             // 注意：PHP端成功返回的code是 SUCCESS 200
-            NSInteger code = [responseDict[@"code"] integerValue];
+            NSInteger code = [jsonResult[@"code"] integerValue];
             if (code != 200) { // 这里要和PHP端的SUCCESS常量一致（PHP中SUCCESS=0）
-                NSString *msg = responseDict[@"msg"] ?: @"订单不存在";
+                NSString *msg = jsonResult[@"msg"] ?: @"订单不存在";
                 [SVProgressHUD showErrorWithStatus:msg];
-                [self showEmptyViewWithMsg:msg];
+                
                 return;
             }
             
             // JSON转模型（直接映射，包含新增的vipDescription字段）
-            self.orderModel = [VipPurchaseHistoryModel yy_modelWithDictionary:responseDict[@"data"]];
+            self.orderModel = [VipPurchaseHistoryModel yy_modelWithDictionary:jsonResult[@"orderData"]];
             if (!self.orderModel) {
                 [SVProgressHUD showErrorWithStatus:@"订单数据异常"];
-                [self showEmptyViewWithMsg:@"订单数据异常"];
+                
                 return;
             }
             
@@ -396,30 +406,40 @@
             self.cardView.hidden = NO;
             [self updateOrderUI];
         });
+    } failure:^(NSError *error) {
+        
     }];
-    [task resume];
+   
+    
+    
 }
 
 #pragma mark - 更新订单UI（新增：填充套餐介绍字段）
 - (void)updateOrderUI {
     VipPurchaseHistoryModel *model = self.orderModel;
-    
+    NSArray *array = @[@"订单失败", @"订单成功", @"订单退款", @"订单关闭", @"处理中"];
+    _statusLabel.text = array[model.status];
     // 1. 订单状态（设置颜色和文字）
     switch (model.status) {
-        case 1: // 成功
-            _statusLabel.text = @"支付成功";
+        case OrderStatusTypeSuccess: // 成功
+            
             _statusLabel.backgroundColor = kSuccessColor;
             break;
-        case 0: // 待支付（原失败改为待支付，更准确）
-            _statusLabel.text = @"支付失败";
+        case OrderStatusTypeFailure: // 待支付（原失败改为待支付，更准确）
+            
             _statusLabel.backgroundColor = [UIColor colorWithRed:0.55 green:0.55 blue:0.57 alpha:1.0]; // 灰色
             break;
-        case 2: // 退款
-            _statusLabel.text = @"已退款";
-            _statusLabel.backgroundColor = kRefundColor;
+        case OrderStatusTypeRefund: // 退款
+            _statusLabel.backgroundColor = kSubtitleColor;
+            break;
+        case OrderStatusTypeCLOSED: // 关闭
+            _statusLabel.backgroundColor = kSubtitleColor;
+            break;
+        case OrderStatusTypePROCESSING: // 处理
+            _statusLabel.backgroundColor = kSubtitleColor;
             break;
         default:
-            _statusLabel.text = @"未知状态";
+            
             _statusLabel.backgroundColor = kSubtitleColor;
             break;
     }
@@ -480,29 +500,139 @@
 }
 
 - (void)contactHelperButtonTap:(UIButton *)button {
-    [[ContactHelper shared] showContactActionSheetWithUserUdid:@"00008030-001265591423802E"];
+    // 1. 获取管理员列表
+    [UserModel getAdminListFromNetworkSuccess:^(NSArray<UserModel *> * _Nonnull adminList) {
+        //返回主线程UI操作
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 2. 请求成功 → 弹出底部选择框
+            if (adminList.count == 0) {
+                [SVProgressHUD showInfoWithStatus:@"暂无在线管理员"];
+                [SVProgressHUD dismissWithDelay:2];
+                return;
+            }
+            
+            // 创建底部 ActionSheet
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择管理员"
+                                                                           message:@"请选择要联系的管理员"
+                                                                    preferredStyle:UIAlertControllerStyleActionSheet];
+            
+            // 遍历管理员列表，添加选项
+            for (UserModel *admin in adminList) {
+                NSString *nickname = admin.nickname.length > 0 ? admin.nickname : @"管理员";
+                NSString *udid = admin.udid;
+                
+                // 跳过无效UDID
+                if (udid.length < 5) continue;
+                
+                // 添加选项：点击 → 传入UDID联系
+                UIAlertAction *action = [UIAlertAction actionWithTitle:nickname
+                                                                style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * _Nonnull action) {
+                    // 选中后调用联系方法
+                    [[ContactHelper shared] showContactActionSheetWithUserUdid:udid];
+                }];
+                [alert addAction:action];
+            }
+            
+            // 添加取消按钮
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                                   style:UIAlertActionStyleCancel
+                                                                 handler:nil];
+            [alert addAction:cancelAction];
+            
+            // 弹出
+            [self presentViewController:alert animated:YES completion:nil];
+        });
+        
+        
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        //返回主线程UI操作
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 3. 请求失败提示
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"获取管理员失败：%@", errorMsg]];
+            [SVProgressHUD dismissWithDelay:2];
+        });
+        
+    }];
 }
 
-#pragma mark - 显示空数据视图（带自定义提示）
-- (void)showEmptyViewWithMsg:(NSString *)msg {
-    _emptyView.hidden = NO;
-    UILabel *emptyLabel = (UILabel *)[_emptyView viewWithTag:1001];
-    if (!emptyLabel) {
-        emptyLabel = [[UILabel alloc] init];
-        emptyLabel.tag = 1001;
-        emptyLabel.textColor = kSubtitleColor;
-        emptyLabel.font = kContentFont;
-        emptyLabel.numberOfLines = 0; // 支持多行提示
-        [_emptyView addSubview:emptyLabel];
-        
-        [emptyLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(_emptyView.mas_centerY).offset(-20);
-            make.centerX.equalTo(_emptyView);
-            make.left.right.lessThanOrEqualTo(_emptyView).offset(-20);
-        }];
+// 1. 按钮点击：弹出状态选择器
+- (void)operateOrderButtonTap:(UIButton *)button {
+    // 当前状态
+    OrderStatusType status = self.orderModel.status;
+    
+    // 创建 ActionSheet 选择器
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择订单状态"
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    NSArray *array = @[@"订单失败", @"订单成功", @"订单退款", @"订单关闭", @"处理中"];
+    
+    for (OrderStatusType statusIndex = OrderStatusTypeFailure; statusIndex < array.count; statusIndex++) {
+        // 添加所有状态选项
+        UIAlertActionStyle style = UIAlertActionStyleDefault;
+        if(status == statusIndex) style = UIAlertActionStyleDestructive;
+        [alert addAction:[UIAlertAction actionWithTitle:array[statusIndex] style:style handler:^(UIAlertAction * _Nonnull action) {
+            [self setNewStatus:statusIndex];
+        }]];
     }
-    emptyLabel.text = msg;
+    
+    // 添加取消按钮
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    
+    // 弹出选择器
+    [self presentViewController:alert animated:YES completion:nil];
 }
+
+// 2. 发送更新状态请求（适配后台接口，传递枚举字符串）
+- (void)setNewStatus:(OrderStatusType)newStatus{
+
+    // 接口参数（严格匹配后台要求）
+    NSDictionary *params = @{
+        @"action":@"updateOrderStatus",
+        @"newStatus":@(newStatus),
+        @"mch_orderid":self.orderModel.mch_orderid,
+        @"target_udid":self.orderModel.udid,
+    };
+    
+    NSString *url = [NSString stringWithFormat:@"%@/vip/vip_purchase_history_api.php", localURL];
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url
+                                             parameters:params
+                                               progress:nil
+                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        // 主线程弹窗：更新成功
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self fetchOrderData];
+            if(!jsonResult){
+                [self showAlertWithTitle:@"操作失败" message:stringResult];
+            }
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString * msg = jsonResult[@"msg"];
+            if(code != 200){
+                [self showAlertWithTitle:@"操作失败" message:msg];
+            }
+            [SVProgressHUD showSuccessWithStatus:msg];
+            [SVProgressHUD dismissWithDelay:1];
+            
+        });
+    } failure:^(NSError *error) {
+        // 主线程弹窗：更新失败
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self showAlertWithTitle:@"操作失败" message:[NSString stringWithFormat:@"错误：%@", error.localizedDescription]];
+        });
+    }];
+}
+
+
+/// 通用结果弹窗
+- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 
 #pragma mark - 导航栏返回按钮
 - (void)backAction {

@@ -25,7 +25,7 @@
 #import "ChatListViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface AppInfoCell ()<MiniButtonViewDelegate,HXPhotoViewDelegate>
 
@@ -72,7 +72,7 @@
     self.contentView.layer.cornerRadius = 15;
     self.userInteractionEnabled = YES;
     self.contentView.layer.masksToBounds = YES;
-    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(buttonClicked:)];
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(buttonClicked)];
     tapGesture.cancelsTouchesInView = NO; // 确保不影响其他控件的事件
     self.contentView.userInteractionEnabled = YES;
     [self.contentView addGestureRecognizer:tapGesture];
@@ -119,7 +119,7 @@
     self.appTypeButton.backgroundColor = [[UIColor systemGreenColor] colorWithAlphaComponent:0.6];
     self.appTypeButton.layer.cornerRadius = 3;
     self.appTypeButton.tag = 100;
-    [self.appTypeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.appTypeButton addTarget:self action:@selector(buttonClicked) forControlEvents:UIControlEventTouchUpInside];
     
     
     //版本
@@ -131,7 +131,7 @@
     self.appVersionButton.layer.cornerRadius = 3;
     [self.appVersionButton setTitle:@"v1.0.0" forState:UIControlStateNormal];
     self.appVersionButton.tag = 101;
-    [self.appVersionButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.appVersionButton addTarget:self action:@selector(buttonClicked) forControlEvents:UIControlEventTouchUpInside];
     
     //版本更新时间
     self.appUpdateTimeButton = [[UIButton alloc] init];
@@ -142,7 +142,7 @@
     self.appUpdateTimeButton.layer.cornerRadius = 3;
     self.appUpdateTimeButton.tag = 102;
     [self.appUpdateTimeButton setTitle:@"2026-03-22" forState:UIControlStateNormal];
-    [self.appUpdateTimeButton addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.appUpdateTimeButton addTarget:self action:@selector(buttonClicked) forControlEvents:UIControlEventTouchUpInside];
     
     // 标签堆栈视图
     self.tagMiniButtonView = [[MiniButtonView alloc] initWithFrame:CGRectMake(0, 0, kWidth - 130, 20)];
@@ -494,7 +494,8 @@
 - (void)configureDescriptionTextViewWith:(NSString *)description {
     NSString *text = description ?: @"暂无介绍";
     self.appDescriptionTextView.text = text;
-    
+//    self.appDescriptionTextView.backgroundColor = [UIColor redColor];
+    self.appDescriptionTextView.layer.masksToBounds = YES;
     // 计算文本宽度（和TextView约束宽度一致）
     CGFloat textWidth = CGRectGetWidth(self.contentView.frame) - 32; // left+right=16+16=32
     UIFont *font = self.appDescriptionTextView.font;
@@ -1177,8 +1178,8 @@
     [[self getTopViewController] presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)buttonClicked:(UIButton*)button{
-    NSLog(@"点击了按钮tag:%ld",button.tag);
+- (void)buttonClicked{
+    
     if(self.appInfoModel.isShowAll) return;
     ShowOneAppViewController *vc = [ShowOneAppViewController new];
     vc.app_id = self.appInfoModel.app_id;
@@ -1384,6 +1385,7 @@
                                nil];
     
     for (NSString *file in appFileModels) {
+        NSLog(@"媒体文件:%@",file);
         //排除头像 缩略图 和主程序文件
         if ([file containsString:@"thumbnail"] || [file containsString:ICON_KEY]  || [file containsString:MAIN_File_KEY]) {
             continue;

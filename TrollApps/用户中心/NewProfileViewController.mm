@@ -30,6 +30,7 @@
 #import "PaymentManager.h"
 #import "ContactHelper.h"
 #import "SystemViewController.h"
+#import "VipPurchaseHistoryModel.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -477,6 +478,8 @@
         [self.sideMenuController showRightViewAnimated];
     }];
     [self zx_setSubRightBtnWithImg:[UIImage systemImageNamed:@"arrow.2.circlepath"] clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
+        // 加载系统配置
+        [[SystemViewController sharedInstance] loadConfigData];
         
         [self loadUserInfo];
         [self animationUI];
@@ -808,9 +811,11 @@
 
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
     [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
+        NSLog(@"查询用户数据成功：%@",userModel);
         self.userInfo = userModel;
         [self updateUserInfoWithUserModel:self.userInfo];
     } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        NSLog(@"查询用户数据失败：%@",errorMsg);
         [self registerUserWithUdid:udid idfv:[self getIDFV]];
         
     }];
@@ -905,7 +910,7 @@
     if(idfv.length>0){
         [dic setValue:idfv forKey:@"idfv"];
     }
-    
+    NSLog(@"注册请求:%@",dic);
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
                                              parameters:dic
@@ -951,7 +956,60 @@
 }
 
 - (void)contactHelperButtonTap:(UIButton *)button {
-    [[ContactHelper shared] showContactActionSheetWithUserUdid:@"00008030-001265591423802E"];
+    // 1. 获取管理员列表
+    [UserModel getAdminListFromNetworkSuccess:^(NSArray<UserModel *> * _Nonnull adminList) {
+        //返回主线程UI操作
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 2. 请求成功 → 弹出底部选择框
+            if (adminList.count == 0) {
+                [SVProgressHUD showInfoWithStatus:@"暂无在线管理员"];
+                [SVProgressHUD dismissWithDelay:2];
+                return;
+            }
+            
+            // 创建底部 ActionSheet
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择管理员"
+                                                                           message:@"请选择要联系的管理员"
+                                                                    preferredStyle:UIAlertControllerStyleActionSheet];
+            
+            // 遍历管理员列表，添加选项
+            for (UserModel *admin in adminList) {
+                NSString *nickname = admin.nickname.length > 0 ? admin.nickname : @"管理员";
+                NSString *udid = admin.udid;
+                
+                // 跳过无效UDID
+                if (udid.length < 5) continue;
+                
+                // 添加选项：点击 → 传入UDID联系
+                UIAlertAction *action = [UIAlertAction actionWithTitle:nickname
+                                                                style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * _Nonnull action) {
+                    // 选中后调用联系方法
+                    [[ContactHelper shared] showContactActionSheetWithUserUdid:udid];
+                }];
+                [alert addAction:action];
+            }
+            
+            // 添加取消按钮
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                                   style:UIAlertActionStyleCancel
+                                                                 handler:nil];
+            [alert addAction:cancelAction];
+            
+            // 弹出
+            [self presentViewController:alert animated:YES completion:nil];
+        });
+        
+        
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        //返回主线程UI操作
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // 3. 请求失败提示
+            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"获取管理员失败：%@", errorMsg]];
+            [SVProgressHUD dismissWithDelay:2];
+        });
+        
+    }];
 }
 
 - (BOOL)canAccessUDID {
@@ -1535,26 +1593,17 @@
     // 2. 构建请求参数（与PHP的 purchase_vip.php 接口参数对应）
     self.loadingAlert = [UIAlertController alertControllerWithTitle:@"请稍后" message:@"订单创建中，请等待。。" preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:self.loadingAlert animated:YES completion:nil];
-    
+    NSDictionary *VIPPackage = [package yy_modelToJSONObject];
     NSDictionary *requestParams = @{
         @"udid": self.userInfo.udid,
         @"token": self.userInfo.token ?: @"",
         @"mch_orderid":mch_orderid,
         @"action":@"createOrder",
-        @"data": @{ // 直接在第一层 data 中放业务参数
-            @"vipLevel": @(package.level),
-            @"VIPPackage": @{
-                @"packageId": package.packageId ?: @"",
-                @"title": package.title ?: @"",
-                @"price": @(package.price),
-                @"level": @(package.level)
-            }
-            // 移除所有冗余字段（mch_orderid、重复的udid/token）
-        }
+        @"VIPPackage": VIPPackage
     };
     NSLog(@"先创建订单requestParams：%@",requestParams);
     // 3. 调用PHP创建订单接口（你的 purchase_vip.php 地址）
-    NSString *createOrderURL = @"https://niceiphone.com/vip/purchase_vip.php?action=createOrder";
+    NSString *createOrderURL = [NSString stringWithFormat:@"%@/vip/purchase_vip.php?action=createOrder",localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                                               urlString:createOrderURL
                                              parameters:requestParams udid:self.userInfo.udid progress:^(NSProgress *progress) {
@@ -1577,9 +1626,10 @@
             }
             
             // 5. 提取商户订单号（mch_orderid）
-            NSDictionary *data = jsonResult[@"data"];
-            NSString *mchOrderId = data[@"mch_orderid"];
-            if (!mchOrderId || mchOrderId.length == 0) {
+            NSDictionary *data = jsonResult[@"data"][@"orderInfo"];
+            VipPurchaseHistoryModel *vipPurchaseHistoryModel = [VipPurchaseHistoryModel yy_modelWithDictionary:data];
+            
+            if (!vipPurchaseHistoryModel.mch_orderid || vipPurchaseHistoryModel.mch_orderid.length ==0) {
                 self.loadingAlert = [UIAlertController alertControllerWithTitle:@"错误" message:@"云端订单号生成失败" preferredStyle:UIAlertControllerStyleAlert];
                 // 添加取消按钮
                 UIAlertAction*cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
@@ -1590,7 +1640,7 @@
                 [self presentViewController:self.loadingAlert animated:YES completion:nil];
                 return;
             }
-            [self handlePurchaseWithPackage:package mch_orderid:mch_orderid];
+            [self handlePurchaseWithPackage:package vipPurchaseHistoryModel:vipPurchaseHistoryModel];
         });
         
         
@@ -1603,11 +1653,18 @@
 
 #pragma mark - 处理套餐购买请求（修改为本地调用YSMPaymentManager）
 
-- (void)handlePurchaseWithPackage:(VIPPackage *)package mch_orderid:(NSString *)mch_orderid{
+- (void)handlePurchaseWithPackage:(VIPPackage *)package vipPurchaseHistoryModel:(VipPurchaseHistoryModel* )vipPurchaseHistoryModel{
     if(self.loadingAlert){
         [self.loadingAlert dismissViewControllerAnimated:YES completion:nil];
     }
-    self.loadingAlert = [UIAlertController alertControllerWithTitle:@"订单创建成功" message:@"发起支付跳转中，请1分钟内进行支付。" preferredStyle:UIAlertControllerStyleAlert];
+    self.loadingAlert = [UIAlertController alertControllerWithTitle:@"订单创建成功" message:@"发起支付跳转中，请3分钟内进行支付。" preferredStyle:UIAlertControllerStyleAlert];
+    [self.loadingAlert addAction:[UIAlertAction actionWithTitle:@"取消支付" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+    }]];
+    [self.loadingAlert addAction:[UIAlertAction actionWithTitle:@"刷新查看" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        [self loadUserInfo];
+        [self animationUI];
+    }]];
     [self presentViewController:self.loadingAlert animated:YES completion:nil];
     
     if (self.isBuyIng) {
@@ -1633,23 +1690,12 @@
     self.configItem = [[SystemViewController sharedInstance] configItemForKey:@"en_web_pay"];
     NSLog(@"配置键值is_required：%d config_value:%@",self.configItem.is_required,self.configItem.config_value);
     if(self.configItem.is_required && self.configItem.config_value){
-        // 1. 对所有参数进行 URL 编码
-        NSString *levelStr = [NSString stringWithFormat:@"%ld", package.level];
-        NSString *titleEncoded = [package.title stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-        NSString *priceStr = [NSString stringWithFormat:@"%f", package.price];
-        NSString *packageIdStr = package.packageId;
-        NSString *udidStr = [self getUDID];
-
+       
         // 2. 拼接安全的 URL
-        NSString *url = [NSString stringWithFormat:@"%@%@?level=%@&title=%@&price=%@&packageId=%@&payType=%ld&udid=%@",
+        NSString *url = [NSString stringWithFormat:@"%@%@?history_id=%ld",
                          localURL,
                          self.configItem.config_value,
-                         levelStr,
-                         titleEncoded, // 这里用编码后的
-                         priceStr,
-                         packageIdStr,
-                         (long)self.payType,
-                         udidStr];
+                         vipPurchaseHistoryModel.history_id];
         NSLog(@"打开支付网址：%@",url);
 
         // 3. 安全打开（增加判空）
@@ -1670,7 +1716,7 @@
     }
 
     // 1. 初始化支付管理器并配置商户信息
-    [[PaymentManager sharedManager] startPaymentWithOrderNo:mch_orderid  // 唯一订单号
+    [[PaymentManager sharedManager] startPaymentWithOrderNo:vipPurchaseHistoryModel.mch_orderid  // 唯一订单号
                                 productName:package.title
                                      amount:[NSString stringWithFormat:@"%.2f",package.price]            // 两位小数
                                 paymentType:self.payType   // 支付宝支付

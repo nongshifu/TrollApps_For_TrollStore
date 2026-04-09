@@ -168,7 +168,6 @@
 }
 
 - (void)start {
-    NSURLSessionTask *dataTask = nil;
     @synchronized (self) {
         if (self.isCancelled) {
             if (!self.isFinished) self.finished = YES;
@@ -229,23 +228,22 @@
             return;
         }
         
-        dataTask = [session dataTaskWithRequest:self.request];
+        self.dataTask = [session dataTaskWithRequest:self.request];
+        self.executing = YES;
     }
 
-    if (dataTask) {
+    if (self.dataTask) {
         if (self.options & SDWebImageDownloaderHighPriority) {
-            dataTask.priority = NSURLSessionTaskPriorityHigh;
+            self.dataTask.priority = NSURLSessionTaskPriorityHigh;
         } else if (self.options & SDWebImageDownloaderLowPriority) {
-            dataTask.priority = NSURLSessionTaskPriorityLow;
+            self.dataTask.priority = NSURLSessionTaskPriorityLow;
         } else {
-            dataTask.priority = NSURLSessionTaskPriorityDefault;
+            self.dataTask.priority = NSURLSessionTaskPriorityDefault;
         }
+        [self.dataTask resume];
         NSArray<SDWebImageDownloaderOperationToken *> *tokens;
         @synchronized (self) {
             tokens = [self.callbackTokens copy];
-            self.dataTask = dataTask;
-            self.executing = YES;
-            [self.dataTask resume];
         }
         for (SDWebImageDownloaderOperationToken *token in tokens) {
             if (token.progressBlock) {

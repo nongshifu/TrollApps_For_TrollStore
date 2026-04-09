@@ -28,6 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 主动刷新配置数据（供外部调用）
 - (void)refreshConfigData;
+/// 从新加载数据
+- (void)loadConfigData;
 @end
 
 NS_ASSUME_NONNULL_END

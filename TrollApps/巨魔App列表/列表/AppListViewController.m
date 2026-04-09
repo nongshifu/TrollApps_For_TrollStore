@@ -94,18 +94,17 @@
                     }];
                 }
                 
-                [self refreshTable];
                 
-                BOOL hasMore = [jsonResult[@"hasMore"] boolValue];
+                
+                self.hasMore = [jsonResult[@"hasMore"] boolValue];
                 NSLog(@"noMoreData:%@",jsonResult[@"hasMore"]);
                 // 如果还有更多数据，增加页码；否则标记为没有更多数据
-                if (hasMore) {
-                    self.page += 1;
-                } else {
+                if (!self.hasMore) {
                     // 可以显示"没有更多数据"的提示
                     NSLog(@"没有更多评论数据");
                     [self setFooterNoMoreDataWithText:@"读取完毕-发布一个APP吧！\nTrollApps by 十三哥 2026"];
                 }
+                [self refreshTable];
           
             });
         } failure:^(NSError *error) {

@@ -98,5 +98,4 @@
     } else {\
         dispatch_async(dispatch_get_main_queue(), block);\
     }
-#pragma clang deprecated(dispatch_main_async_safe, "Use SDCallbackQueue instead")
 #endif

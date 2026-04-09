@@ -161,51 +161,61 @@ static dispatch_queue_t _cacheQueue;
     
     UserModel *other = (UserModel *)object;
     
-    // 基础信息对比
-    if (self.user_id != other.user_id) return NO;
-    if (![self.nickname isEqualToString:other.nickname]) return NO;
-    if (![self.avatar isEqualToString:other.avatar]) return NO;
-    if (![self.phone isEqualToString:other.phone]) return NO;
-    if (![self.email isEqualToString:other.email]) return NO;
-    if (![self.udid isEqualToString:other.udid]) return NO;
-    if (![self.idfv isEqualToString:other.idfv]) return NO;
-    
-    // 社交信息对比
-    if (![self.wechat isEqualToString:other.wechat]) return NO;
-    if (![self.qq isEqualToString:other.qq]) return NO;
-    if (![self.tg isEqualToString:other.tg]) return NO;
-    if (![self.bio isEqualToString:other.bio]) return NO;
-    if (![self.moodStatus isEqualToString:other.moodStatus]) return NO;
-    
-    // 状态信息对比
-    if (self.gender != other.gender) return NO;
-    if (self.isFollow != other.isFollow) return NO;
-    if (self.isShowFollows != other.isShowFollows) return NO;
-    if (self.is_online != other.is_online) return NO;
-    
-    
-    if (self.vip_level != other.vip_level) return NO;
-    if (self.downloads_number != other.downloads_number) return NO;
-    if (self.like_count != other.like_count) return NO;
-    if (self.reply_count != other.reply_count) return NO;
-    if (self.follower_count != other.follower_count) return NO;
-    if (self.following_count != other.following_count) return NO;
-    if (self.app_count != other.app_count) return NO;
-    if (self.role != other.role) return NO;
-    
-    
-    
-    // 日期对比
-    if (![self.vip_expire_date isEqualToDate:other.vip_expire_date]) return NO;
-    if (![self.login_time isEqualToDate:other.login_time]) return NO;
-    if (![self.register_time isEqualToDate:other.register_time]) return NO;
-    if (![self.last_purchase_time isEqualToDate:other.last_purchase_time]) return NO;
-    
-    // 数组对比（搜索分类）
-    if (![self.search_category isEqualToArray:other.search_category]) return NO;
-    
-    // 所有关键属性相同，返回YES
-    return YES;
+    // 对比所有关键业务/UI属性
+    return (
+        // 基础ID
+        self.user_id == other.user_id &&
+        
+        // 字符串属性
+        [self.nickname isEqualToString:other.nickname] &&
+        [self.avatar isEqualToString:other.avatar] &&
+        [self.avatarBase64 isEqualToString:other.avatarBase64] &&
+        [self.phone isEqualToString:other.phone] &&
+        [self.password isEqualToString:other.password] &&
+        [self.wechat isEqualToString:other.wechat] &&
+        [self.qq isEqualToString:other.qq] &&
+        [self.tg isEqualToString:other.tg] &&
+        [self.bio isEqualToString:other.bio] &&
+        [self.moodStatus isEqualToString:other.moodStatus] &&
+        [self.token isEqualToString:other.token] &&
+        [self.email isEqualToString:other.email] &&
+        [self.udid isEqualToString:other.udid] &&
+        [self.idfv isEqualToString:other.idfv] &&
+        [self.mutualFollowStatusText isEqualToString:other.mutualFollowStatusText] &&
+        
+        // 图片对象（本地缓存图片，变化需要刷新）
+        (self.avatarImage == other.avatarImage || [self.avatarImage isEqual:other.avatarImage]) &&
+        
+        // 性别
+        self.gender == other.gender &&
+        
+        // 日期属性
+        (self.vip_expire_date == other.vip_expire_date || [self.vip_expire_date isEqualToDate:other.vip_expire_date]) &&
+        (self.login_time == other.login_time || [self.login_time isEqualToDate:other.login_time]) &&
+        (self.register_time == other.register_time || [self.register_time isEqualToDate:other.register_time]) &&
+        (self.last_purchase_time == other.last_purchase_time || [self.last_purchase_time isEqualToDate:other.last_purchase_time]) &&
+        
+        // 数值属性
+        self.vip_level == other.vip_level &&
+        self.downloads_number == other.downloads_number &&
+        self.like_count == other.like_count &&
+        self.reply_count == other.reply_count &&
+        self.app_count == other.app_count &&
+        self.role == other.role &&
+        self.follower_count == other.follower_count &&
+        self.following_count == other.following_count &&
+        
+        // 布尔属性
+        self.isFollow == other.isFollow &&
+        self.isShowFollows == other.isShowFollows &&
+        self.is_online == other.is_online &&
+        
+        // 关注状态枚举
+        self.mutualFollowStatus == other.mutualFollowStatus &&
+        
+        // 数组属性（内容完全一致才相同）
+        (self.search_category == other.search_category || [self.search_category isEqualToArray:other.search_category])
+    );
 }
 
 
@@ -322,17 +332,13 @@ static dispatch_queue_t _cacheQueue;
     };
     NSLog(@"查询用户数据请求：%@",params);
     NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    NSString *udid = [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY] ? [KeychainTool readStringForKey:TROLLAPPS_SAVE_UDID_KEY] :@"";
-    if(udid.length<5){
-        [SVProgressHUD showInfoWithStatus:@"UDID获取失败\n请先登录绑定哦"];
-        [SVProgressHUD dismissWithDelay:4];
-        return;
-    }
+    NSLog(@"查询用户数据请求：%@",params);
+    
     // 发起请求（复用已有POST方法）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
                       urlString:url
                      parameters:params
-                           udid:udid
+                           
                        progress:nil
                         success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -353,16 +359,19 @@ static dispatch_queue_t _cacheQueue;
                 [self cacheUserModel:userModel];
                 if (success) success(userModel);
             } else {
+                NSLog(@"查询用户数据失败：%@",msg);
                 NSError *error = [NSError errorWithDomain:@"UserInfoError" code:code userInfo:@{NSLocalizedDescriptionKey: msg}];
                 if (failure) failure(error, msg);
             }
         });
     } failure:^(NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"查询用户数据失败返回错误：%@",error.localizedDescription);
             if (failure) failure(error, error.localizedDescription);
         });
     }];
 }
+
 
 #pragma mark - 外部调用接口（通过user_id获取）
 + (void)getUserInfoWithUserId:(NSString *)userId
@@ -553,6 +562,75 @@ static dispatch_queue_t _cacheQueue;
         dispatch_async(dispatch_get_main_queue(), ^{
             // 网络请求失败：返回错误信息
             if (failure) failure(error, [NSString stringWithFormat:@"网络错误：%@", error.localizedDescription]);
+        });
+    }];
+}
+
+#pragma mark - 获取管理员列表（核心方法）
+
+/// 获取管理员列表（网络请求，内部调用）
+/// @param success 成功回调：返回 UserModel 数组
+/// @param failure 失败回调：返回错误
++ (void)getAdminListFromNetworkSuccess:(void (^)(NSArray<UserModel *> *adminList))success
+                               failure:(UserInfoFailureBlock)failure {
+    // 1. 参数校验
+    NSString *currentUdid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+    if (currentUdid.length < 5) {
+        NSError *error = [NSError errorWithDomain:@"AdminListError" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"未登录，无法获取管理员列表"}];
+        if (failure) failure(error, @"未登录");
+        return;
+    }
+    
+    // 2. 构建请求
+    NSDictionary *params = @{
+        @"action": @"getAdminList"  // 后端接口名
+    };
+    
+    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
+    
+    // 3. 发起请求
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                              urlString:url
+                                             parameters:params
+                                                   udid:currentUdid
+                                               progress:nil
+                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!jsonResult) {
+                NSError *error = [NSError errorWithDomain:@"AdminListError" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"数据解析失败"}];
+                if (failure) failure(error, stringResult);
+                return;
+            }
+            
+            NSInteger code = [jsonResult[@"code"] integerValue];
+            if (code != 200) {
+                NSString *msg = jsonResult[@"msg"] ?: @"获取管理员列表失败";
+                NSError *error = [NSError errorWithDomain:@"AdminListError" code:code userInfo:@{NSLocalizedDescriptionKey: msg}];
+                if (failure) failure(error, msg);
+                return;
+            }
+            
+            // 4. 解析数组 → 转模型
+            NSArray *dataArray = jsonResult[@"data"][@"list"];
+            if (!dataArray || dataArray.count == 0) {
+                if (success) success(@[]);
+                return;
+            }
+            
+            // 5. 字典数组 → UserModel 数组
+            NSArray<UserModel *> *adminList = [NSArray yy_modelArrayWithClass:[UserModel class] json:dataArray];
+            
+            // 6. 自动缓存所有管理员（复用你已有的缓存逻辑）
+            for (UserModel *model in adminList) {
+                [UserModel cacheUserModel:model];
+            }
+            
+            // 7. 回调
+            if (success) success(adminList);
+        });
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (failure) failure(error, error.localizedDescription);
         });
     }];
 }

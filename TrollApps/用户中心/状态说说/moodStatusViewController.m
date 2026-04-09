@@ -213,8 +213,8 @@
                 }
                 
                 // 处理分页
-                NSDictionary *pagination = data[@"pagination"] ?: @{};
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
+                
+                
                 
                 if (self.page == 1) { // 第一页清空旧数据
                     self.dataSource = newModels;
@@ -222,12 +222,12 @@
                     [self.dataSource addObjectsFromArray:newModels];
                 }
                 
+                
+                
+                
                 // 更新页码或标记无更多数据
-                if (hasMore) {
-                    self.page++;
-                } else {
-                    [self handleNoMoreData];
-                }
+                NSDictionary *pagination = data[@"pagination"] ?: @{};
+                self.hasMore = [pagination[@"hasMore"] boolValue];
                 
                 // 刷新表格
                 [self refreshTable];

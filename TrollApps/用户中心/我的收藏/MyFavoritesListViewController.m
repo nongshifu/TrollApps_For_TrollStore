@@ -140,11 +140,9 @@
                     }];
                 }
                 [self refreshTable];
-                BOOL hasMore = [jsonResult[@"hasMore"] boolValue];
+                self.hasMore = [jsonResult[@"hasMore"] boolValue];
                 NSLog(@"noMoreData:%@",jsonResult[@"hasMore"]);
-                if(!hasMore){
-                    [self handleNoMoreData];
-                }
+                
             });
         } failure:^(NSError *error) {
             NSLog(@"异步请求Error: %@", error);
@@ -214,20 +212,14 @@
                         WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
                         [self.dataSource addObject:model];
                     }
-                    [self refreshTable];
+                   
                 }
                 
-                
+                    
                 NSDictionary * pagination = data[@"pagination"];
-                BOOL has_more = [pagination[@"has_more"] boolValue];
-                if(has_more){
-                    NSLog(@"有更多数据");
-                    self.page+=1;
-                }else{
-                    NSLog(@"没有有更多数据");
-                    [self handleNoMoreData];
-                }
+                self.hasMore = [pagination[@"has_more"] boolValue];
                 
+                [self refreshTable];
                 
             }else{
                 NSLog(@"数据搜索失败出错: %@", message);
@@ -308,12 +300,10 @@
                         UserModel *model = [UserModel yy_modelWithDictionary:dic];
                         [self.dataSource addObject:model];
                     }
-                    [self refreshTable];
-                    BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                    if(!hasMore){
-                        [self handleNoMoreData];
-                    }
                     
+                    self.hasMore = [pagination[@"hasMore"] boolValue];
+                    
+                    [self refreshTable];
                     
                 }else{
                     NSLog(@"数据搜索失败出错: %@", message);

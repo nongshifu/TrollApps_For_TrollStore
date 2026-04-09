@@ -443,13 +443,8 @@
                 NSArray * comments = data[@"comments"];
                 
                 NSDictionary *pagination = data[@"pagination"];
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                if(!hasMore || comments.count ==0){
-                    [self handleNoMoreData];
-                    
-                }else{
-                    self.page +=1;
-                }
+                self.hasMore = [pagination[@"hasMore"] boolValue];
+               
                 for (NSDictionary *commentDic in comments) {
                     NSLog(@"评论数据:%@",commentDic);
                     CommentModel *comment = [CommentModel yy_modelWithDictionary:commentDic];

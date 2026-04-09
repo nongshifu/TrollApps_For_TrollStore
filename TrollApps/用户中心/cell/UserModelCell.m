@@ -19,8 +19,6 @@
 @interface UserModelCell ()
 @property (nonatomic, strong) UserModel *userModel;
 
-// 卡片容器
-@property (nonatomic, strong) UIView *cardView;
 
 // 头像
 @property (nonatomic, strong) UIImageView *avatarImageView;
@@ -32,8 +30,9 @@
 // 主信息容器
 @property (nonatomic, strong) UIView *infoContainer;
 
-// 昵称+VIP标识
+// 昵称
 @property (nonatomic, strong) UILabel *nicknameLabel;
+// VIP标识
 @property (nonatomic, strong) UILabel *vipTagLabel;
 
 // 个人简介（修改：最大3行）
@@ -48,6 +47,7 @@
 @end
 
 @implementation UserModelCell
+
 // 辅助方法：从颜色创建一个1x1的图片
 static UIImage *imageWithColor(UIColor *color) {
     CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 1.0f);
@@ -64,18 +64,8 @@ static UIImage *imageWithColor(UIColor *color) {
 }
 
 - (void)setupUI {
-    self.contentView.backgroundColor = [UIColor clearColor];
-    
-    // 卡片容器
-    self.cardView = [[UIView alloc] init];
-    self.cardView.backgroundColor = [UIColor.systemBackgroundColor colorWithAlphaComponent:0.7];
-    self.cardView.layer.cornerRadius = 12;
-    self.cardView.layer.shadowColor = UIColor.blackColor.CGColor;
-    self.cardView.layer.shadowOpacity = 0.05;
-    self.cardView.layer.shadowRadius = 4;
-    self.cardView.layer.shadowOffset = CGSizeMake(0, 2);
-    [self.contentView addSubview:self.cardView];
-
+    self.contentView.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.9];
+    self.contentView.layer.cornerRadius = 15;
     // 头像
     self.avatarImageView = [[UIImageView alloc] init];
     self.avatarImageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -84,7 +74,7 @@ static UIImage *imageWithColor(UIColor *color) {
     self.avatarImageView.layer.borderColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5].CGColor;
     self.avatarImageView.layer.masksToBounds = YES;
     self.avatarImageView.backgroundColor = UIColor.systemGray2Color;
-    [self.cardView addSubview:self.avatarImageView];
+    [self.contentView addSubview:self.avatarImageView];
 
     // --- 新增：VIP图标 ---
     self.vipIconView = [[UIImageView alloc] init];
@@ -92,7 +82,7 @@ static UIImage *imageWithColor(UIColor *color) {
     self.vipIconView.tintColor = [UIColor systemYellowColor];
     self.vipIconView.contentMode = UIViewContentModeScaleAspectFit;
     self.vipIconView.hidden = YES; // 默认隐藏
-    [self.avatarImageView addSubview:self.vipIconView]; // 添加到头像上
+    [self.contentView addSubview:self.vipIconView]; // 添加到头像上
 
     // 最近登录时间
     self.lastSeenLabel = [[UILabel alloc] init];
@@ -100,7 +90,7 @@ static UIImage *imageWithColor(UIColor *color) {
     self.lastSeenLabel.textColor = [UIColor whiteColor];
     self.lastSeenLabel.textAlignment = NSTextAlignmentCenter;
     self.lastSeenLabel.backgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.5];
-    [self.cardView addSubview:self.lastSeenLabel];
+    [self.contentView addSubview:self.lastSeenLabel];
 
     // --- 新增：关注按钮 ---
     self.followButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -121,11 +111,11 @@ static UIImage *imageWithColor(UIColor *color) {
     self.followButton.layer.masksToBounds = YES; // 确保圆角生效
     self.followButton.userInteractionEnabled = YES;
     [self.followButton addTarget:self action:@selector(followButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-    [self.cardView addSubview:self.followButton];
+    [self.contentView addSubview:self.followButton];
 
     // 信息容器
     self.infoContainer = [[UIView alloc] init];
-    [self.cardView addSubview:self.infoContainer];
+    [self.contentView addSubview:self.infoContainer];
 
     // 昵称
     self.nicknameLabel = [[UILabel alloc] init];
@@ -161,20 +151,15 @@ static UIImage *imageWithColor(UIColor *color) {
 }
 
 - (void)setupConstraints {
-    // 卡片容器（宽度固定，高度自适应）
    
-    
-    // 卡片容器（ edges 绑定contentView，高度随子视图自适应）
-    [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.contentView).insets(UIEdgeInsetsMake(0, 0, 0, 0)); // 上下留8pt间距（可选，优化视觉）
-    }];
-    
+   
     // 头像（固定大小，不影响高度自适应）
     [self.avatarImageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.cardView).offset(16);
-        make.left.equalTo(self.cardView).offset(16);
+        make.top.equalTo(self.contentView).offset(16);
+        make.left.equalTo(self.contentView).offset(16);
         make.width.height.equalTo(@60);
         // 移除 bottom 约束，避免限制卡片高度
+        
     }];
     
     // --- VIP图标约束 ---
@@ -192,8 +177,8 @@ static UIImage *imageWithColor(UIColor *color) {
 
     // 关注按钮约束
     [self.followButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.cardView).offset(16);
-        make.right.equalTo(self.cardView).offset(-16);
+        make.top.equalTo(self.contentView).offset(16);
+        make.right.equalTo(self.contentView).offset(-16);
         make.width.greaterThanOrEqualTo(@60); // 宽度自适应文字
         make.height.equalTo(@30);
     }];
@@ -203,7 +188,7 @@ static UIImage *imageWithColor(UIColor *color) {
         make.top.equalTo(self.avatarImageView);
         make.left.equalTo(self.avatarImageView.mas_right).offset(12);
         make.right.equalTo(self.followButton.mas_left).offset(-12); // 与关注按钮间距12pt
-        // 移除 bottom 绑定avatar的约束，让infoContainer高度由内部子视图撑开
+        make.bottom.equalTo(self.contentView);
     }];
     
     // 昵称和VIP标签（水平排列）
@@ -235,10 +220,6 @@ static UIImage *imageWithColor(UIColor *color) {
         make.bottom.equalTo(self.infoContainer).offset(-16); // 与infoContainer底部留16pt间距
     }];
     
-    // 卡片容器底部与infoContainer底部对齐（确保卡片高度随infoContainer撑开）
-    [self.cardView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.bottom.equalTo(self.infoContainer).offset(0); // 卡片底部比infoContainer底部多16pt内边距
-    }];
 }
 
 #pragma mark - 事件处理
@@ -380,10 +361,10 @@ static UIImage *imageWithColor(UIColor *color) {
             self.lastSeenLabel.textColor = [UIColor labelColor];
         }
     }
-    
-    // 强制更新布局（确保高度自适应生效）
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
+//    
+//    // 强制更新布局（确保高度自适应生效）
+//    [self setNeedsLayout];
+//    [self layoutIfNeeded];
 }
 
 @end

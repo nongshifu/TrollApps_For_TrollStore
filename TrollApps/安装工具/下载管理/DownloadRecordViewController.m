@@ -234,15 +234,8 @@
                 
                 // 更新分页信息
                 NSInteger total = [pagination[@"total"] integerValue];
-                BOOL hasMore = [pagination[@"hasMore"] boolValue];
+                self.hasMore = [pagination[@"hasMore"] boolValue];
                 
-                
-                
-                if(hasMore){
-                    [self handleNoMoreData];
-                }else{
-                    self.page+=1;
-                }
                 NSLog(@"total:%ld self.dataSource:%@",total,self.dataSource);
                 
                 // 刷新列表

@@ -12,7 +12,6 @@
 #import "SDAnimatedImage.h"
 #import "UIImage+Metadata.h"
 #import "SDInternalMacros.h"
-#import "SDDeviceHelper.h"
 
 #import <CoreServices/CoreServices.h>
 
@@ -50,12 +49,6 @@ SDImageCoderOptions * _Nonnull SDGetDecodeOptionsFromContext(SDWebImageContext *
         mutableCoderOptions = [NSMutableDictionary dictionaryWithCapacity:6];
     }
     
-    // Some options need preserve the custom decode options
-    NSNumber *decodeToHDR = context[SDWebImageContextImageDecodeToHDR];
-    if (decodeToHDR == nil) {
-        decodeToHDR = mutableCoderOptions[SDImageCoderDecodeToHDR];
-    }
-    
     // Override individual options
     mutableCoderOptions[SDImageCoderDecodeFirstFrameOnly] = @(decodeFirstFrame);
     mutableCoderOptions[SDImageCoderDecodeScaleFactor] = @(scale);
@@ -64,7 +57,6 @@ SDImageCoderOptions * _Nonnull SDGetDecodeOptionsFromContext(SDWebImageContext *
     mutableCoderOptions[SDImageCoderDecodeTypeIdentifierHint] = typeIdentifierHint;
     mutableCoderOptions[SDImageCoderDecodeFileExtensionHint] = fileExtensionHint;
     mutableCoderOptions[SDImageCoderDecodeScaleDownLimitBytes] = scaleDownLimitBytesValue;
-    mutableCoderOptions[SDImageCoderDecodeToHDR] = decodeToHDR;
     
     return [mutableCoderOptions copy];
 }
@@ -80,7 +72,6 @@ void SDSetDecodeOptionsToContext(SDWebImageMutableContext * _Nonnull mutableCont
     mutableContext[SDWebImageContextImagePreserveAspectRatio] = decodeOptions[SDImageCoderDecodePreserveAspectRatio];
     mutableContext[SDWebImageContextImageThumbnailPixelSize] = decodeOptions[SDImageCoderDecodeThumbnailPixelSize];
     mutableContext[SDWebImageContextImageScaleDownLimitBytes] = decodeOptions[SDImageCoderDecodeScaleDownLimitBytes];
-    mutableContext[SDWebImageContextImageDecodeToHDR] = decodeOptions[SDImageCoderDecodeToHDR];
     
     NSString *typeIdentifierHint = decodeOptions[SDImageCoderDecodeTypeIdentifierHint];
     if (!typeIdentifierHint) {

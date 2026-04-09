@@ -8,6 +8,8 @@
 
 
 #import "DemoBaseViewController.h"
+#include <sys/sysctl.h>
+#include <dlfcn.h>
 #import "Config.h"
 
 
@@ -482,5 +484,34 @@
     }
     return nil;
 }
+/// 获取本地存储的UDID
+- (NSString *)getUDID {
+ 
+    static CFStringRef (*$MGCopyAnswer)(CFStringRef);
+    void *gestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY);
+    if (!gestalt) {
+        NSLog(@"无法加载libMobileGestalt.dylib");
+        return nil;
+    }
+    
+    $MGCopyAnswer = reinterpret_cast<CFStringRef (*)(CFStringRef)>(dlsym(gestalt, "MGCopyAnswer"));
+    if (!$MGCopyAnswer) {
+        NSLog(@"找不到MGCopyAnswer函数");
+        dlclose(gestalt);
+        return nil;
+    }
+    
+    CFStringRef udidRef = $MGCopyAnswer(CFSTR("UniqueDeviceID"));
+    NSString *udid = (__bridge_transfer NSString *)udidRef;
+    NSLog(@"读取的UDID:%@",udid);
+    dlclose(gestalt);
+    return udid;
+}
 
+/// 获取本机IDFV
+- (NSString *)getIDFV {
+    // 钥匙串中没有，生成当前设备的原始IDFV
+    NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
+    return vendorID ? [vendorID UUIDString] : [[NSUUID UUID] UUIDString];
+}
 @end

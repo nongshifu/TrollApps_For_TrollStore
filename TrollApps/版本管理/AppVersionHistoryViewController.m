@@ -101,21 +101,15 @@
                 
             }
             
-            //刷新数据表格
-            [self refreshTable];
-            
             //判断数据量
             NSDictionary *pagination = data[@"pagination"];
             NSInteger totalPages = [pagination[@"totalPages"] intValue];
             NSInteger total = [pagination[@"total"] intValue];
+            self.hasMore = [pagination[@"hasMore"] boolValue];
             NSLog(@"返回数据数据量totalPages：%ld   total:%ld",totalPages,total);
-            if(totalPages > self.page){
-                //还有数据页码加一
-                self.page +=1;
-            }else{
-                //没有数据 结束尾部的MJ加载更新
-                [self handleNoMoreData];
-            }
+            
+            //刷新数据表格
+            [self refreshTable];
         });
         
     } failure:^(NSError *error) {

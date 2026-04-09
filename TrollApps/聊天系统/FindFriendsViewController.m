@@ -43,7 +43,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.search_fields = [NSMutableArray array];
-    
+    self.page = 1;
     // Do any additional setup after loading the view.
     //导航搜索
     [self setupNavigationBarWithSearch];
@@ -54,7 +54,7 @@
     //更新约束
     [self updateViewConstraints];
     //读取数据
-    [self loadDataWithPage:1];
+    [self refreshLoadInitialData];
     
     
 }
@@ -232,7 +232,7 @@
  @param page 当前请求的页码
  */
 - (void)loadDataWithPage:(NSInteger)page {
-    [SVProgressHUD showWithStatus:nil];
+   
     NSString *udid = [loadData sharedInstance].userModel.udid ? [loadData sharedInstance].userModel.udid :[[NewProfileViewController sharedInstance] getIDFV];
     
     if (udid.length <= 5) {
@@ -246,7 +246,7 @@
         @"action":@"searchUser",
         @"sort":@(self.sort),
         @"keyword":keyword,
-        @"pageSize":@(10),
+        @"pageSize":@(20),
         
         @"search_fields":self.search_fields,
         
@@ -262,11 +262,9 @@
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                [SVProgressHUD dismiss];
+               
                 [self endRefreshing];
-                if(self.page <=1){
-                    [self.dataSource removeAllObjects];
-                }
+                
                 if(!jsonResult) {
                     NSLog(@"返回数据类型错误: %@", jsonResult);
                     [SVProgressHUD showErrorWithStatus:@"返回数据类型错误"];
@@ -277,51 +275,45 @@
                 NSLog(@"读取数据jsonResult: %@", jsonResult);
                 NSInteger  code = [jsonResult[@"code"] intValue];
                 NSString *message = jsonResult[@"msg"];
-                
-                if(code == 200){
-                    NSDictionary * data = jsonResult[@"data"];
-                    NSLog(@"读取用户列表:%@",data);
-                    NSArray * list = data[@"list"];
-                    if(list.count>0){
-                        self.page+=1;
-                    }
-                    for (NSDictionary *dic in list) {
-                        UserModel *model = [UserModel yy_modelWithDictionary:dic];
-                        NSLog(@"读取用户user_id:%ld nickname:%@ avatar:%@",model.user_id,model.nickname,model.avatar);
-                        [UserModel cacheUserModel:model];
-                        [self.dataSource addObject:model];
-                    }
-                    [self refreshTable];
-                   
-                    
-                    NSDictionary * pagination = data[@"pagination"];
-                    NSInteger total = [pagination[@"total"] intValue];
-                    NSLog(@"共:%ld个APP",total);
-                    BOOL hasMore = [pagination[@"hasMore"] boolValue];
-                    NSLog(@"noMoreData:%d",hasMore);
-                    if(list.count >0){
-//                        [SVProgressHUD showSuccessWithStatus:[NSString stringWithFormat:@"搜索到%ld个结果",list.count]];
-                    }else{
-                        [self handleNoMoreData];
-                        [SVProgressHUD showImage:[UIImage systemImageNamed:@"smiley"] status:@"翻到底啦"];
-                    }
-                    
-                    [SVProgressHUD dismissWithDelay:2];
-                    
-                    
-                }else{
+                if(code != 200){
                     NSLog(@"数据搜索失败出错: %@", message);
                     [SVProgressHUD showErrorWithStatus:message];
                     [SVProgressHUD dismissWithDelay:2 completion:^{
                         return;
                     }];
                 }
+                NSDictionary * data = jsonResult[@"data"];
+                NSLog(@"读取用户列表:%@",data);
+                NSArray * list = data[@"list"];
+                
+                for (NSDictionary *dic in list) {
+                    UserModel *model = [UserModel yy_modelWithDictionary:dic];
+                    NSLog(@"读取用户user_id:%ld nickname:%@ avatar:%@",model.user_id,model.nickname,model.avatar);
+                    [UserModel cacheUserModel:model];
+                    [self.dataSource addObject:model];
+                }
+                
+                NSDictionary * pagination = data[@"pagination"];
+                NSInteger total = [pagination[@"total"] intValue];
+                NSLog(@"共:%ld个用户",total);
+                self.hasMore = [pagination[@"hasMore"] boolValue];
+                NSLog(@"noMoreData:%d",self.hasMore);
+                
+                [self refreshTable];
+                
+                
+                [SVProgressHUD dismissWithDelay:2];
+                
                 
             });
         } failure:^(NSError *error) {
-            NSLog(@"异步请求Error: %@", error);
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
-            [SVProgressHUD dismissWithDelay:2 completion:nil];
+            //返回主线程UI操作
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"异步请求Error: %@", error);
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
+                [SVProgressHUD dismissWithDelay:2 completion:nil];
+            });
+            
         }];
     
     
@@ -334,7 +326,7 @@
  */
 - (IGListSectionController *)templateSectionControllerForObject:(id)object {
     if([object isKindOfClass:[UserModel class]]){
-        return [[TemplateSectionController alloc] initWithCellClass:[UserModelCell class] modelClass:[UserModel class] delegate:self edgeInsets:UIEdgeInsetsMake(10, 10, 0, 10) usingCacheHeight:NO];
+        return [[TemplateSectionController alloc] initWithCellClass:[UserModelCell class] modelClass:[UserModel class] delegate:self edgeInsets:UIEdgeInsetsMake(0, 10, 10, 10) usingCacheHeight:YES];
     }
     return nil;
 }

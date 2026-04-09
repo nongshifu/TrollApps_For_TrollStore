@@ -1,21 +1,21 @@
 ==============================================
- 🚀 Xcode 自动签名脚本 - 2026-04-04 22:45:51
+ 🚀 Xcode 自动签名脚本 - 2026-04-09 17:38:22
  ==============================================
-✅ APP 路径: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app
-✅ 可执行文件: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app/TrollApps
-✅ 权限文件（.app内）: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app/RootSign.entitlements
+✅ APP 路径: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app
+✅ 可执行文件: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app/TrollApps
+✅ 权限文件（.app内）: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app/RootSign.entitlements
 ✅ 文件校验通过
 🔧 移除旧签名 + 修复权限
 ----------------------------------------
-执行命令：codesign --remove-signature /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app/TrollApps
+执行命令：codesign --remove-signature /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app/TrollApps
 命令返回值：0
 ----------------------------------------
 ----------------------------------------
-执行命令：chmod -R 755 /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app
+执行命令：chmod -R 755 /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app
 命令返回值：0
 ----------------------------------------
 ----------------------------------------
-执行命令：chmod +x /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app/TrollApps
+执行命令：chmod +x /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app/TrollApps
 命令返回值：0
 ----------------------------------------
 ==============================================
@@ -24,18 +24,41 @@
 🚀 主程序 ldid 签名中...
 ✅ 主程序 ldid 签名完成
 🔧 开始签名 Frameworks 框架（adhoc 伪签名）
+✅ 已签名框架: Masonry
+✅ 已签名框架: RongChatRoom
+✅ 已签名框架: RongIMKit
+✅ 已签名框架: RongIMLib
+✅ 已签名框架: MJRefresh
+✅ 已签名框架: YYCache
+✅ 已签名框架: SVProgressHUD
+✅ 已签名框架: HXPhotoPickerObjC
+✅ 已签名框架: BRPickerView
+✅ 已签名框架: RongIMLibCore
+✅ 已签名框架: HWPanModal
+✅ 已签名框架: JXCategoryView
+✅ 已签名框架: IGListKit
+✅ 已签名框架: IGListDiffKit
+✅ 已签名框架: YYModel
+✅ 已签名框架: ZXNavigationBar
+✅ 已签名框架: SDWebImage
+✅ 已签名框架: LGSideMenuController
+✅ 已签名框架: RongDiscussion
+✅ 已签名框架: RongPublicService
+✅ 已签名框架: RongCustomerService
+✅ 已签名框架: AFNetworking
+✅ 已签名框架: ZXingObjC
 🎉 模式2 全部签名完成！
 📦 打包 IPA...
 ----------------------------------------
-执行命令：rm -rf /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/IPA_Temp
+执行命令：rm -rf /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/IPA_Temp
 命令返回值：0
 ----------------------------------------
 ----------------------------------------
-执行命令：mkdir -p /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/IPA_Temp/Payload
+执行命令：mkdir -p /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/IPA_Temp/Payload
 命令返回值：0
 ----------------------------------------
 ----------------------------------------
-执行命令：cp -R /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/TrollApps.app /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/IPA_Temp/Payload/
+执行命令：cp -R /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/IPA_Temp/Payload/
 命令返回值：0
 ----------------------------------------
 ----------------------------------------
@@ -44,7 +67,7 @@
 ----------------------------------------
 ✅ IPA 输出: /Users/shisange/Library/Mobile Documents/com~apple~CloudDocs//TrollApps.ipa
 ----------------------------------------
-执行命令：rm -rf /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphonesimulator/IPA_Temp
+执行命令：rm -rf /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/IPA_Temp
 命令返回值：0
 ----------------------------------------
 🧹 清理完成

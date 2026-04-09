@@ -311,15 +311,12 @@
                 }
             }
             
-            [self refreshTable];
+            
             
             NSDictionary *pagination = data[@"pagination"] ?: @{};
-            BOOL has_more = [pagination[@"has_more"] boolValue];
-            if(!has_more){
-                [self handleNoMoreData];
-            }else{
-                self.page = page + 1; // 修正：用当前page+1，而非self.page+=1
-            }
+            self.hasMore = [pagination[@"has_more"] boolValue];
+            
+            [self refreshTable];
         });
     } failure:^(NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{

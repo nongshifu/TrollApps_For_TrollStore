@@ -95,6 +95,11 @@ NS_ASSUME_NONNULL_BEGIN
                                         onCancelled:(void (^)(void))onCancel;
 
 - (UIViewController *)getviewController;
+
+/// 获取本地存储的UDID
+- (NSString *)getUDID;
+/// 获取本机IDFV
+- (NSString *)getIDFV;
 @end
 
 NS_ASSUME_NONNULL_END

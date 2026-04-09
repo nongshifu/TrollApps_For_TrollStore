@@ -6,9 +6,43 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <IGListKit/IGListKit.h>
+#import <YYModel/YYModel.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+/// 购买状态（0：失败，1：成功，2：退款，3 关闭，4 处理中）
+typedef NS_ENUM(NSInteger, OrderStatusType) {
+    /// 失败
+    OrderStatusTypeFailure = 0,
+    /// 成功
+    OrderStatusTypeSuccess = 1,
+    ///  退款
+    OrderStatusTypeRefund = 2,
+    ///  订单关闭
+    OrderStatusTypeCLOSED = 3,
+    ///  处理中。。。
+    OrderStatusTypePROCESSING = 4
+    
+    
+};
+/// 购买状态（0：支付宝，1：QQ，2：微信，3 其他）
+typedef NS_ENUM(NSInteger, PayType) {
+    /// 支付宝
+    PayTypeAliPay = 0,
+    /// QQ
+    PayTypeQQPay = 1,
+    ///  微信
+    PayTypeWXPay = 2,
+    ///  其他
+    PayTypeOtherPay = 3
+    
+    
+    
+};
+
+
 
 @interface VipPurchaseHistoryModel : NSObject <IGListDiffable>
 
@@ -38,8 +72,15 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *purchaseTime;
 /// 支付平台交易ID（如苹果内购订单号，可选）
 @property (nonatomic, copy, nullable) NSString *transactionId;
-/// 购买状态（1：成功，0：失败，2：退款）
-@property (nonatomic, assign) NSInteger status;
+/// 购买状态（0：失败，1：成功，2：退款，3 关闭，4 处理中）
+@property (nonatomic, assign) OrderStatusType status;
+/// 支付类型（0：支付宝，1：QQ，2：微信，3 其他）
+@property (nonatomic, assign) PayType payType;
+
+// ✅ 新增属性（对应后端关联查询的字段）
+@property (nonatomic, copy) NSString *nickname;  // 用户昵称
+@property (nonatomic, assign) NSInteger user_id;// 用户ID（可选）
+
 
 @end
 
