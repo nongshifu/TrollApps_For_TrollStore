@@ -29,12 +29,13 @@
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // 当前文件单独启用
 
-@interface UserProfileViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
+@interface UserProfileViewController ()<TemplateSectionControllerDelegate,TemplateListDelegate, UITextViewDelegate, CommentInputViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource,UISearchBarDelegate>
 
 @property (nonatomic, strong) UserModel *userInfo;
 
 @property (nonatomic, strong) UIImageView *avatarImageView;//头像
 @property (nonatomic, strong) UILabel *nicknameLabel;//名字
+@property (nonatomic, strong) UILabel *is_onlineLabel;//在写
 @property (nonatomic, strong) UILabel *bioLabel;//简介
 @property (nonatomic, strong) UILabel *jianjie;//简介
 @property (nonatomic, strong) UIButton *contact;//联系对方
@@ -170,6 +171,16 @@
     [self.nicknameLabel addGestureRecognizer:tapGesture2];
     [self.view addSubview:self.nicknameLabel];
     
+    // 在线文字
+    self.is_onlineLabel = [[UILabel alloc] init];
+    self.is_onlineLabel.font = [UIFont systemFontOfSize:10];
+    self.is_onlineLabel.textAlignment = NSTextAlignmentRight;
+    self.is_onlineLabel.textColor = [UIColor darkGrayColor];
+    [self.view addSubview:self.is_onlineLabel];
+    
+    
+    
+    
     // 个性签名
     self.bioLabel = [[UILabel alloc] init];
     self.bioLabel.text = @"个性签名"; // 默认未注册
@@ -271,7 +282,7 @@
     self.viewControllers = [NSMutableArray array];
     for (int i = 0; i < 5; i++) {
         UserListViewController *controller = [[UserListViewController alloc] init];
-        
+        controller.templateListDelegate = self;
         controller.hidesVerticalScrollIndicator = YES;
         controller.sort = self.sortButton.selected;
         controller.selectedIndex = i;
@@ -319,11 +330,17 @@
     
     
     
-    //右上角按钮
+    //右上角联系作者
     [self.contact mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.view).offset(-25);
         make.top.equalTo(self.view).offset(15);
 
+    }];
+    
+    // 左上角在线
+    [self.is_onlineLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.view).offset(-25);
+        make.top.equalTo(self.contact.mas_bottom).offset(5);
     }];
     
     [self.vipButtom mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -347,9 +364,10 @@
     [self.nicknameLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
         make.centerX.equalTo(self.view);
-        make.width.equalTo(@200);
+        
        
     }];
+    
     // 个性签名
     [self.bioLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.nicknameLabel.mas_bottom).offset(15);
@@ -439,7 +457,7 @@
         [self.nicknameLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.view).offset(20);
             make.left.equalTo(self.avatarImageView.mas_right).offset(10);
-            make.right.equalTo(self.view.mas_right).offset(-20);
+           
             
         }];
         self.nicknameLabel.textAlignment = NSTextAlignmentLeft;
@@ -486,6 +504,12 @@
 
         }];
         
+        // 左上角在线
+        [self.is_onlineLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(self.nicknameLabel.mas_right).offset(10);
+            make.top.equalTo(self.nicknameLabel);
+        }];
+        self.is_onlineLabel.textAlignment = NSTextAlignmentLeft;
         
     }else if(!self.currentVC.isScrollingUp && self.currentVC.scrollY <=20){
         [self.avatarImageView mas_remakeConstraints:^(MASConstraintMaker *make) {
@@ -512,9 +536,10 @@
         [self.nicknameLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.avatarImageView.mas_bottom).offset(15);
             make.centerX.equalTo(self.view);
-            make.width.equalTo(@200);
             
         }];
+        self.nicknameLabel.textAlignment = NSTextAlignmentCenter;
+        
         [self.bioLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.nicknameLabel.mas_bottom).offset(10);
             make.centerX.equalTo(self.view);
@@ -522,7 +547,7 @@
             
         }];
         self.bioLabel.textAlignment = NSTextAlignmentCenter;
-        self.nicknameLabel.textAlignment = NSTextAlignmentCenter;
+        
         
         [self.jianjie mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.bioLabel.mas_bottom).offset(15);
@@ -546,6 +571,12 @@
 
         }];
         
+        // 左上角在线
+        [self.is_onlineLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.right.equalTo(self.view).offset(-25);
+            make.top.equalTo(self.contact.mas_bottom).offset(5);
+        }];
+        self.is_onlineLabel.textAlignment = NSTextAlignmentRight;
         
     }
     
@@ -680,16 +711,12 @@
 
 #pragma mark - 读取用户数据
 
+
 // 请求用户数据
 - (void)fetchUserInfoFromServerWithUDID:(NSString *)udid {
-    _user_udid = udid;
     
-    if (udid.length <= 5) {
-        [SVProgressHUD showErrorWithStatus:@"请先登录并绑定设备UDID"];
-        [SVProgressHUD dismissWithDelay:3];
-        return;
-    }
-    [UserModel getUserInfoWithUdid:self.user_udid success:^(UserModel * _Nonnull userModel) {
+    
+    [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
         
         [self updateWithUserModel:userModel];
         
@@ -705,7 +732,7 @@
     //设置页面用户
     self.userInfo = userModel;
     //设置页面udid
-    self.user_udid = self.userInfo.udid;
+    _user_udid = self.userInfo.udid;
     NSString *userDic = [userModel yy_modelToJSONString];
     NSLog(@"userDic:%@",userDic);
     
@@ -780,11 +807,17 @@
     if(self.userInfo.is_online){
         self.avatarImageView.layer.borderWidth = 3;
         self.avatarImageView.layer.borderColor = [UIColor greenColor].CGColor;
+        self.is_onlineLabel.text = @"在线";
+        self.is_onlineLabel.textColor = [UIColor greenColor];
+    }else{
+        self.is_onlineLabel.text = [TimeTool getTimeDiy:self.userInfo.login_time];
     }
     if([NewProfileViewController sharedInstance].userInfo.role){
         self.editButton.hidden = NO;
     }
     self.vipButtom.hidden = userModel.vip_level == 0;
+    
+    
     
 }
 
@@ -849,14 +882,14 @@
 // 显示之前
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
-    [self fetchUserInfoFromServerWithUDID:self.user_udid];
+    
 }
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
-    if(!self.user_udid)return;
+    // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
+    [self fetchUserInfoFromServerWithUDID:self.user_udid];
     
 }
 

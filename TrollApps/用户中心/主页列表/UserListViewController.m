@@ -469,6 +469,7 @@
             
             for (NSDictionary *dic in posts) {
                 PostModel *model = [PostModel yy_modelWithDictionary:dic];
+                model.user_model = [UserModel yy_modelWithDictionary:dic[@"user_model"]];
                 if (model) { // 非空判断：避免nil模型加入数据源
                     if(model.post_video_url){
                         NSLog(@"视频地址：%@",model.post_video_url);

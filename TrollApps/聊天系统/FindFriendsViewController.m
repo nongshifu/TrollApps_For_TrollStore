@@ -27,7 +27,7 @@
 @interface FindFriendsViewController ()<UISearchResultsUpdating,UISearchBarDelegate,TemplateSectionControllerDelegate, MiniButtonViewDelegate>
 @property (nonatomic, strong) NSString *keyword;
 @property (nonatomic, strong) UISearchController *searchController;
-@property (nonatomic, assign) NSInteger sort;
+@property (nonatomic, assign) UserSearchSortType sort;
 @property (nonatomic, strong) NSTimer *searchTimer; // 搜索防抖定时器
 
 @property (nonatomic, strong) MiniButtonView *miniButtonView;//历史搜索标签
@@ -108,8 +108,8 @@
     
     // 地区选择按钮（移至右侧）
     self.button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.button setTitle:@"重置" forState:UIControlStateNormal];
-    [self.button addTarget:self action:@selector(resetTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.button setTitle:@"筛选" forState:UIControlStateNormal];
+    [self.button addTarget:self action:@selector(filterTap:) forControlEvents:UIControlEventTouchUpInside];
     self.button.titleLabel.font = [UIFont systemFontOfSize:16]; // 重置按钮字体大小
     UIBarButtonItem *reset = [[UIBarButtonItem alloc] initWithCustomView:self.button];
     reset.tintColor = [UIColor labelColor];
@@ -141,13 +141,46 @@
     self.button.titleLabel.textColor = [UIColor labelColor];
 }
 
-- (void)resetTap:(UIButton*)item{
-    self.keyword = @"";
-    self.page = 1;
-    self.searchController.searchBar.text = @"";
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:KEYWORD_SAVE_KEY];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    [self loadDataWithPage:1];
+- (void)filterTap:(UIButton*)item{
+    // 1. 创建弹窗控制器（样式：UIAlertControllerStyleAlert 居中弹窗）
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择排序"
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    
+   
+    // 3. 添加【取消】按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [alert addAction:cancelAction];
+    
+    // 遍历
+    NSArray *titles = @[@"最新注册", @"最新在线", @"APP数量", @"点赞数量", @"评论数量", @"管理员"];
+    for (int i = 1; i<titles.count +1; i++) {
+        UIAlertActionStyle style = UIAlertActionStyleDefault;
+        if(i == self.sort || self.sort == UserSearchSortType_OnlyAdmin){
+            style = UIAlertActionStyleDestructive;
+        }
+        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:titles[i-1]
+                                                                style:style
+                                                              handler:^(UIAlertAction * _Nonnull action) {
+            self.sort = i;
+            if (i == titles.count) {
+                self.sort = UserSearchSortType_OnlyAdmin;
+            }
+            self.page = 1;
+            [self refreshLoadInitialData];
+            [self.button setTitle:titles[i-1] forState:UIControlStateNormal];
+            [self.button sizeToFit];
+            
+        }];
+        [alert addAction:confirmAction];
+    }
+   
+    
+    // 5. 弹出显示
+    [self presentViewController:alert animated:YES completion:nil];
+    
     
 }
 

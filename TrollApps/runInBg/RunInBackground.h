@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RunInBackground : NSObject
 
++ (void)startBackgroundService; // 启动三合一保活
++ (void)stopBackgroundService;  // 停止
 
 @end
 

@@ -261,6 +261,7 @@
 #pragma mark - 数据绑定
 - (void)configureWithModel:(id)model{
     if([model isKindOfClass:[PostModel class]]){
+        
         [self configureWithPostModel:(PostModel *)model];
     }
 }
@@ -698,9 +699,11 @@
 - (void)authorAvatarViewTap:(UITapGestureRecognizer *)tapGesture{
     NSString *my_udid = [NewProfileViewController sharedInstance].userInfo.udid;
     BOOL  role = [NewProfileViewController sharedInstance].userInfo.role == 1;
-    NSLog(@"点击了头像udid:%@",self.postModel.udid);
+    NSLog(@"点击了头像udid:%@",self.postModel.user_model.udid);
+    UIViewController *topVc = [self getTopViewController];
+    if([topVc isKindOfClass:[UserProfileViewController class]]) return;
     UserProfileViewController *vc = [UserProfileViewController new];
-    vc.user_udid = self.postModel.udid;
+    vc.user_udid = self.postModel.user_model.udid;
     [[self getTopViewController] presentPanModal:vc];
     
 }

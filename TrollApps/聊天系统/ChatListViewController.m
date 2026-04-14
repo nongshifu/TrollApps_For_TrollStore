@@ -737,6 +737,7 @@
     NSString *avaurl = [NSString stringWithFormat:@"%@",userModel.avatar];
     NSLog(@"更新头像地址:%@",avaurl);
     [avaView sd_setImageWithURL:[NSURL URLWithString:avaurl]];
+    //头像在线圆圈
     if(userModel.is_online){
         avaView.layer.borderWidth = 1;
         avaView.layer.borderColor = [UIColor greenColor].CGColor;
@@ -750,6 +751,9 @@
     if(userModel.role){
         mycel.conversationTitle.text = [NSString stringWithFormat:@"%@ (超管)",userModel.nickname];
         mycel.conversationTitle.textColor = [UIColor orangeColor];
+    }else if(userModel.vip_level >0){
+       
+        mycel.conversationTitle.textColor = [UIColor systemPurpleColor];
     }else{
         mycel.conversationTitle.textColor = [UIColor labelColor];
     }
@@ -803,6 +807,7 @@
         default:
             break;
     }
+    //在线原点
     UIButton *zxButton = [mycel viewWithTag:1002];
     if(!zxButton){
         CGFloat width = 8;
@@ -813,7 +818,7 @@
         zxButton.tag = 1002;
         [mycel.headerImageViewBackgroundView addSubview:zxButton];
     }
-    zxButton.hidden = userModel.is_online;
+    zxButton.hidden = !userModel.is_online;
     
     UIButton *vipButton = [mycel viewWithTag:1003];
     if(!vipButton){

@@ -12,6 +12,7 @@
 #import <SDWebImage/SDWebImage.h>
 #import <Masonry/Masonry.h>
 #import "loadData.h"
+#import "UITextField+InputLimit.h"
 // 目标 .m 文件顶部（必须在所有 #import 之前！）
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED NO // 当前文件单独启用
@@ -90,12 +91,14 @@
     self.scrollView = [[UIScrollView alloc] init];
     self.scrollView.showsVerticalScrollIndicator = YES;
     self.scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    // ========== 【新增：关闭ScrollView键盘拦截】 ==========
+    self.scrollView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+
     [self.view addSubview:self.scrollView];
     
     // 创建内容视图
-    UIView *contentView = [[UIView alloc] init];
-    contentView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.contentView = contentView;
+    self.contentView = [[UIView alloc] init];
+    self.contentView.translatesAutoresizingMaskIntoConstraints = NO;
     [self.scrollView addSubview:self.contentView];
     
     
@@ -107,7 +110,7 @@
     self.avatarImageView.layer.borderWidth = 2.0;
     self.avatarImageView.layer.borderColor = [UIColor systemGray6Color].CGColor;
     self.avatarImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.avatarImageView];
+    [self.contentView addSubview:self.avatarImageView];
     
     // 更改头像按钮
     self.changeAvatarButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -115,31 +118,31 @@
     [self.changeAvatarButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
     [self.changeAvatarButton addTarget:self action:@selector(changeAvatarButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     self.changeAvatarButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.changeAvatarButton];
+    [self.contentView addSubview:self.changeAvatarButton];
     
     // VIP标签
     self.vipLabel = [[UILabel alloc] init];
     self.vipLabel.textAlignment = NSTextAlignmentCenter;
     self.vipLabel.font = [UIFont systemFontOfSize:14.0];
     self.vipLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.vipLabel];
+    [self.contentView addSubview:self.vipLabel];
     
     // 昵称输入框
-    self.nicknameTextField = [[UITextField alloc] init];
+    self.nicknameTextField = [UITextField textFieldWithMaxLength:18];
     self.nicknameTextField.placeholder = @"昵称";
     self.nicknameTextField.backgroundColor = textFieldBackgroundColor;
     self.nicknameTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.nicknameTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.nicknameTextField];
+    [self.contentView addSubview:self.nicknameTextField];
     
     // 手机号输入框
-    self.phoneTextField = [[UITextField alloc] init];
+    self.phoneTextField = [UITextField textFieldWithMaxLength:11];
     self.phoneTextField.placeholder = @"手机号";
     self.phoneTextField.backgroundColor = textFieldBackgroundColor;
     self.phoneTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.phoneTextField.keyboardType = UIKeyboardTypePhonePad;
     self.phoneTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.phoneTextField];
+    [self.contentView addSubview:self.phoneTextField];
     
     // 邮箱输入框
     self.emailTextField = [[UITextField alloc] init];
@@ -148,7 +151,7 @@
     self.emailTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.emailTextField.keyboardType = UIKeyboardTypeEmailAddress;
     self.emailTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.emailTextField];
+    [self.contentView addSubview:self.emailTextField];
     
     // 微信输入框
     self.wechatTextField = [[UITextField alloc] init];
@@ -156,16 +159,16 @@
     self.wechatTextField.backgroundColor = textFieldBackgroundColor;
     self.wechatTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.wechatTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.wechatTextField];
+    [self.contentView addSubview:self.wechatTextField];
     
     // QQ输入框
-    self.qqTextField = [[UITextField alloc] init];
+    self.qqTextField = [UITextField textFieldWithMaxLength:13];
     self.qqTextField.placeholder = @"QQ";
     self.qqTextField.backgroundColor = textFieldBackgroundColor;
     self.qqTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.qqTextField.keyboardType = UIKeyboardTypeNumberPad;
     self.qqTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.qqTextField];
+    [self.contentView addSubview:self.qqTextField];
     
     // TG输入框
     self.tgTextField = [[UITextField alloc] init];
@@ -173,24 +176,24 @@
     self.tgTextField.backgroundColor = textFieldBackgroundColor;
     self.tgTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.tgTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.tgTextField];
+    [self.contentView addSubview:self.tgTextField];
     
     // 性别选择器
     self.genderSegmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"男", @"女"]];
     self.genderSegmentedControl.selectedSegmentIndex = 0;
     self.genderSegmentedControl.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.genderSegmentedControl];
+    [self.contentView addSubview:self.genderSegmentedControl];
     
     self.showFollowsSegmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"仅自己可见", @"公开 收藏/粉丝/关注 列表"]];
     self.showFollowsSegmentedControl.selectedSegmentIndex = 1;
     self.showFollowsSegmentedControl.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.showFollowsSegmentedControl];
+    [self.contentView addSubview:self.showFollowsSegmentedControl];
     
     //个人简介提示
     self.bioLabel = [UILabel new];
     self.bioLabel.text = @"个性签名";
     self.bioLabel.textColor = [UIColor tertiaryLabelColor];
-    [contentView addSubview:self.bioLabel];
+    [self.contentView addSubview:self.bioLabel];
     
     // 个人简介文本视图
     self.bioTextView = [[UITextView alloc] init];
@@ -202,7 +205,10 @@
     self.bioTextView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8);
     self.bioTextView.delegate = self;
     self.bioTextView.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.bioTextView];
+    // 禁用系统自动键盘处理，绕过ScrollView限制
+    self.bioTextView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+
+    [self.contentView addSubview:self.bioTextView];
     
     // 字数统计标签
     self.bioCountLabel = [[UILabel alloc] init];
@@ -211,7 +217,7 @@
     self.bioCountLabel.textColor = [UIColor systemGrayColor];
     self.bioCountLabel.textAlignment = NSTextAlignmentRight;
     self.bioCountLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.bioCountLabel];
+    [self.contentView addSubview:self.bioCountLabel];
     
     // 旧密码
     self.oldPwdTextField = [[UITextField alloc] init];
@@ -220,25 +226,25 @@
     self.oldPwdTextField.backgroundColor = textFieldBackgroundColor;
     self.oldPwdTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.oldPwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.oldPwdTextField];
+    [self.contentView addSubview:self.oldPwdTextField];
 
     // 新密码
-    self.pwdTextField = [[UITextField alloc] init];
+    self.pwdTextField = [UITextField textFieldWithMaxLength:18];
     self.pwdTextField.placeholder = @"请输入新密码 (6-20位)";
     self.pwdTextField.secureTextEntry = YES;
     self.pwdTextField.backgroundColor = textFieldBackgroundColor;
     self.pwdTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.pwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.pwdTextField];
+    [self.contentView addSubview:self.pwdTextField];
 
     // 确认新密码
-    self.confirmPwdTextField = [[UITextField alloc] init];
+    self.confirmPwdTextField = [UITextField textFieldWithMaxLength:18];
     self.confirmPwdTextField.placeholder = @"请确认新密码";
     self.confirmPwdTextField.secureTextEntry = YES;
     self.confirmPwdTextField.backgroundColor = textFieldBackgroundColor;
     self.confirmPwdTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.confirmPwdTextField.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentView addSubview:self.confirmPwdTextField];
+    [self.contentView addSubview:self.confirmPwdTextField];
     
     // 保存按钮
     self.saveButton = [UIButton buttonWithType:UIButtonTypeSystem];

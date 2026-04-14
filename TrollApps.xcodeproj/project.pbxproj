@@ -12,6 +12,7 @@
 		4F639DFC2272E94C00776206 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F639DFA2272E94C00776206 /* LaunchScreen.storyboard */; };
 		4F639DFF2272E94C00776206 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F639DFE2272E94C00776206 /* main.m */; };
 		547DBD5E46CA6B19BF961D4B /* Pods_TrollApps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 008F02A476D2E662C273C5E8 /* Pods_TrollApps.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		602A22DF2F8958EE000A6A54 /* UITextField+InputLimit.m in Sources */ = {isa = PBXBuildFile; fileRef = 602A22DD2F8958EE000A6A54 /* UITextField+InputLimit.m */; };
 		607482872F7BEC8200C4D1F7 /* AppStoreAuth.m in Sources */ = {isa = PBXBuildFile; fileRef = 607482862F7BEC8200C4D1F7 /* AppStoreAuth.m */; };
 		6074828A2F7BFC9900C4D1F7 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 607482892F7BFC9900C4D1F7 /* LoginViewController.m */; };
 		6074828D2F7BFD1300C4D1F7 /* VersionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6074828C2F7BFD1300C4D1F7 /* VersionCell.m */; };
@@ -187,6 +188,8 @@
 		4F639DFB2272E94C00776206 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F639DFD2272E94C00776206 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F639DFE2272E94C00776206 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		602A22DD2F8958EE000A6A54 /* UITextField+InputLimit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UITextField+InputLimit.m"; sourceTree = "<group>"; };
+		602A22DE2F8958EE000A6A54 /* UITextField+InputLimit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UITextField+InputLimit.h"; sourceTree = "<group>"; };
 		607482852F7BEC8200C4D1F7 /* AppStoreAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppStoreAuth.h; sourceTree = "<group>"; };
 		607482862F7BEC8200C4D1F7 /* AppStoreAuth.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppStoreAuth.m; sourceTree = "<group>"; };
 		607482882F7BFC9900C4D1F7 /* LoginViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
@@ -1376,6 +1379,8 @@
 				C2E44C2D2EDAD35E00110348 /* timeTool */,
 				C2E44C152EDAD35D00110348 /* UIColor.h */,
 				C2E44C302EDAD35E00110348 /* UIColor.m */,
+				602A22DE2F8958EE000A6A54 /* UITextField+InputLimit.h */,
+				602A22DD2F8958EE000A6A54 /* UITextField+InputLimit.m */,
 				C2E44C292EDAD35E00110348 /* UIImage+Extensions.h */,
 				C2E44C412EDAD35E00110348 /* UIImage+Extensions.m */,
 				C2E44C3F2EDAD35E00110348 /* UIResponder+SearchHistoryToolbar.h */,
@@ -1718,6 +1723,7 @@
 				C2E44C682EDAD35E00110348 /* NewToolViewController.m in Sources */,
 				C2E44C712EDAD35E00110348 /* WebViewController.m in Sources */,
 				C2E44CCB2EDAD35F00110348 /* UIResponder+SearchHistoryToolbar.m in Sources */,
+				602A22DF2F8958EE000A6A54 /* UITextField+InputLimit.m in Sources */,
 				C2531F402F05B1EA00966086 /* PostCell.m in Sources */,
 				C26FF4862EDEB38300C3F195 /* PaymentManager.m in Sources */,
 				C2E44C532EDAD35E00110348 /* VIPPackage.m in Sources */,

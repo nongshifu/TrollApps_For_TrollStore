@@ -19,6 +19,8 @@
 #import "AppVersionHistoryViewController.h"
 #import "SystemViewController.h"
 #import "loadData.h"
+#import "RunInBackground.h"
+
 @interface ProfileRightViewController ()<UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) UILabel *topTitle;
@@ -83,8 +85,8 @@
     NSMutableArray<NSString *> *accountSecuritySubTitles = [@[@"查看和修改账号信息"] mutableCopy];
     NSLog(@"账号与安全分组:%@",accountSecuritySubTitles);
     // 隐私设置分组
-    NSArray<NSString *> *privacyGroup = @[@"权限"];
-    NSMutableArray<NSString *> *privacySubTitles = [@[@"权限检查"] mutableCopy];
+    NSArray<NSString *> *privacyGroup = @[@"权限",@"后台保活"];
+    NSMutableArray<NSString *> *privacySubTitles = [@[@"权限检查",@"后台持久运行不掉"] mutableCopy];
     NSLog(@"隐私设置分组:%@",privacySubTitles);
     // 关于应用分组
     NSArray<NSString *> *aboutAppGroup = @[ @"检查版本更新", @"意见反馈", @"隐私政策"];
@@ -113,7 +115,7 @@
     
     self.settingsGroups = @[accountSecurityGroup, privacyGroup, aboutAppGroup, cacheGroup, testGroup, needUpdateGroup];
     self.settingsSubTitles = [@[accountSecuritySubTitles, privacySubTitles, aboutAppSubTitles, cacheSubTitles, testSubTitles, testSubTitles] mutableCopy];
-    self.sectionTitles = @[@"账号与安全", @"隐私设置", @"关于应用", @"清理缓存", @"TrollApps", @""];
+    self.sectionTitles = @[@"账号与安全", @"隐私设置", @"关于应用", @"清理缓存", @"TrollApps", @"感谢使用", @"感谢使用"];
 }
 
 #pragma mark - UITableViewDataSource
@@ -166,6 +168,10 @@
         switch (indexPath.row) {
             case 0: {
                 [self openPrivacyPermission];
+                break;
+            }
+            case 1: {
+                [self setUpBackendOperation];
                 break;
             }
         }
@@ -349,7 +355,7 @@
     [super updateViewConstraints];
     [self.tableView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view).offset(get_TOP_NAVIGATION_BAR_HEIGHT + 50);
-        make.bottom.equalTo(self.view).offset(-get_BOTTOM_TAB_BAR_HEIGHT);
+        make.bottom.equalTo(self.view).offset(-get_BOTTOM_TAB_BAR_HEIGHT - get_TOP_NAVIGATION_BAR_HEIGHT);
         make.left.equalTo(self.view).offset(10);
         make.right.equalTo(self.view).offset(-10);
     }];
@@ -479,6 +485,43 @@
     
     
    
+}
+
+- (void)setUpBackendOperation{
+    // 1. 创建弹窗控制器（样式：UIAlertControllerStyleAlert 居中弹窗）
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"后台保活"
+                                                                   message:@"定时调用定位和后台播放空白音乐,让App保持后端长效运行"
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+   
+
+    // 3. 添加【取消】按钮
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [alert addAction:cancelAction];
+
+    // 4. 添加【确定】按钮（点击后获取输入框内容）
+    __block BOOL isRing = [[NSUserDefaults standardUserDefaults] boolForKey:@"isRing"];
+    UIAlertActionStyle style = isRing ? UIAlertActionStyleDestructive:UIAlertActionStyleDefault;
+    UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:isRing?@"关闭保活":@"启用保活"
+                                                           style:style
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        isRing = !isRing;
+        if(isRing){
+            [RunInBackground startBackgroundService];
+        }else{
+            [RunInBackground stopBackgroundService];
+        }
+        [[NSUserDefaults standardUserDefaults] setBool:isRing forKey:@"isRing"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }];
+    [alert addAction:confirmAction];
+
+    // 5. 弹出显示
+    [[self.view getTopViewController] presentViewController:alert animated:YES completion:nil];
+    
+    
 }
 
 // 权限检查函数

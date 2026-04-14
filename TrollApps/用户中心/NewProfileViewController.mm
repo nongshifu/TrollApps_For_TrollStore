@@ -1067,7 +1067,7 @@
     NSString *token = self.localLongTermToken;
     
     // 构建请求URL（与后端profile_generator.php对应）
-    NSString *url = [NSString stringWithFormat:@"%@/profile_generator.php?idfv=%@&token=%@",localURL, idfv, token];
+    NSString *url = [NSString stringWithFormat:@"%@/udid/profile_generator.php?idfv=%@&token=%@",localURL, idfv, token];
     NSLog(@"访问安装描述文件:%@",url);
     NSURL *profileURL = [NSURL URLWithString:url];
     

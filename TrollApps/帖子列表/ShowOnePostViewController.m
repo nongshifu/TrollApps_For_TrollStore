@@ -259,7 +259,7 @@
         @"action":@"getPostComment",
         @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
         @"page":@(page), // 用传入的page，而非self.page（避免页码错乱）
-        @"post_id":@(self.postModel.post_id),
+        @"to_id":@(self.postModel.post_id),
         
         @"sort_type":@(self.sort_type)
     };
