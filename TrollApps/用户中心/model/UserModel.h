@@ -53,6 +53,15 @@ typedef NS_ENUM(NSInteger, UserFollowMutualStatus) {
 @property (nonatomic, assign) NSInteger like_count;//点赞数量
 @property (nonatomic, assign) NSInteger reply_count;//评论数量
 @property (nonatomic, assign) NSInteger app_count;//APP数量
+/// 收藏数量
+@property (nonatomic, assign) NSInteger collect_count;
+/// 踩一踩数量
+@property (nonatomic, assign) NSInteger dislike_count;
+/// 评论数量
+@property (nonatomic, assign) NSInteger comment_count;
+/// 分享数量
+@property (nonatomic, assign) NSInteger share_count;
+
 @property (nonatomic, assign) NSInteger role; //是否管理员
 @property (nonatomic, strong) NSArray *search_category;//搜索分类字符串数组
 @property (nonatomic, assign) NSInteger follower_count;//粉丝量

@@ -166,21 +166,18 @@
     };
     
     // 请求的登录用户udid
-    NSString *myudid = [NewProfileViewController sharedInstance].userInfo.udid ?: [NewProfileViewController sharedInstance].idfv;
+    
     NSString *myUdid = [NewProfileViewController sharedInstance].userInfo.udid;
     if(!myUdid || myUdid.length<5){
         [SVProgressHUD showInfoWithStatus:@"UDID获取失败  请先登录"];
         return;
     }
-    // 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                           urlString:url
-                                          parameters:dic
-                                               udid:myudid
-                                             progress:^(NSProgress *progress) {
+                                                modules:@"user"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             // 结束刷新状态
@@ -326,15 +323,10 @@
         [SVProgressHUD showErrorWithStatus:@"请先登录"];
         return;
     }
-    
-    // 4. 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    
     // 5. 发送删除请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                           urlString:url
+                                                modules:@"user"
                                           parameters:params
-                                               udid:myUdid
                                              progress:nil
                                               success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

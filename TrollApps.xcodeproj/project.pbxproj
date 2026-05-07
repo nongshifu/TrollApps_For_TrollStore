@@ -18,6 +18,7 @@
 		6074828D2F7BFD1300C4D1F7 /* VersionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6074828C2F7BFD1300C4D1F7 /* VersionCell.m */; };
 		607483212F7C463F00C4D1F7 /* AppIconCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 607483202F7C463F00C4D1F7 /* AppIconCell.m */; };
 		60748D0F2F7D791C00C4D1F7 /* ldid.sh in Resources */ = {isa = PBXBuildFile; fileRef = 60748D0E2F7D791C00C4D1F7 /* ldid.sh */; };
+		60A816E72F95196A00763131 /* URLRouter.m in Sources */ = {isa = PBXBuildFile; fileRef = 60A816E62F95196A00763131 /* URLRouter.m */; };
 		C2531F372F055D8400966086 /* PostModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F362F055D8400966086 /* PostModel.m */; };
 		C2531F3A2F0562F800966086 /* PostPublishViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F392F0562F800966086 /* PostPublishViewController.m */; };
 		C2531F3D2F05806100966086 /* PostPublisher.m in Sources */ = {isa = PBXBuildFile; fileRef = C2531F3C2F05806100966086 /* PostPublisher.m */; };
@@ -199,6 +200,8 @@
 		6074831F2F7C463F00C4D1F7 /* AppIconCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppIconCell.h; sourceTree = "<group>"; };
 		607483202F7C463F00C4D1F7 /* AppIconCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppIconCell.m; sourceTree = "<group>"; };
 		60748D0E2F7D791C00C4D1F7 /* ldid.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ldid.sh; sourceTree = "<group>"; };
+		60A816E52F95196A00763131 /* URLRouter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLRouter.h; sourceTree = "<group>"; };
+		60A816E62F95196A00763131 /* URLRouter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = URLRouter.m; sourceTree = "<group>"; };
 		84B0DD44AEE963C32706E883 /* Pods-TrollApps.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.debug.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.debug.xcconfig"; sourceTree = "<group>"; };
 		9E55653F99AAF82AC2A03084 /* Pods-TrollApps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrollApps.release.xcconfig"; path = "Target Support Files/Pods-TrollApps/Pods-TrollApps.release.xcconfig"; sourceTree = "<group>"; };
 		C2531F352F055D8400966086 /* PostModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostModel.h; sourceTree = "<group>"; };
@@ -596,6 +599,15 @@
 			path = cell;
 			sourceTree = "<group>";
 		};
+		60A816E42F95195100763131 /* URL解析 */ = {
+			isa = PBXGroup;
+			children = (
+				60A816E52F95196A00763131 /* URLRouter.h */,
+				60A816E62F95196A00763131 /* URLRouter.m */,
+			);
+			path = "URL解析";
+			sourceTree = "<group>";
+		};
 		C2531F312F055D0400966086 /* 帖子列表 */ = {
 			isa = PBXGroup;
 			children = (
@@ -860,10 +872,10 @@
 		C2E44B2C2EDAD35C00110348 /* 名片二维码 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44B2D2EDAD35C00110348 /* UserCardViewController.m */,
-				C2E44B2E2EDAD35C00110348 /* QRCodeScannerViewController.m */,
 				C2E44B2F2EDAD35C00110348 /* QRCodeScannerViewController.h */,
+				C2E44B2E2EDAD35C00110348 /* QRCodeScannerViewController.m */,
 				C2E44B302EDAD35C00110348 /* UserCardViewController.h */,
+				C2E44B2D2EDAD35C00110348 /* UserCardViewController.m */,
 			);
 			path = "名片二维码";
 			sourceTree = "<group>";
@@ -1222,10 +1234,10 @@
 		C2E44BD72EDAD35D00110348 /* 用户反馈 */ = {
 			isa = PBXGroup;
 			children = (
-				C2E44BD82EDAD35D00110348 /* FeedbackViewController.h */,
 				C2E44BD92EDAD35D00110348 /* cell */,
-				C2E44BDC2EDAD35D00110348 /* model */,
+				C2E44BD82EDAD35D00110348 /* FeedbackViewController.h */,
 				C2E44BDF2EDAD35D00110348 /* FeedbackViewController.m */,
+				C2E44BDC2EDAD35D00110348 /* model */,
 			);
 			path = "用户反馈";
 			sourceTree = "<group>";
@@ -1278,9 +1290,9 @@
 			isa = PBXGroup;
 			children = (
 				C2E44BE52EDAD35D00110348 /* TaskManager.h */,
-				C2E44BE62EDAD35D00110348 /* UploadTask.m */,
 				C2E44BE72EDAD35D00110348 /* TaskManager.m */,
 				C2E44BE82EDAD35D00110348 /* UploadTask.h */,
+				C2E44BE62EDAD35D00110348 /* UploadTask.m */,
 			);
 			path = "任务管理";
 			sourceTree = "<group>";
@@ -1366,6 +1378,7 @@
 		C2E44C142EDAD35D00110348 /* 组件 */ = {
 			isa = PBXGroup;
 			children = (
+				60A816E42F95195100763131 /* URL解析 */,
 				C2E44B6D2EDAD35C00110348 /* 图标商店搜索 */,
 				C2E44C312EDAD35E00110348 /* 弹窗小列表 */,
 				C2E44C252EDAD35E00110348 /* 动画效果按钮 */,
@@ -1743,6 +1756,7 @@
 				C2E44C792EDAD35E00110348 /* AppSearchCell.m in Sources */,
 				C2E44C742EDAD35E00110348 /* MyTabBarController.m in Sources */,
 				C2E44C982EDAD35E00110348 /* InjectionRecord.m in Sources */,
+				60A816E72F95196A00763131 /* URLRouter.m in Sources */,
 				C2E44CC32EDAD35E00110348 /* LikeModel.m in Sources */,
 				C2E44CCD2EDAD35F00110348 /* TimeTool.m in Sources */,
 				C2E44CA42EDAD35E00110348 /* TemplateListController.m in Sources */,

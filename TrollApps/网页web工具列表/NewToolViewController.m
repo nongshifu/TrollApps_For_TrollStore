@@ -405,8 +405,11 @@
         @"tool_id":@(tool_id),
         @"udid":udid,
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1000,11 +1003,12 @@
         [SVProgressHUD dismissWithDelay:2];
         return;
     }
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    
     
     NSLog(@"请求字典:%@",dic);
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         NSLog(@"stringResult:%@",stringResult);

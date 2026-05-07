@@ -168,13 +168,12 @@
         
      };
      
-     NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-     NSLog(@"请求URL:%@ 参数:%@", url, dic);
+     
+     NSLog(@"请求 参数:%@", dic);
     
      [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                               urlString:url
+                                                 modules:@"tool"
                                               parameters:dic
-                                                    udid:udid
                                                 progress:^(NSProgress *progress) {
          
      } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {}

@@ -95,7 +95,7 @@
 
 - (void)generateQRCode {
     // 将用户 ID 转换为字符串mySoulChat://user?id=123456
-    NSString *userIDString = [NSString stringWithFormat:@"%@/user/index.php?id=%lld&type=user",localURL, self.userID];
+    NSString *userIDString = [NSString stringWithFormat:@"%@/user/%lld",localURL, self.userID];
     
     // 生成二维码
     NSError *error = nil;

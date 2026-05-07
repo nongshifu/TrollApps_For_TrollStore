@@ -608,9 +608,9 @@
         newDic[@"new_password"] = newPwd;
     }
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:newDic
-                                                   udid:[NewProfileViewController sharedInstance].userInfo.udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -691,9 +691,8 @@
     
     // 6. 发送请求（使用表单提交而非JSON，避免base64转义问题）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php", localURL]
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:self.userInfo.udid
                                                progress:^(NSProgress *progress) {
         CGFloat progressValue = progress.fractionCompleted;
         [SVProgressHUD showProgress:progressValue status:[NSString stringWithFormat:@"上传中...%.0f%%", progressValue * 100]];

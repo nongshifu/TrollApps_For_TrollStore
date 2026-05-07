@@ -1,5 +1,5 @@
 ==============================================
- 🚀 Xcode 自动签名脚本 - 2026-04-14 23:41:55
+ 🚀 Xcode 自动签名脚本 - 2026-05-08 04:44:09
  ==============================================
 ✅ APP 路径: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app
 ✅ 可执行文件: /Users/shisange/Library/Developer/Xcode/DerivedData/TrollApps-ewamxakgndxicfgzfcgcvugqqqnb/Build/Products/Debug-iphoneos/TrollApps.app/TrollApps

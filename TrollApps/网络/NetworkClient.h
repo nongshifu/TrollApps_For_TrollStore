@@ -29,6 +29,38 @@ typedef void(^WebFailureBlock)(NSError *error);
 /**
  * 发送网络请求
  * @param method 请求方法（GET/POST）
+ * @param modules 模块
+ * @param udid udid
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                                        modules:(NSString *)modules
+                                           udid:(NSString *)udid
+                   parameters:(NSDictionary *)parameters
+                     progress:(WebProgressBlock)progressBlock
+                      success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock;
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
+ * @param modules 模块
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                                        modules:(NSString *)modules
+                                     parameters:(NSDictionary *)parameters
+                                       progress:(WebProgressBlock)progressBlock
+                                        success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock;
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
  * @param urlString 请求URL
  * @param parameters 请求参数
  * @param progressBlock 进度回调
@@ -36,11 +68,11 @@ typedef void(^WebFailureBlock)(NSError *error);
  * @param failureBlock 失败回调
  */
 - (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
-                    urlString:(NSString *)urlString
-                   parameters:(NSDictionary *)parameters
-                     progress:(WebProgressBlock)progressBlock
-                      success:(WebSuccessBlock)successBlock
-                      failure:(WebFailureBlock)failureBlock;
+                                      urlString:(NSString *)urlString
+                                     parameters:(NSDictionary *)parameters
+                                       progress:(WebProgressBlock)progressBlock
+                                        success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock;
 
 /**
  * 发送网络请求
@@ -53,12 +85,12 @@ typedef void(^WebFailureBlock)(NSError *error);
  * @param failureBlock 失败回调
  */
 - (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
-                    urlString:(NSString *)urlString
-                   parameters:(NSDictionary *)parameters
-                         udid:(NSString *)udid
-                     progress:(WebProgressBlock)progressBlock
-                      success:(WebSuccessBlock)successBlock
-                      failure:(WebFailureBlock)failureBlock;
+                                      urlString:(NSString *)urlString
+                                     parameters:(NSDictionary *)parameters
+                                           udid:(NSString *)udid
+                                       progress:(WebProgressBlock)progressBlock
+                                        success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock;
 
 
 /**
@@ -73,13 +105,13 @@ typedef void(^WebFailureBlock)(NSError *error);
  * @param failureBlock 失败回调
  */
 - (NSURLSessionUploadTask *)uploadFileWithURLString:(NSString *)urlString
-                       fileData:(NSData *)fileData
-                       fileName:(NSString *)fileName
-                     parameters:(NSDictionary *)parameters
-                           udid:(NSString *)udid
-                       progress:(WebProgressBlock)progressBlock
-                        success:(WebSuccessBlock)successBlock
-                        failure:(WebFailureBlock)failureBlock;
+                                           fileData:(NSData *)fileData
+                                           fileName:(NSString *)fileName
+                                         parameters:(NSDictionary *)parameters
+                                               udid:(NSString *)udid
+                                           progress:(WebProgressBlock)progressBlock
+                                            success:(WebSuccessBlock)successBlock
+                                            failure:(WebFailureBlock)failureBlock;
 
 /**
  将字符串URL转换为编码后的NSURL（保留原始空格和/）

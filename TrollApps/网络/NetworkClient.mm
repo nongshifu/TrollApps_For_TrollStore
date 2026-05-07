@@ -5,8 +5,12 @@
 
 #import "NetworkClient.h"
 #import "TokenGenerator.h"
+#import "config.h"
 #include <sys/sysctl.h>
 #include <dlfcn.h>
+
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface NetworkClient ()
 
@@ -34,6 +38,57 @@
     }
     return self;
 }
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
+ * @param modules 模块
+ * @param udid udid
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                                        modules:(NSString *)modules
+                                           udid:(NSString *)udid
+                   parameters:(NSDictionary *)parameters
+                     progress:(WebProgressBlock)progressBlock
+                      success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock {
+    NSString *urlString = [NSString stringWithFormat:@"%@/modules/%@/api.php",localURL,modules];
+    NSLog(@"urlString:%@  parameters:%@",urlString,parameters);
+    return [self sendRequestWithMethod:method
+                             urlString:urlString
+                            parameters:parameters
+                                  udid:udid
+                              progress:progressBlock success:successBlock failure:failureBlock];
+}
+
+/**
+ * 发送网络请求
+ * @param method 请求方法（GET/POST）
+ * @param modules 模块
+ * @param parameters 请求参数
+ * @param progressBlock 进度回调
+ * @param successBlock 成功回调（包含JSON、字符串和原始数据三种格式的结果）
+ * @param failureBlock 失败回调
+ */
+- (NSURLSessionDataTask *)sendRequestWithMethod:(NetworkRequestMethod)method
+                                        modules:(NSString *)modules
+                   parameters:(NSDictionary *)parameters
+                     progress:(WebProgressBlock)progressBlock
+                      success:(WebSuccessBlock)successBlock
+                                        failure:(WebFailureBlock)failureBlock {
+    NSString *urlString = [NSString stringWithFormat:@"%@/modules/%@/api.php",localURL,modules];
+    NSLog(@"urlString:%@  parameters:%@",urlString,parameters);
+    return [self sendRequestWithMethod:method
+                             urlString:urlString
+                            parameters:parameters
+                              progress:progressBlock 
+                               success:successBlock
+                               failure:failureBlock];
+}
+
                 
 /**
  * 发送网络请求
@@ -98,7 +153,7 @@
     [request addValue:udid forHTTPHeaderField:@"X-UDID"];
     [request addValue:token forHTTPHeaderField:@"X-Token"];
     NSLog(@"构建请求：%@", request);
-    
+    NSLog(@"构建请求urlString：%@", urlString);
     // 处理GET请求参数
     if (method == NetworkRequestMethodGET) {
         NSString *queryString = [self queryStringFromParameters:requestParams];
@@ -139,6 +194,7 @@
         NSString *stringResult = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         if (successBlock) {
+            NSLog(@"请求返回jsonResult：%@ stringResult:%@", jsonResult,stringResult);
             successBlock(jsonResult, stringResult, data);
         }
     }];
@@ -241,6 +297,7 @@
         NSString *stringResult = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         if (successBlock) {
+            NSLog(@"请求返回jsonResult：%@ stringResult:%@", jsonResult,stringResult);
             successBlock(jsonResult, stringResult, data);
         }
     }];

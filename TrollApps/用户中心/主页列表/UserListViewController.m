@@ -84,11 +84,14 @@
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求dic:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"app"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
@@ -164,11 +167,14 @@
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求dic:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
@@ -234,22 +240,26 @@
     
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ? [NewProfileViewController sharedInstance].userInfo.udid :[[NewProfileViewController sharedInstance] getIDFV];
     
-    NSString *to_id = self.user_udid?:@"";
+    
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
         @"action":@"get_user_comment",
         @"sort":@(self.sort),
+        @"action_type":@(Comment_type_UserComment),
         @"keyword":keyword,
         @"pageSize":@(30),
-        @"to_id":to_id,
+        @"to_id":@(self.user_id),
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求dic:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"user"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
@@ -307,9 +317,13 @@
                 
             });
         } failure:^(NSError *error) {
-            NSLog(@"异步请求Error: %@", error);
-            [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
-            [SVProgressHUD dismissWithDelay:2 completion:nil];
+            //返回主线程UI操作
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"异步请求Error: %@", error);
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"请求错误\n%@",error]];
+                [SVProgressHUD dismissWithDelay:2 completion:nil];
+            });
+            
         }];
     
 
@@ -334,21 +348,18 @@
     };
     
     // 请求的登录用户udid
-    NSString *myudid = [NewProfileViewController sharedInstance].userInfo.udid ?: [NewProfileViewController sharedInstance].idfv;
+    
     NSString *myUdid = [NewProfileViewController sharedInstance].userInfo.udid;
     if(!myUdid || myUdid.length<5){
         [SVProgressHUD showInfoWithStatus:@"UDID获取失败  请先登录"];
         return;
     }
-    // 接口地址
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                           urlString:url
-                                          parameters:dic
-                                               udid:myudid
-                                             progress:^(NSProgress *progress) {
+                                                modules:@"user"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             // 结束刷新状态
@@ -433,7 +444,7 @@
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:dic
                                                progress:^(NSProgress *progress) {
         

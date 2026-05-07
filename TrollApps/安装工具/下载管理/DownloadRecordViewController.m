@@ -194,12 +194,11 @@
     };
     
     
-    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_api.php", localURL];
+    
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                             urlString:urlString
+                                                modules:@"app"
                                             parameters:parameters
-                                                 udid:[NewProfileViewController sharedInstance].userInfo.udid
                                               progress:^(NSProgress *progress) {
         // 可选：进度回调
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

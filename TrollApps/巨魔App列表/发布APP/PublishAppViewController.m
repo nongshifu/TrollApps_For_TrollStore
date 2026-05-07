@@ -378,7 +378,7 @@ static NSSet *kAllowedMainFileTypes() {
         [alert addAction:action1];
         
         UIAlertAction*action2 = [UIAlertAction actionWithTitle:@"本机相册" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [weakSelf.photoView goPhotoViewController];
+            [weakSelf.photoView directGoPhotoViewController];
         }];
         [alert addAction:action2];
         
@@ -2180,8 +2180,9 @@ static NSSet *kAllowedMainFileTypes() {
     NSLog(@"请求版本附件目录:%@",params[@"save_path"]);
     //发送POST
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/app/app_api.php",localURL]
-                                             parameters:params udid:self.app_info.udid
+                                                modules:@"app"
+                                                   udid:self.app_info.udid
+                                             parameters:params
                                                progress:^(NSProgress *progress) {
         NSLog(@"完成比例: %.2f%%", progress.fractionCompleted * 100);
         NSLog(@"已完成: %lld 字节", progress.completedUnitCount);

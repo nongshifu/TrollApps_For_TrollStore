@@ -14,7 +14,7 @@
 #import "ToolMessage.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface UserModelCell ()
 @property (nonatomic, strong) UserModel *userModel;
@@ -242,9 +242,8 @@ static UIImage *imageWithColor(UIColor *color) {
     [SVProgressHUD showWithStatus:sender.selected?@"取关中":@"关注中"];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -259,11 +258,26 @@ static UIImage *imageWithColor(UIColor *color) {
             
             if (code == 200) {
                 NSDictionary *data = jsonResult[@"data"];
+                
                 BOOL isFollow = [data[@"isFollow"] boolValue];
                 self.userModel.isFollow = isFollow;
                 self.model = self.userModel;
-                self.followButton.selected = isFollow;
-                [self.followButton setBackgroundColor:isFollow?UIColor.systemPinkColor:UIColor.systemBlueColor];
+                NSLog(@"isFollow:%d关注用户返回data:%@",isFollow,data);
+                
+                
+                sender.selected = isFollow;
+                [self.followButton setTitle:@"关注" forState:UIControlStateNormal];
+                [self.followButton setTitle:@"已关注" forState:UIControlStateSelected];
+                self.followButton.titleLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+                [self.followButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+                [self.followButton setTitleColor:UIColor.whiteColor forState:UIControlStateSelected];
+                
+                // 关键修改：为不同状态设置背景图片
+                [self.followButton setBackgroundImage:imageWithColor(UIColor.systemBlueColor) forState:UIControlStateNormal];
+                [self.followButton setBackgroundImage:imageWithColor(UIColor.systemPinkColor) forState:UIControlStateSelected];
+                // 为高亮状态设置一个稍暗的颜色，提供更好的交互反馈
+                [self.followButton setBackgroundImage:imageWithColor([UIColor.systemBlueColor colorWithAlphaComponent:0.8]) forState:UIControlStateHighlighted];
+                [self.followButton setBackgroundImage:imageWithColor([UIColor.systemPinkColor colorWithAlphaComponent:0.8]) forState:UIControlStateSelected | UIControlStateHighlighted];
                 if(isFollow){
                     RCTextMessage *messageContent = [RCTextMessage messageWithContent:@"我关注你了"];
                     RCConversationType conversationType = ConversationType_PRIVATE;
@@ -286,10 +300,14 @@ static UIImage *imageWithColor(UIColor *color) {
             }
             [SVProgressHUD showSuccessWithStatus:msg];
             [SVProgressHUD dismissWithDelay:1];
+           
         });
     } failure:^(NSError *error) {
-        [SVProgressHUD showErrorWithStatus:@"网络错误，发送失败"];
-        [SVProgressHUD dismissWithDelay:2];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showErrorWithStatus:@"网络错误，发送失败"];
+            [SVProgressHUD dismissWithDelay:2];
+        });
+        
     }];
 }
 

@@ -11,8 +11,10 @@
 #import "AppVersionHistoryModel.h"
 
 #import "config.h"
+//本地储存的tag
 #define SAVE_LOCAL_TAGS_KEY @"SAVE_LOCAL_TAGS_KEY"
-#define SAVE_SERVER_TAGS_KEY @"SAVE_SERVER_TAGS_KEY"
+//服务器最新
+#define SAVE_SERVER_TAGS_KEY @"SAVE_SERVER_TAGS_KEY11"
 #define NEED_UPDATE_KEY @"NEED_UPDATE_KEY"
 NS_ASSUME_NONNULL_BEGIN
 

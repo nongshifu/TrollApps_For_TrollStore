@@ -478,11 +478,10 @@
         @"tool_id": @(model.tool_id),
         @"udid": udid,
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                               urlString:url
+                                                modules:@"tool"
                                               parameters:dic
-                                                    udid:udid
                                                 progress:^(NSProgress *progress) {}
                                                  success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {}
                                                  failure:^(NSError *error) {}];
@@ -559,8 +558,11 @@
         @"tool_id" : @(self.toolModel.tool_id),
         @"content":self.commentContent?:@""
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -672,12 +674,10 @@
         return;
     }
     
-    // 显示加载提示
-    [SVProgressHUD showWithStatus:@"准备分享..."];
     // 添加应用URL
-//    NSString *urlString = [NSString stringWithFormat:@"%@/tool/%@/tool_detail.php?shareUser_id=%ld", localURL,self.toolModel.tool_path ,[loadData sharedInstance].userModel.user_id];
-//https://niceiphone.com/uploads/tool/6/22/index.html
-    NSString *urlString = [NSString stringWithFormat:@"%@/uploads/tool/%ld/%ld/index.html?id=%ld&type=tool&shareUser_id=%ld", localURL,[loadData sharedInstance].userModel.user_id, self.toolModel.tool_id,self.toolModel.tool_id,[loadData sharedInstance].userModel.user_id];
+    [SVProgressHUD showWithStatus:@"准备分享..."];
+    NSString *urlString = [NSString stringWithFormat:@"%@/tool/%ld", localURL, self.toolModel.tool_id];
+ 
     NSLog(@"分享的工具URL：%@",urlString);
     [SVProgressHUD dismissWithDelay:0.5];
    
@@ -771,13 +771,10 @@
        
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    NSLog(@"请求URL:%@ 参数:%@", url, dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"tool"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {}

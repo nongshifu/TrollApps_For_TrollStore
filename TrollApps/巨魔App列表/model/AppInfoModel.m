@@ -81,13 +81,12 @@
                          failure:(void(^)(NSError *error))failure {
     // 1. 传递 app_id 到接口参数
     NSDictionary *parameters = @{@"app_id": @(app_id), @"action": @"getDownloadLink"}; // 注意：参数结构需与接口匹配！
-    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_api.php", localURL];
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid;
+    
+   
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                             urlString:urlString
+                                                modules:@"app"
                                             parameters:parameters
-                                                 udid:udid
                                               progress:^(NSProgress *progress) {
         // 可选：进度回调
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -146,15 +145,12 @@
             @"download_url": downloadUrlString,
             @"device_info": udid // 设备信息，可根据需求扩展
         };
-        
-        NSString *urlString = [NSString stringWithFormat:@"%@/app/app_api.php", localURL];
-        
+       
         
         // 4. 调用插入下载历史的API
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                 urlString:urlString
+                                                    modules:@"app"
                                                 parameters:recordParams
-                                                     udid:udid
                                                   progress:nil
                                                    success:^(NSDictionary *recordJson, NSString *stringResult, NSData *dataResult) {
             dispatch_async(dispatch_get_main_queue(), ^{

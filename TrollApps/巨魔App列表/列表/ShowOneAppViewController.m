@@ -221,11 +221,11 @@
         @"app_id":@(self.appInfo.app_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php",localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"app"
                                              parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -347,13 +347,12 @@
         @"page": @(currentPage)
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
-    NSLog(@"请求URL:%@ 参数:%@", url, dic);
+   
+    NSLog(@"请求参数:%@", dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"app"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -573,7 +572,7 @@
     Action_type comment_type = Comment_type_AppComment;
     NSDictionary *params = @{
         @"action": @"comment",
-        @"type": @(comment_type),
+        @"action_type": @(comment_type),
         @"to_id": @(self.app_id),
         @"content": commentContent,
         @"sort": @(self.sort),
@@ -583,9 +582,8 @@
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/app/app_action.php",localURL]
+                                                modules:@"app"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

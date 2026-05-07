@@ -227,11 +227,11 @@
         @"tool_id":@(self.webToolModel.tool_id),
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"tool"
                                              parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -317,13 +317,12 @@
         @"udid": udid,
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    NSLog(@"请求URL:%@ 参数:%@", url, dic);
+    
+    NSLog(@"请求参数:%@",dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"tool"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -413,13 +412,12 @@
         @"page": @(currentPage)
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    NSLog(@"请求URL:%@ 参数:%@", url, dic);
+    
+    NSLog(@"请求参数:%@", dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"tool"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -584,9 +582,8 @@
     
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/tool/tool_api.php",localURL]
+                                                modules:@"tool"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

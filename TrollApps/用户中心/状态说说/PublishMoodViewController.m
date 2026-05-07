@@ -184,17 +184,15 @@
         @"content": content // 心情内容
     };
     NSLog(@"准备发布params:%@",params);
-    // 接口地址（与列表接口一致）
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
+    
     
     // 显示加载中
     [SVProgressHUD showWithStatus:@"发布中..."];
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                           urlString:url
+                                                modules:@"user"
                                           parameters:params
-                                               udid:myUdid
                                              progress:nil
                                               success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

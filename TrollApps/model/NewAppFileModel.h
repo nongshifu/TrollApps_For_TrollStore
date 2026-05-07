@@ -31,12 +31,17 @@ typedef NS_ENUM(NSInteger, FileType) {
     // 压缩包类型
     FileTypeZIP = 10,            // ZIP压缩文件
     
-    FileTypeOther = 11,    // 其他
-    FileTypeFile = 12,    // 文件
-    FileTypeFolder = 13   // 文件夹
+    // 图片类型
+    FileTypeIMAGE = 11,          // 图片文件
+    
+    // 视频类型
+    FileTypeVIDEO = 12,          // 视频文件
+    
+    FileTypeOther = 13,    // 其他
+    FileTypeFile = 14,    // 文件
+    FileTypeFolder = 15   // 文件夹
     
 };
-
 @interface NewAppFileModel : NSObject
 /// 文件路径（完整路径）
 @property (nonatomic, copy, readonly) NSString *filePath;

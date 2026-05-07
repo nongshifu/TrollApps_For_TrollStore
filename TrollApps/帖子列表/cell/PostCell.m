@@ -1134,7 +1134,7 @@
 
     // 2. 发送网络请求 (这里需要替换为你项目中真实的网络请求类，如 AFNetworking)
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:params progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -1323,9 +1323,8 @@
         [DemoBaseViewController triggerVibration];
         
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                  urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                    modules:@"post"
                                                  parameters:params
-                                                       udid:udid
                                                    progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -1368,7 +1367,7 @@
     // 处理评论操作
     NSLog(@"处理分享操作");
     // 添加应用URL
-    NSString *urlString = [NSString stringWithFormat:@"%@/post/post.php?id=%lld&type=app", localURL, self.postModel.post_id];
+    NSString *urlString = [NSString stringWithFormat:@"%@/post/detail/%lld", localURL, self.postModel.post_id];
     //系统导航遮挡问题
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     
@@ -1463,9 +1462,6 @@
     // 显示加载指示器
     [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"正在%@...", message]];
     
-    // API地址 - 根据实际情况修改
-    NSString *urlString = [NSString stringWithFormat:@"%@/post/post_api.php",localURL];
-    
     // 准备请求参数
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     params[@"action"] = action;
@@ -1479,9 +1475,9 @@
     NSLog(@"请求操作字典：%@",params);
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:urlString
+                                                modules:@"post"
                                              parameters:params
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

@@ -726,6 +726,20 @@
     }];
     
 }
+// 请求用户数据
+- (void)fetchUserInfoFromServerWithUserId:(NSInteger)userId {
+    
+    
+    [UserModel getUserInfoWithUserId:[NSString stringWithFormat:@"%ld",userId] success:^(UserModel * _Nonnull userModel) {
+        
+        [self updateWithUserModel:userModel];
+        
+    } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
+        NSLog(@"从服务器获取UDID 读取资料失败：%@",error);
+        [self showAlertFromViewController:self title:@"请求返回错误" message:[NSString stringWithFormat:@"%@",error]];
+    }];
+    
+}
 
 /// 更新用户模型并刷新UI
 - (void)updateWithUserModel:(UserModel *)userModel {
@@ -889,7 +903,12 @@
     [super viewDidAppear:animated];
     // 可以在这里执行一些与视图显示后相关的操作，比如开始动画、启动定时器等。
     // 在这里可以进行一些在视图显示之前的准备工作，比如更新界面元素、加载数据等。
-    [self fetchUserInfoFromServerWithUDID:self.user_udid];
+    if(self.user_udid.length>0 && !self.userInfo){
+        [self fetchUserInfoFromServerWithUDID:self.user_udid];
+    }else if(self.user_id >0 && !self.userInfo){
+        [self fetchUserInfoFromServerWithUserId:self.user_id];
+    }
+    
     
 }
 
@@ -921,7 +940,7 @@
 
 #pragma mark - 关注按钮的点击
 
-//查看粉丝列表
+//关注
 - (void)followButtomTap:(UIButton *)sender {
  
     
@@ -967,9 +986,8 @@
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -1045,9 +1063,8 @@
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

@@ -358,8 +358,11 @@ typedef NS_ENUM(NSInteger, SortType) {
         @"keyword":self.keyword?:@"",
         @"sortType":@(self.sortType)
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

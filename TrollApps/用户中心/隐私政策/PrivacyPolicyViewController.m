@@ -160,11 +160,15 @@
 
 - (void)checkPolicyVersionAndLoad {
     NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid?:@"";
-    NSString *urlString = [NSString stringWithFormat:@"%@/privacy_policies/get_privacy_policy.php?udid=%@",localURL, udid];
+    NSString *urlString = [NSString stringWithFormat:@"%@/modules/privacy_policies/get_privacy_policy.php?udid=%@",localURL, udid];
     NSDictionary *dic =@{
         @"udid":udid
     };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET urlString:urlString parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET 
+                                              urlString:urlString
+                                             parameters:dic
+                                                   udid:udid
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         if(!jsonResult){
@@ -211,13 +215,13 @@
                 //设置当前显示的版本
                 self.currentDisplayVersion = self.activePolicyVersion;
                 //最新版URL
-                self.policyURLString = [NSString stringWithFormat:@"%@/privacy_policies/%@",localURL, self.activePolicyURL];
+                self.policyURLString = [NSString stringWithFormat:@"%@/modules/privacy_policies/%@",localURL, self.activePolicyURL];
                 
             }else{
                 //设置当前显示的版本
                 self.currentDisplayVersion = self.userConsentedVersion;
                 //最新版URL
-                self.policyURLString = [NSString stringWithFormat:@"%@/privacy_policies/%@",localURL, self.userConsentedURL];
+                self.policyURLString = [NSString stringWithFormat:@"%@/modules/privacy_policies/%@",localURL, self.userConsentedURL];
                 
             }
             NSURL *policyURL = [NSURL URLWithString:self.policyURLString];
@@ -279,7 +283,7 @@
     NSString *deviceInfo = [UIDevice currentDevice].model;
     NSString *ipAddress = @"your_ip_address";
     
-    NSString *urlString = [NSString stringWithFormat:@"%@/privacy_policies/record_user_consent.php?udid=%@&policy_version=%@&device_info=%@&ip_address=%@",localURL, udid, self.activePolicyVersion, deviceInfo, ipAddress];
+    NSString *urlString = [NSString stringWithFormat:@"%@/modules/privacy_policies/record_user_consent.php?udid=%@&policy_version=%@&device_info=%@&ip_address=%@",localURL, udid, self.activePolicyVersion, deviceInfo, ipAddress];
     NSLog(@"同意更新数据库记录urlString:%@",urlString);
     NSDictionary *dic = @{
         @"udid":udid,
@@ -287,7 +291,10 @@
         @"device_info":deviceInfo,
         @"ipAddress":ipAddress,
     };
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET urlString:urlString parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET 
+                                              urlString:urlString 
+                                             parameters:dic
+                                                   udid:udid progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

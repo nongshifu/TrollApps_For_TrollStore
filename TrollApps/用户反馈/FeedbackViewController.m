@@ -13,6 +13,10 @@
 #import <Masonry/Masonry.h>
 #import <YYModel/YYModel.h>
 
+// 目标 .m 文件顶部（必须在所有 #import 之前！）
+#undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // 当前文件单独启用
+
 @interface FeedbackViewController ()<TemplateSectionControllerDelegate, UITextViewDelegate, TemplateListDelegate>
 
 @property (nonatomic, strong) NSString *keyword;//搜索关键词
@@ -332,6 +336,7 @@
         [self showAlertFromViewController:self title:@"提示" message:@"请先登录获取设备信息"];
         return;
     }
+    self.isAdmin = [NewProfileViewController sharedInstance].userInfo.role;
     //如果是重置第一页 删除全部数据
     if(self.page <=1){
         [self.dataSource removeAllObjects];
@@ -347,12 +352,12 @@
         @"keyword":self.keyword?:@"",
         @"udid":self.udid,
     };
-    //封装URL
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
-    //请求的自己UDID
-    NSString *myUdid = [NewProfileViewController sharedInstance].userInfo.udid ?:[NewProfileViewController sharedInstance].userInfo.idfv;
+    
     //发送
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:myUdid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                              modules:@"feedback"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -509,11 +514,10 @@
     [SVProgressHUD showWithStatus:@"提交中..."];
     
     // 发送请求
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"feedback"
                                              parameters:params
-                                                   udid:udid
                                                progress:nil
                                                 success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

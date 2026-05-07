@@ -288,14 +288,10 @@
         dic[@"target_udid"] = udid;
     }
     
-    NSString *url = [NSString stringWithFormat:@"%@/vip/vip_purchase_history_api.php", localURL];
-    NSLog(@"查询参数：%@", dic);
-    
     [SVProgressHUD showWithStatus:@"加载中..."];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                             urlString:url
+                                             modules:@"vip"
                                             parameters:dic
-                                                 udid:udid
                                                progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

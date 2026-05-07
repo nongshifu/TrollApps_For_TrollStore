@@ -4,6 +4,9 @@
 #import "ShowOneToolViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import <CoreImage/CoreImage.h>
+#import "URLRouter.h"
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @interface QRCodeScannerViewController ()<ZXCaptureDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 @property (nonatomic, strong) ZXCapture *capture;
@@ -108,49 +111,11 @@
         return;
     }
     NSLog(@"二维码识别结果：%@", scanResult);
-    NSString * type = [self getParamFromURLString:scanResult withKey:@"type"];
-    // 2. 用封装函数提取参数（支持任意URL格式，无需硬写range）
-    // 场景1：提取 "openuser" 参数（如 "xxx?openuser=123" 或 "xxx?other=456&openuser=123"）
-    NSString *openid = [self getParamFromURLString:scanResult withKey:@"id"];
+    [SVProgressHUD showSuccessWithStatus:@"识别成功 解析中"];
+    [SVProgressHUD dismissWithDelay:1 completion:^{
+        [URLRouter handleRouteURLString:scanResult];
+    }];
     
-    // 3. 根据参数类型处理逻辑
-    if ([type isEqualToString:@"user"]) {
-        // 处理用户ID逻辑
-        int64_t userID = [openid longLongValue];
-        NSLog(@"识别到的用户 ID: %lld", userID);
-        
-        [UserModel getUserInfoWithUserId:openid success:^(UserModel * _Nonnull userModel) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                UserProfileViewController *vc = [UserProfileViewController new];
-                vc.user_udid = userModel.udid;
-                [self presentPanModal:vc];
-            });
-        } failure:^(NSError * _Nonnull error, NSString * _Nonnull errorMsg) {
-            [SVProgressHUD showErrorWithStatus:@"读取用户数据失败"];
-            [SVProgressHUD dismissWithDelay:1];
-        }];
-        
-    } else if ([type isEqualToString:@"app"]) {
-        // 新增：处理APP详情逻辑（原来的range2判断逻辑移到这里）
-        NSLog(@"识别到的APP ID: %@", openid);
-        // 示例：跳转到APP详情页（根据你的业务补充）
-         ShowOneAppViewController *appVC = [ShowOneAppViewController new];
-         appVC.app_id = [openid longLongValue];
-         [self presentPanModal:appVC];
-        
-    } else if ([type isEqualToString:@"tool"]) {
-        // 新增：处理APP详情逻辑（原来的range2判断逻辑移到这里）
-        NSLog(@"识别到的APP ID: %@", openid);
-        // 示例：跳转到APP详情页（根据你的业务补充）
-         ShowOneToolViewController *appVC = [ShowOneToolViewController new];
-         appVC.tool_id = [openid longLongValue];
-         [self presentPanModal:appVC];
-        
-    } else {
-        // 未识别到有效参数
-        [SVProgressHUD showErrorWithStatus:@"二维码中未包含有效用户ID或APP ID"];
-        [SVProgressHUD dismissWithDelay:1.5];
-    }
 }
 
 - (NSString *)getParamFromURLString:(NSString *)urlString withKey:(NSString *)key {
@@ -234,4 +199,26 @@
     // 应用已经完全进入前台并且处于活动状态，更新用户界面等操作
     NSLog(@"应用已经完全进入前台并且处于活动状态");
 }
+
+
+- (void)captureResult:(ZXCapture *)capture result:(ZXResult *)result {
+    NSLog(@"扫码返回的原始文本:%@",result.text);
+    if(result.text.length>0){
+        [self dismiss];
+        // 创建UIImpactFeedbackGenerator对象
+        UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+        // 准备触发震动
+        [generator prepare];
+        
+        // 触发震动
+        [generator impactOccurred];
+        // 释放UIImpactFeedbackGenerator对象
+        generator = nil;
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [URLRouter handleRouteURLString:result.text];
+        });
+    }
+}
+
 @end

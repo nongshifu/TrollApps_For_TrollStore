@@ -912,9 +912,9 @@
     }
     NSLog(@"注册请求:%@",dic);
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1198,9 +1198,8 @@
     
     // 6. 发送请求（使用表单提交而非JSON，避免base64转义问题）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php", localURL]
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:self.userInfo.udid
                                                progress:^(NSProgress *progress) {
         CGFloat progressValue = progress.fractionCompleted;
         [SVProgressHUD showProgress:progressValue status:[NSString stringWithFormat:@"上传中...%.0f%%", progressValue * 100]];
@@ -1268,9 +1267,9 @@
     
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/user/user_api.php",localURL]
+                                                modules:@"user"
                                              parameters:newDic
-                                                   udid:self.userInfo.udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1390,17 +1389,15 @@
 /// 从远程加载vip.json套餐数据（重构版）
 - (void)loadVIPPackagesFromRemote {
     // 1. 构建请求URL（加时间戳防缓存）
-    NSString *timestamp = [NSString stringWithFormat:@"%lld", (long long)[NSDate date].timeIntervalSince1970];
-    NSString *remoteURL = [NSString stringWithFormat:@"%@/vip/vip.json?time=%@", localURL, timestamp];
-    NSLog(@"请求vip.json地址：%@", remoteURL);
-
+    
     [SVProgressHUD showWithStatus:@"加载套餐中..."];
-
+    NSDictionary *dictionary = @{
+        @"action":@"loadVIPPackages"
+    };
     // 2. 发送GET请求（vip.json是静态文件，用GET更合理）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET
-                                              urlString:remoteURL
-                                             parameters:nil // 无额外参数
-                                                   udid:self.userInfo.udid?self.userInfo.udid:[self getIDFV]
+                                              modules:@"vip"
+                                             parameters:dictionary // 无额外参数
                                                progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1413,13 +1410,16 @@
                 return;
             }
 
-            NSString *status = jsonResult[@"status"];
+            NSInteger code = [jsonResult[@"code"] intValue];
+            NSString * msg = jsonResult[@"msg"];
             NSArray *packagesArray = jsonResult[@"data"];
-            if (![status isEqualToString:@"success"] || ![packagesArray isKindOfClass:[NSArray class]]) {
+            if (code != 200) {
                 [SVProgressHUD showErrorWithStatus:@"套餐数据解析失败"];
                 NSLog(@"vip.json解析失败，原始数据：%@", stringResult);
                 return;
             }
+            [SVProgressHUD showSuccessWithStatus:msg];
+            [SVProgressHUD dismissWithDelay:1];
 
             // 4. 清空旧数据，解析新套餐
             [self.dataSource removeAllObjects];
@@ -1603,10 +1603,11 @@
     };
     NSLog(@"先创建订单requestParams：%@",requestParams);
     // 3. 调用PHP创建订单接口（你的 purchase_vip.php 地址）
-    NSString *createOrderURL = [NSString stringWithFormat:@"%@/vip/purchase_vip.php?action=createOrder",localURL];
+   
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:createOrderURL
-                                             parameters:requestParams udid:self.userInfo.udid progress:^(NSProgress *progress) {
+                                              modules:@"vip"
+                                             parameters:requestParams
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1720,7 +1721,7 @@
                                 productName:package.title
                                      amount:[NSString stringWithFormat:@"%.2f",package.price]            // 两位小数
                                 paymentType:self.payType   // 支付宝支付
-                                  notifyUrl:@"https://niceiphone.com/vip/notify.php"  // 服务器异步通知地址
+                                                  notifyUrl:[NSString stringWithFormat:@"%@vip/notify.php",localURL]  // 服务器异步通知地址
                                   returnUrl:@"trollapps://package/select"  // 页面跳转地址
                                    siteName:@"TrollApps"         // 可选，可为nil
                                  completion:^(BOOL isSuccess, NSString *message, NSDictionary *resultDict) {

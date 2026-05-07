@@ -45,7 +45,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>21.0.2</string>
+	<string>22.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -58,8 +58,10 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>21</string>
+	<string>22</string>
 	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>我们需要蓝牙权限来连接设备</string>
@@ -87,6 +89,8 @@
 		<string>push-to-talk</string>
 		<string>voip</string>
 	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

@@ -260,7 +260,7 @@
     
     // 调用 NetworkClient 的文件上传方法，自动添加 udid 和 token
     NSLog(@"NetworkClient 的文件上传方法，自动添加 udid 和 token");
-    NSURLSessionUploadTask *uploadTask = [self.networkClient uploadFileWithURLString:[NSString stringWithFormat:@"%@/app/app_api.php",localURL]
+    NSURLSessionUploadTask *uploadTask = [self.networkClient uploadFileWithURLString:[NSString stringWithFormat:@"%@/modules/app/api.php",localURL]
                                                                             fileData:fileData
                                                                             fileName:fileItem.fileName
                                                                           parameters:params  // 原始参数，会被封装到 data 中

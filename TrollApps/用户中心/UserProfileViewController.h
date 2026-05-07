@@ -18,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 //查询用户的UDID
 @property (nonatomic, strong) NSString *user_udid;
+//查询用户的user_id
+@property (nonatomic, assign) NSInteger user_id;
 
 @end
 

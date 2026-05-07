@@ -57,12 +57,15 @@
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求dic:%@",dic);
     
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"app"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             dispatch_async(dispatch_get_main_queue(), ^{

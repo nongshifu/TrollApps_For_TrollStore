@@ -286,11 +286,14 @@
         @"page":@(self.page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求 dic:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"user"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             

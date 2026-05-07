@@ -87,21 +87,24 @@
     
     NSString * keyword = self.keyword ? self.keyword : @"";
     NSDictionary *dic = @{
-        @"action":@"getAppList",
+        @"action":@"getMyFavoriteApps",
         @"keyword":keyword,
         @"tag":self.tag ?:@"",
         @"pageSize":@(10),
-        @"udid":self.target_udid,
+        @"target_udid":self.target_udid,
         @"showMyApp":@(YES),
         @"sortType":@(self.sort),
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"app"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             
@@ -129,6 +132,7 @@
                     NSLog(@"返回数量:%ld",appInfo_data.count);
                     for (NSDictionary *dic in appInfo_data) {
                         AppInfoModel *model = [AppInfoModel yy_modelWithDictionary:dic];
+                        model.isCollect = YES;
                         [self.dataSource addObject:model];
                     }
                     
@@ -179,12 +183,13 @@
         @"pageSize":@(20),
         @"sort":@(self.sort),// 排序方式（NO=最新收藏，YES=最早收藏）
     };
-    NSString *url = [NSString stringWithFormat:@"%@/tool/tool_api.php",localURL];
-    NSLog(@"url:%@ dic:%@",url,dic);
+    
+    NSLog(@"dic:%@",dic);
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url parameters:dic
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                                modules:@"tool"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -210,6 +215,7 @@
                     for (NSDictionary *dic in tools) {
                         NSLog(@"读取关注用户数据dic: %@", dic);
                         WebToolModel *model = [WebToolModel yy_modelWithDictionary:dic];
+                        model.isCollect = YES;
                         [self.dataSource addObject:model];
                     }
                    
@@ -266,11 +272,14 @@
         @"page":@(page)
         
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
     
-    NSLog(@"列表请求url:%@ dic:%@",url,dic);
+    
+    NSLog(@"列表请求dic:%@",dic);
    
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                                modules:@"user"
+                                             parameters:dic
+                                               progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
             

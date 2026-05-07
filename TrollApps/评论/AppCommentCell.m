@@ -283,12 +283,13 @@
     }
     
     // 构建请求参数
-    NSString *url = [NSString stringWithFormat:@"%@/app/app_action.php", localURL];
+    NSString *modules = @"app";
     NSLog(@"点赞action_type:%ld",self.appComment.action_type);
     if(self.appComment.action_type == Comment_type_Post || self.appComment.action_type == Comment_type_PostSecondComment){
-        url = [NSString stringWithFormat:@"%@/post/post_api.php", localURL];
+        
+        modules = @"post";
     }
-    NSLog(@"点赞URL:%@",url);
+    
     NSDictionary *params = @{
         @"action": @"toggle_comment_like",
         @"action_type": @(self.appComment.action_type),
@@ -299,9 +300,9 @@
     
     // 发送请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                            urlString:url
+                                            modules:modules
                                             parameters:params
-                                                udid:udid
+                                                
                                               progress:^(NSProgress *progress) {
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         NSLog(@"点赞返回:%@",stringResult);

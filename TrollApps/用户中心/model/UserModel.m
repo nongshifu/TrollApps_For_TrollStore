@@ -163,59 +163,65 @@ static dispatch_queue_t _cacheQueue;
     
     // 对比所有关键业务/UI属性
     return (
-        // 基础ID
-        self.user_id == other.user_id &&
-        
-        // 字符串属性
-        [self.nickname isEqualToString:other.nickname] &&
-        [self.avatar isEqualToString:other.avatar] &&
-        [self.avatarBase64 isEqualToString:other.avatarBase64] &&
-        [self.phone isEqualToString:other.phone] &&
-        [self.password isEqualToString:other.password] &&
-        [self.wechat isEqualToString:other.wechat] &&
-        [self.qq isEqualToString:other.qq] &&
-        [self.tg isEqualToString:other.tg] &&
-        [self.bio isEqualToString:other.bio] &&
-        [self.moodStatus isEqualToString:other.moodStatus] &&
-        [self.token isEqualToString:other.token] &&
-        [self.email isEqualToString:other.email] &&
-        [self.udid isEqualToString:other.udid] &&
-        [self.idfv isEqualToString:other.idfv] &&
-        [self.mutualFollowStatusText isEqualToString:other.mutualFollowStatusText] &&
-        
-        // 图片对象（本地缓存图片，变化需要刷新）
-        (self.avatarImage == other.avatarImage || [self.avatarImage isEqual:other.avatarImage]) &&
-        
-        // 性别
-        self.gender == other.gender &&
-        
-        // 日期属性
-        (self.vip_expire_date == other.vip_expire_date || [self.vip_expire_date isEqualToDate:other.vip_expire_date]) &&
-        (self.login_time == other.login_time || [self.login_time isEqualToDate:other.login_time]) &&
-        (self.register_time == other.register_time || [self.register_time isEqualToDate:other.register_time]) &&
-        (self.last_purchase_time == other.last_purchase_time || [self.last_purchase_time isEqualToDate:other.last_purchase_time]) &&
-        
-        // 数值属性
-        self.vip_level == other.vip_level &&
-        self.downloads_number == other.downloads_number &&
-        self.like_count == other.like_count &&
-        self.reply_count == other.reply_count &&
-        self.app_count == other.app_count &&
-        self.role == other.role &&
-        self.follower_count == other.follower_count &&
-        self.following_count == other.following_count &&
-        
-        // 布尔属性
-        self.isFollow == other.isFollow &&
-        self.isShowFollows == other.isShowFollows &&
-        self.is_online == other.is_online &&
-        
-        // 关注状态枚举
-        self.mutualFollowStatus == other.mutualFollowStatus &&
-        
-        // 数组属性（内容完全一致才相同）
-        (self.search_category == other.search_category || [self.search_category isEqualToArray:other.search_category])
-    );
+            // 基础ID
+            self.user_id == other.user_id &&
+            
+            // 字符串属性
+            [self.nickname isEqualToString:other.nickname] &&
+            [self.avatar isEqualToString:other.avatar] &&
+            [self.avatarBase64 isEqualToString:other.avatarBase64] &&
+            [self.phone isEqualToString:other.phone] &&
+            [self.password isEqualToString:other.password] &&
+            [self.wechat isEqualToString:other.wechat] &&
+            [self.qq isEqualToString:other.qq] &&
+            [self.tg isEqualToString:other.tg] &&
+            [self.bio isEqualToString:other.bio] &&
+            [self.moodStatus isEqualToString:other.moodStatus] &&
+            [self.token isEqualToString:other.token] &&
+            [self.email isEqualToString:other.email] &&
+            [self.udid isEqualToString:other.udid] &&
+            [self.idfv isEqualToString:other.idfv] &&
+            [self.mutualFollowStatusText isEqualToString:other.mutualFollowStatusText] &&
+            
+            // 图片对象（本地缓存图片，变化需要刷新）
+            (self.avatarImage == other.avatarImage || [self.avatarImage isEqual:other.avatarImage]) &&
+            
+            // 性别
+            self.gender == other.gender &&
+            
+            // 日期属性
+            (self.vip_expire_date == other.vip_expire_date || [self.vip_expire_date isEqualToDate:other.vip_expire_date]) &&
+            (self.login_time == other.login_time || [self.login_time isEqualToDate:other.login_time]) &&
+            (self.register_time == other.register_time || [self.register_time isEqualToDate:other.register_time]) &&
+            (self.last_purchase_time == other.last_purchase_time || [self.last_purchase_time isEqualToDate:other.last_purchase_time]) &&
+            
+            // 数值属性
+            self.vip_level == other.vip_level &&
+            self.downloads_number == other.downloads_number &&
+            self.like_count == other.like_count &&
+            self.reply_count == other.reply_count &&
+            self.app_count == other.app_count &&
+            self.role == other.role &&
+            self.follower_count == other.follower_count &&
+            self.following_count == other.following_count &&
+            self.collect_count == other.collect_count &&
+            self.dislike_count == other.dislike_count &&
+            self.comment_count == other.comment_count &&
+            self.share_count == other.share_count &&
+            
+            // 布尔属性
+            self.isFollow == other.isFollow &&
+            self.isShowFollows == other.isShowFollows &&
+            self.is_online == other.is_online &&
+            
+            
+            
+            // 关注状态枚举
+            self.mutualFollowStatus == other.mutualFollowStatus &&
+            
+            // 数组属性（内容完全一致才相同）
+            (self.search_category == other.search_category || [self.search_category isEqualToArray:other.search_category])
+            );
 }
 
 
@@ -257,7 +263,7 @@ static dispatch_queue_t _cacheQueue;
  @return YES：已到期；NO：未到期
  */
 + (BOOL)isVIPExpiredWithDate:(NSDate *)vipExpireDate {
- 
+    
     if (!vipExpireDate) {
         // 格式错误视为已到期
         NSLog(@"VIP日期格式错误：%@（正确格式应为yyyy-MM-dd HH:mm:ss）", vipExpireDate);
@@ -284,11 +290,10 @@ static dispatch_queue_t _cacheQueue;
         [SVProgressHUD dismissWithDelay:4];
         return;
     }
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"user"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -331,16 +336,14 @@ static dispatch_queue_t _cacheQueue;
         @"queryValue": queryValue
     };
     NSLog(@"查询用户数据请求：%@",params);
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    NSLog(@"查询用户数据请求：%@",params);
+    
     
     // 发起请求（复用已有POST方法）
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                      urlString:url
-                     parameters:params
-                           
-                       progress:nil
-                        success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+                                                modules:@"user"
+                                             parameters:params
+                                               progress:nil
+                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"查询用户数据返回jsonResult：%@",jsonResult);
             NSLog(@"查询用户数据返回stringResult：%@",stringResult);
@@ -375,8 +378,8 @@ static dispatch_queue_t _cacheQueue;
 
 #pragma mark - 外部调用接口（通过user_id获取）
 + (void)getUserInfoWithUserId:(NSString *)userId
-                     success:(UserInfoSuccessBlock)success
-                     failure:(UserInfoFailureBlock)failure {
+                      success:(UserInfoSuccessBlock)success
+                      failure:(UserInfoFailureBlock)failure {
     [self getUserInfoWithType:@"user_id" queryValue:userId success:success failure:failure];
 }
 
@@ -424,10 +427,11 @@ static dispatch_queue_t _cacheQueue;
         @"udid" : udid,
         @"data" : @{@"target_udid" : targetUdid}
     };
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php",localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url parameters:params
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                                modules:@"user"
+                                             parameters:params
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         NSInteger statusCode = [jsonResult[@"data"][@"status"] integerValue];
@@ -483,23 +487,23 @@ static dispatch_queue_t _cacheQueue;
 
 /// 根据 udid 缓存优先获取
 + (void)getUserInfoWithUdidCacheFirst:(NSString *)udid
-                               success:(UserInfoSuccessBlock)success
-                               failure:(UserInfoFailureBlock)failure {
+                              success:(UserInfoSuccessBlock)success
+                              failure:(UserInfoFailureBlock)failure {
     [self getUserInfoWithTypeCacheFirst:@"udid" queryValue:udid success:success failure:failure];
 }
 
 /// 根据 idfv 缓存优先获取
 + (void)getUserInfoWithIdfvCacheFirst:(NSString *)idfv
-                               success:(UserInfoSuccessBlock)success
-                               failure:(UserInfoFailureBlock)failure {
+                              success:(UserInfoSuccessBlock)success
+                              failure:(UserInfoFailureBlock)failure {
     [self getUserInfoWithTypeCacheFirst:@"idfv" queryValue:idfv success:success failure:failure];
 }
 
 /// 设置用户在线状态
 + (void)setOnlineStatusWithTargetUdid:(NSString *)targetUdid
                                status:(BOOL)status
-                               success:(void(^)(NSString *message))success
-                               failure:(UserInfoFailureBlock)failure {
+                              success:(void(^)(NSString *message))success
+                              failure:(UserInfoFailureBlock)failure {
     // 1. 参数校验
     if (!targetUdid || targetUdid.length < 5) {
         NSError *error = [NSError errorWithDomain:@"UserInfoError" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"目标UDID无效"}];
@@ -528,11 +532,10 @@ static dispatch_queue_t _cacheQueue;
     NSLog(@"设置在线状态请求：%@", params);
     
     // 4. 发起网络请求
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
+    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:currentUdid
                                                progress:^(NSProgress *progress) {
         // 进度回调（可选，当前无需处理）
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -586,13 +589,10 @@ static dispatch_queue_t _cacheQueue;
         @"action": @"getAdminList"  // 后端接口名
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/user/user_api.php", localURL];
-    
     // 3. 发起请求
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                                modules:@"user"
                                              parameters:params
-                                                   udid:currentUdid
                                                progress:nil
                                                 success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{

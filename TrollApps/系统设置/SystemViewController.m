@@ -194,7 +194,11 @@ static dispatch_once_t _onceToken;
         @"type":@(0)
     };
     
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:dic udid:udid progress:^(NSProgress *progress) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                              urlString:url
+                                             parameters:dic
+                                                   udid:udid
+                                               progress:^(NSProgress *progress) {
         // 进度处理
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         
@@ -525,7 +529,12 @@ static dispatch_once_t _onceToken;
         @"sort": @(item.sort)
     };
     
-    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST urlString:url parameters:params udid:udid progress:nil success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST 
+                                              urlString:url
+                                             parameters:params
+                                                   udid:udid
+                                               progress:nil
+                                                success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSInteger newSuccessCount = successCount;
             NSInteger newFailureCount = failureCount;

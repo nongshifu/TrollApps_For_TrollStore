@@ -176,17 +176,14 @@
 
 #pragma mark - 加载主帖子数据
 - (void)loadPostData{
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
-    // 修正参数：补充topic_id，修复udid/keyword的空值处理
-    
+
     NSDictionary *dic = @{
         @"action":@"getOnePostData",
-//        @"udid":udid, // 原代码错误：udid?@"":@"" → 改为直接传udid（空则为空字符串）
         @"post_id":@(self.post_id),
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:dic
                                                progress:^(NSProgress *progress) {
         
@@ -265,9 +262,8 @@
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -555,9 +551,8 @@
     [SVProgressHUD showWithStatus:@"发送中..."];
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:params
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

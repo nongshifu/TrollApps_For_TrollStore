@@ -365,10 +365,9 @@
         @"action":@"queryOrderDetail",
         @"mch_orderid":self.targetOrderNo
     };
-    NSString *baseUrl = [NSString stringWithFormat:@"%@/vip/purchase_vip.php",localURL];
-   
+  
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:baseUrl
+                                                modules:@"vip"
                                              parameters:dic
                                                progress:^(NSProgress *progress) {
         
@@ -395,7 +394,9 @@
             }
             
             // JSON转模型（直接映射，包含新增的vipDescription字段）
-            self.orderModel = [VipPurchaseHistoryModel yy_modelWithDictionary:jsonResult[@"orderData"]];
+            NSDictionary *orderData = jsonResult[@"data"];
+            NSLog(@"orderData:%@",orderData);
+            self.orderModel = [VipPurchaseHistoryModel yy_modelWithDictionary:orderData];
             if (!self.orderModel) {
                 [SVProgressHUD showErrorWithStatus:@"订单数据异常"];
                 
@@ -594,9 +595,8 @@
         @"target_udid":self.orderModel.udid,
     };
     
-    NSString *url = [NSString stringWithFormat:@"%@/vip/vip_purchase_history_api.php", localURL];
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:url
+                                              modules:@"vip"
                                              parameters:params
                                                progress:nil
                                                 success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

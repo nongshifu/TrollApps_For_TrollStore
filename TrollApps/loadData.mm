@@ -140,12 +140,10 @@
 
 /// 加载本地缓存的tag数据
 - (void)loadLocalTags {
-    NSData *data = [[NSUserDefaults standardUserDefaults] objectForKey:SAVE_SERVER_TAGS_KEY];
-    if (data) {
-        NSArray *dictArray = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        if (dictArray) {
-            self.tags= [NSMutableArray arrayWithArray:dictArray];
-        }
+    
+    NSArray *dictArray = [[NSUserDefaults standardUserDefaults] arrayForKey:SAVE_SERVER_TAGS_KEY];
+    if (dictArray.count>0) {
+        self.tags= [NSMutableArray arrayWithArray:dictArray];
     }else{
         self.tags = [NSMutableArray arrayWithArray:@[@"最新",@"最火",@"推荐",@"巨魔IPA", @"游戏辅助", @"多开软件", @"Dylib", @"定位", @"脚本",
                                                                           @"有根越狱插件", @"无根插件", @"影音", @"工具",
@@ -184,14 +182,12 @@
             
             if (jsonResult && [jsonResult isKindOfClass:[NSArray class]]) {
                 NSArray *array = (NSArray *)jsonResult;
-                self.tags= [NSMutableArray arrayWithArray:array];
-                if(self.tags.count>0){
+                
+                if(array.count>0){
+                    self.tags = [NSMutableArray arrayWithArray:array];
                     // 缓存到本地
-                    NSData *cacheData = [NSJSONSerialization dataWithJSONObject:self.tags options:0 error:nil];
-                    if (cacheData) {
-                        [[NSUserDefaults standardUserDefaults] setObject:cacheData forKey:SAVE_SERVER_TAGS_KEY];
-                        [[NSUserDefaults standardUserDefaults] synchronize];
-                    }
+                    [[NSUserDefaults standardUserDefaults] setObject:array forKey:SAVE_SERVER_TAGS_KEY];
+                    [[NSUserDefaults standardUserDefaults] synchronize];
                 }
                 
                 
@@ -205,22 +201,14 @@
 
 /// 从远程加载套餐数据
 - (void)loadVIPPackagesFromRemote {
-    // 格式化日期为时间戳或ISO格式
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"yyyyMMddHHmmss"];
-    NSString *timestamp = [formatter stringFromDate:[NSDate date]];
-    
-    NSString *remoteDataURL = [NSString stringWithFormat:@"%@/vip.json?time=%@",localURL,timestamp];
-    
     
     NSDictionary *dictionary = @{
         @"action":@"loadVIPPackages"
     };
    
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodGET
-                                              urlString:remoteDataURL
+                                              modules:@"vip"
                                              parameters:dictionary
-                                                   udid:[self getIDFV]
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

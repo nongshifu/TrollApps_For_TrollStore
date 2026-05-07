@@ -14,7 +14,7 @@
 #import "MediaItem.h"
 #import "PostModel.h"
 // 宏定义
-#define kPostAPIUrl @"https://niceiphone.com/post/post_api.php"
+#define kPostAPIUrl @"https://niceiphone.com/modules/post/api.php"
 #define kRequestTimeout 30.0
 
 #undef MY_NSLog_ENABLED // 取消 PCH 中的全局宏定义

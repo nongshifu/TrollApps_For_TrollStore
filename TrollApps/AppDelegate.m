@@ -16,6 +16,7 @@
 #import "UserProfileViewController.h"
 #import "PaymentManager.h"
 #import "ShowOneOrderViewController.h"
+#import "URLRouter.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -31,12 +32,8 @@
     // 检查启动参数中是否有文件URL（如通过文件导入启动）
     NSURL *launchURL = launchOptions[UIApplicationLaunchOptionsURLKey];
     if (launchURL) {
-        NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
-        if ([launchURL.path hasPrefix:inboxDir]) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self showDownloadManagerWithDir:inboxDir];
-            });
-        }
+        [URLRouter handleRouteURL:launchURL]; // 一句话搞定
+        
     }
     
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -267,81 +264,7 @@
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     NSLog(@"openURL 被调用:%@", url.absoluteString);
     
-    // 分支1：处理 URL 参数传递（如 udid、user_id 等，格式：TrollApps://?udid=xxx&user_id=xxx）
-    if ([url.absoluteString containsString:@"getUdid"] && url.query) {
-        // 解析 URL 查询参数（udid、user_id、token、status）
-        NSDictionary *queryParams = [self parseURLQueryString:url.query];
-        NSString *udid = queryParams[@"udid"];
-        
-        // 判断 udid 是否存在且有效
-        if (udid && udid.length > 5) {
-            NSLog(@"解析到有效 udid：%@，开始存储本地", udid);
-            [KeychainTool saveString:udid forKey:TROLLAPPS_SAVE_UDID_KEY];
-            
-            [[NewProfileViewController sharedInstance] loadUserInfo];
-            
-            // 可选：提示用户登录成功
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [SVProgressHUD showSuccessWithStatus:@"登录信息已同步"];
-                [SVProgressHUD dismissWithDelay:1.5];
-            });
-        } else {
-            NSLog(@"URL 中未包含有效 udid");
-        }
-    }
-    // 分支2：原有逻辑 - 处理文件导入（Inbox 目录文件）
-    else if ([url.path containsString:@"/Documents/Inbox/"]) {
-        NSString *inboxDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"Inbox"];
-        // 延迟0.5秒（确保应用完全唤醒），再弹出控制器
-        NSLog(@"解析到文件路径，弹出文件管理控制器");
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self showDownloadManagerWithDir:inboxDir];
-        });
-    }
-    // 分支3：其他 URL 类型（忽略或提示）
-    else if ([url.absoluteString containsString:@"openOneApp"] && url.query) {
-        // 解析 URL 查询参数（udid、user_id、token、status）
-        NSDictionary *queryParams = [self parseURLQueryString:url.query];
-        NSString *appId = queryParams[@"appId"];
-        NSLog(@"解析到 appId：%@", appId);
-        // 判断 udid 是否存在且有效
-        if (appId && [appId integerValue] > 0) {
-            NSInteger app_id = [appId integerValue];
-            NSLog(@"解析到有效 appId：%ld", app_id);
-            ShowOneAppViewController *vc = [ShowOneAppViewController new];
-            vc.app_id = app_id;
-            [[vc.view getTopViewController] presentPanModal:vc];
-        } else {
-            NSLog(@"URL 中未包含有效 appId");
-        }
-    }
-    // 分支4：其他 URL 类型（忽略或提示）
-    else if ([url.absoluteString containsString:@"openOneUser"] && url.query) {
-        // 解析 URL 查询参数（udid、user_id、token、status）
-        NSDictionary *queryParams = [self parseURLQueryString:url.query];
-        NSString *user_udid = queryParams[@"user_udid"];
-        
-        // 判断 udid 是否存在且有效
-        if (user_udid && user_udid.length > 0) {
-            
-            NSLog(@"解析到有效 user_udid：%@", user_udid);
-            UserProfileViewController *vc = [UserProfileViewController new];
-            vc.user_udid = user_udid;
-            [[vc.view getTopViewController] presentPanModal:vc];
-        } else {
-            NSLog(@"URL 中未包含有效 appId");
-        }
-    }else if([url.absoluteString containsString:@"trollapps://package/select"]){
-        NSDictionary *queryParams = [self parseURLQueryString:url.query];
-        NSString *mch_orderid = queryParams[@"mch_orderid"];
-        ShowOneOrderViewController *vc = [ShowOneOrderViewController new];
-        vc.targetOrderNo = mch_orderid;
-        [[self getTopViewController] presentViewController:vc animated:YES completion:nil];
-    }
-    else {
-        NSLog(@"未识别的 URL 类型：%@", url.absoluteString);
-    }
-    
+    [URLRouter handleRouteURL:url]; // 一句话搞定
     return YES;
 }
 
@@ -386,23 +309,6 @@
     NSLog(@"用户信息已持久化存储：udid=%@, user_id=%ld, token=%@", userInfo.udid, userInfo.user_id, userInfo.token);
 }
 
-
-// 3. 通用方法：弹出DownloadManagerViewController并切换目录
-- (void)showDownloadManagerWithDir:(NSString *)dirPath {
-    DownloadManagerViewController *dmVC = [DownloadManagerViewController sharedInstance];
-    [dmVC switchToDirectory:dirPath];
-    
-    // 获取当前顶层控制器（适配导航栏/标签栏结构）
-    UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;
-    while (topVC.presentedViewController) {
-        topVC = topVC.presentedViewController;
-    }
-    
-    // 避免重复弹窗
-    if (![topVC isKindOfClass:[DownloadManagerViewController class]]) {
-        [topVC presentViewController:dmVC animated:YES completion:nil];
-    }
-}
 
 #pragma mark - 获取顶层控制器（保留，用于弹框提示）
 - (UIViewController *)getTopViewController {

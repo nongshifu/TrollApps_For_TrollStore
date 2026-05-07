@@ -397,7 +397,7 @@
 
 #pragma mark - 加载数据（修正参数传递）
 - (void)loadDataWithPage:(NSInteger)page {
-    NSString *udid = [NewProfileViewController sharedInstance].userInfo.udid ?: @"";
+   
     // 修正参数：补充topic_id，修复udid/keyword的空值处理
     NSLog(@"搜索：%@",self.keyword);
     NSDictionary *dic = @{
@@ -413,9 +413,8 @@
     };
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:[NSString stringWithFormat:@"%@/post/post_api.php",localURL]
+                                                modules:@"post"
                                              parameters:dic
-                                                   udid:udid
                                                progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {

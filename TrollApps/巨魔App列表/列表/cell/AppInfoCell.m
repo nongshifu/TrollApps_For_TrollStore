@@ -1050,9 +1050,8 @@
         [DemoBaseViewController triggerVibration];
         
         [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                  urlString:[NSString stringWithFormat:@"%@/app/app_action.php",localURL]
+                                                    modules:@"app"
                                                  parameters:params
-                                                       udid:udid
                                                    progress:^(NSProgress *progress) {
             
         } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
@@ -1095,7 +1094,11 @@
     // 处理评论操作
     NSLog(@"处理分享操作");
     // 添加应用URL
-    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_detail.php?id=%ld&type=app", localURL, self.appInfoModel.app_id];
+    // 处理应用名称：去掉所有空格，避免URL出错
+    NSString *appName = [self.appInfoModel.app_name stringByReplacingOccurrencesOfString:@" " withString:@""];
+
+    NSString *urlString = [NSString stringWithFormat:@"%@/app/detail/%ld/%@", localURL, self.appInfoModel.app_id,appName];
+    
     //系统导航遮挡问题
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
     
@@ -1245,8 +1248,7 @@
     // 显示加载指示器
     [SVProgressHUD showWithStatus:[NSString stringWithFormat:@"正在%@...", message]];
     
-    // API地址 - 根据实际情况修改
-    NSString *urlString = [NSString stringWithFormat:@"%@/app/app_action.php",localURL];
+   
     
     // 准备请求参数
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
@@ -1261,9 +1263,9 @@
     NSLog(@"请求操作字典：%@",params);
     
     [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                              urlString:urlString
+                                                modules:@"app"
                                              parameters:params
-                                                   udid:udid progress:^(NSProgress *progress) {
+                                               progress:^(NSProgress *progress) {
         
     } success:^(NSDictionary *jsonResult, NSString *stringResult, NSData *dataResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
