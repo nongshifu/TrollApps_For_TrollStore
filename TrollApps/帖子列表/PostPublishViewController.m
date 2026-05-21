@@ -2577,7 +2577,7 @@
     }
 }
 
-// 删除图片（仅标记isDeleted，不实际移除）
+// 删除图片（标记isDeleted并从post_images中移除）
 - (void)deleteImage:(UIButton *)sender {
     NSInteger index = sender.tag;
     NSInteger mediaCount = 0;
@@ -2596,6 +2596,28 @@
     
     if (targetItem) {
         targetItem.isDeleted = YES; // 仅标记删除
+        
+        // 从post_images中移除对应的图片URL（和后端deleted_images逻辑一致）
+        if (targetItem.remoteUrl.length > 0) {
+            NSMutableArray *deletedImages = self.postModel.deleted_images ? [self.postModel.deleted_images mutableCopy] :[NSMutableArray array];
+            [deletedImages addObject:targetItem.remoteUrl];
+            
+            NSMutableArray *mutableImages = [self.postModel.post_images mutableCopy];
+            // 使用文件名匹配（和后端basename逻辑一致）
+            NSString *targetFileName = [[targetItem.remoteUrl lastPathComponent] copy];
+            NSMutableArray *newImages = [NSMutableArray array];
+            for (NSString *imgUrl in mutableImages) {
+                NSString *imgFileName = [[imgUrl lastPathComponent] copy];
+                if (![imgFileName isEqualToString:targetFileName]) {
+                    [newImages addObject:imgUrl];
+                }
+            }
+            self.postModel.post_images = [newImages copy];
+            self.postModel.deleted_images = [deletedImages copy];
+            NSLog(@"删除图片后 post_images: %@", self.postModel.post_images);
+            NSLog(@"准备删除的图片数组 deleted_images: %@", self.postModel.deleted_images);
+        }
+        
         [self.imageCollectionView reloadData]; // 刷新UI
     }
 }

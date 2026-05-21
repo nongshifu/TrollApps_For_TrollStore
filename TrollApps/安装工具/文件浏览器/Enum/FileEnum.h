@@ -57,7 +57,7 @@ typedef NS_ENUM(NSInteger, BatchEditActionType) {
 #pragma mark - SortType
 
 /// 排序类型
-typedef NS_ENUM(NSInteger, SortType) {
+typedef NS_ENUM(NSInteger, FileSortType) {
     SortTypeName = 0,    ///< 按名称排序
     SortTypeDate,        ///< 按日期排序
     SortTypeSize,        ///< 按大小排序

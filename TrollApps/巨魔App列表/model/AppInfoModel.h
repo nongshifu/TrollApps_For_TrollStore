@@ -20,6 +20,16 @@ NS_ASSUME_NONNULL_BEGIN
 #define MAIN_File_KEY @"_mainFile_"
 #define ICON_KEY @"icon.png"
 
+typedef NS_ENUM(NSInteger, AppStatus) {
+    AppStatusNormal     = 0,    // 正常
+    AppStatusInvalid    = 1,    // 失效
+    AppStatusUpdating   = 2,    // 更新中
+    AppStatusLocked     = 3,    // 锁定
+    AppStatusUploading  = 4,    // 上传中
+    AppStatusHidden     = 5,    // 隐藏
+    AppStatusDeleted    = 6     // 删除
+};
+
 @interface AppInfoModel : NSObject<IGListDiffable,YYModel>
 //OC属性
 @property (nonatomic, strong, nullable) UIImage *appIcon; // 软件图标
@@ -75,7 +85,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) NSString *app_remark;
 @property (nonatomic, copy) NSString *app_description;
-@property (nonatomic, assign) NSInteger app_status;
+@property (nonatomic, assign) AppStatus app_status;
 @property (nonatomic, strong) NSArray *tags;
 @property (nonatomic, assign) NSInteger current_version_code;
 @property (nonatomic, copy) NSString *version_name;

@@ -17,7 +17,7 @@
 - (void)fak_setIcon:(FAKIcon *)icon
               color:(UIColor *)color {
     [icon addAttribute:NSForegroundColorAttributeName value:color];
-    icon.iconSize = self.font.pointSize;
+    icon.iconFontSize = self.font.pointSize;
     self.attributedText = icon.attributedString;
 }
 
@@ -39,7 +39,7 @@
     }
     
     [icon addAttribute:NSForegroundColorAttributeName value:color];
-    icon.iconSize = self.font.pointSize;
+    icon.iconFontSize = self.font.pointSize;
     
     NSMutableAttributedString *mutableAttr = [[NSMutableAttributedString alloc] init];
     [mutableAttr appendAttributedString:icon.attributedString];

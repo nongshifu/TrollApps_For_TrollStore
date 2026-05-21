@@ -11,8 +11,6 @@
 #import "AppsViewController.h"
 #import "ToolStoreListViewController.h"
 #import "ChatListViewController.h"
-#import "PublishAppViewController.h"
-#import "DemoBaseNavigationController.h"
 #import "NewToolViewController.h"
 #import "HelpViewController.h"
 #import "EditUserProfileViewController.h"
@@ -26,6 +24,7 @@
 #import "PostPublishViewController.h"
 #import "PostListViewController.h"
 #import "MyCollectionViewController.h"
+#import "AppPublishEditViewController.h"
 
 
 @interface MyTabBarController ()<UITabBarControllerDelegate>
@@ -176,9 +175,11 @@
     switch (self.vCselectedIndex) {
         case 0:{
             // 创建发帖视图控制器
-            PublishAppViewController *publishVC = [[PublishAppViewController alloc] init];
+            AppPublishEditViewController *publishVC = [AppPublishEditViewController publishViewController];
             publishVC.title = @"发布内容";
-            [self presentPanModal:publishVC];
+            UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:publishVC];
+            [self presentViewController:navVC animated:YES completion:nil];
+            
             
         }
             return;
@@ -195,6 +196,7 @@
             return;
         case 3:{
             if(self.vcModelType == SquareVCTypePostList){
+                
                 PostPublishViewController *publishVC = [[PostPublishViewController alloc] init];
                 publishVC.title = @"发帖";
                 UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:publishVC];

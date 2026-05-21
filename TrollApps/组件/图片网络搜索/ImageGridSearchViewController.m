@@ -1,4 +1,5 @@
 #import "ImageGridSearchViewController.h"
+#import "ImageGridCell.h"
 #import "AFNetworking.h"
 #import "MJRefresh.h"
 #import <Masonry/Masonry.h>
@@ -188,7 +189,7 @@
     self.collectionView.backgroundColor = [UIColor clearColor];
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
-    [self.collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"ImageCell"];
+    [self.collectionView registerClass:[ImageGridCell class] forCellWithReuseIdentifier:@"ImageGridCell"];
     [self.view addSubview:self.collectionView];
     
     // 约束布局（重点修改：顶部从导航栏底部开始）
@@ -288,59 +289,13 @@
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    static NSString *cellId = @"ImageCell";
-    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:cellId forIndexPath:indexPath];
-    cell.layer.cornerRadius = 4;
-    cell.clipsToBounds = YES;
+    ImageGridCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ImageGridCell" forIndexPath:indexPath];
     
-    // 清除旧子视图（保留勾选按钮）
-    for (UIView *subview in cell.contentView.subviews) {
-        if (![subview tag]) { // 勾选按钮tag=100，避免被清除
-            [subview removeFromSuperview];
-        }
-    }
-    
-    // 图片视图（原有代码）
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:cell.contentView.bounds];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    imageView.clipsToBounds = YES;
-    [cell.contentView addSubview:imageView];
-    
-    // 加载图片（原有代码）
     NSString *imageUrl = self.imageUrls[indexPath.item];
-    imageUrl = [imageUrl stringByReplacingOccurrencesOfString:@"http://" withString:@"https://"];
-    [imageView sd_setImageWithURL:[NSURL URLWithString:imageUrl]
-                  placeholderImage:[UIImage imageNamed:@"placeholder"]
-                         options:SDWebImageRetryFailed | SDWebImageLowPriority
-                        progress:nil
-                       completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-        if (error) {
-            imageView.image = [UIImage imageNamed:@"error"];
-        }
-        
-    }];
+    [cell configureWithImageUrl:imageUrl];
     
-    // 新增：勾选按钮（顶层视图）
-    UIButton *selectButton = [cell.contentView viewWithTag:100];
-    if (!selectButton) {
-        selectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        selectButton.tag = 100; // 避免被清除
-        selectButton.frame = CGRectMake(cell.contentView.bounds.size.width - 25, 5, 20, 20);
-        [selectButton setImage:[UIImage systemImageNamed:@"circle"] forState:UIControlStateNormal];
-        [selectButton setImage:[UIImage systemImageNamed:@"checkmark.circle.fill"] forState:UIControlStateSelected];
-        [selectButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateSelected];
-        [selectButton setTintColor:[UIColor whiteColor]];
-        [cell.contentView addSubview:selectButton];
-    }
-    // 更新勾选状态（根据当前url是否在选中集合中）
-    selectButton.selected = [self.selectedUrlSet containsObject:imageUrl];
-    if(selectButton.selected){
-        [selectButton setTintColor:[UIColor greenColor]];
-    }else{
-        [selectButton setTintColor:[UIColor whiteColor]];
-    }
-    [selectButton.superview bringSubviewToFront:selectButton];
-    
+    BOOL isSelected = [self.selectedUrlSet containsObject:imageUrl];
+    [cell setSelectedState:isSelected];
     
     return cell;
 }
@@ -349,52 +304,35 @@
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     [collectionView deselectItemAtIndexPath:indexPath animated:YES];
     
-    // 获取当前图片和url
-    UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
-    UIImageView *imageView = nil;
-    for (UIView *subview in cell.contentView.subviews) {
-        if ([subview isKindOfClass:[UIImageView class]]) {
-            imageView = (UIImageView *)subview;
-            break;
-        }
-    }
+    ImageGridCell *cell = (ImageGridCell *)[collectionView cellForItemAtIndexPath:indexPath];
     NSString *imageUrl = self.imageUrls[indexPath.item];
-    UIImage *selectedImage = imageView.image;
+    UIImage *selectedImage = cell.imageView.image;
     if (!selectedImage) return;
     ImageModel *model = [ImageModel modelWithImage:selectedImage url:imageUrl];
     
-    // 新增：切换选中状态
-    UIButton *selectButton = [cell.contentView viewWithTag:100];
     BOOL isSelected = [self.selectedUrlSet containsObject:imageUrl];
     
     if (isSelected) {
-        // 取消选中：从数组和集合中移除
         [self.selectedUrlSet removeObject:imageUrl];
         [self.selectedImages enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(ImageModel * _Nonnull model, NSUInteger idx, BOOL * _Nonnull stop) {
             if ([model.url isEqualToString:imageUrl]) {
                 [self.selectedImages removeObjectAtIndex:idx];
-                model.isSelected = NO; // 更新选中状态
+                model.isSelected = NO;
                 *stop = YES;
             }
         }];
-        selectButton.selected = NO;
-        [selectButton setTintColor:[UIColor whiteColor]];
+        [cell setSelectedState:NO];
         
     } else {
-        // 核心修改：区分 maxiMum == 1 和 maxiMum > 1 的逻辑
         if (self.maxiMum == 1) {
-            // 当 maxiMum == 1 时，自动取消之前的选择，切换到当前图片
             if (self.selectedImages.count > 0) {
-                // 1. 取出之前选中的模型和URL
                 ImageModel *previousModel = self.selectedImages.firstObject;
                 NSString *previousUrl = previousModel.url;
                 
-                // 2. 从集合和数组中移除之前的选择
                 [self.selectedUrlSet removeObject:previousUrl];
                 [self.selectedImages removeObject:previousModel];
                 previousModel.isSelected = NO;
                 
-                // 3. 找到之前选中的图片索引，刷新对应Cell（确保UI同步）
                 NSInteger previousIndex = [self.imageUrls indexOfObject:previousUrl];
                 if (previousIndex != NSNotFound) {
                     NSIndexPath *previousIndexPath = [NSIndexPath indexPathForItem:previousIndex inSection:0];
@@ -402,45 +340,35 @@
                 }
             }
             
-            // 4. 选择当前图片
             model.isSelected = YES;
             [self.selectedUrlSet addObject:imageUrl];
             [self.selectedImages addObject:model];
-            selectButton.selected = YES;
-            [selectButton setTintColor:[UIColor greenColor]];
+            [cell setSelectedState:YES];
             
         } else if (self.maxiMum > 0) {
-            // 当 maxiMum > 1 时，检查是否达到上限
             if (self.selectedImages.count >= self.maxiMum) {
                 [self showToast:[NSString stringWithFormat:@"最多只能选择%ld张图片", (long)self.maxiMum]];
-                return; // 超过限制，不执行后续选择逻辑
+                return;
             }
             
-            // 正常添加当前图片
             model.isSelected = YES;
             [self.selectedUrlSet addObject:imageUrl];
             [self.selectedImages addObject:model];
-            selectButton.selected = YES;
-            [selectButton setTintColor:[UIColor greenColor]];
+            [cell setSelectedState:YES];
             
         } else {
-            // 当 maxiMum == 0（无限制）时，直接添加
             model.isSelected = YES;
             [self.selectedUrlSet addObject:imageUrl];
             [self.selectedImages addObject:model];
-            selectButton.selected = YES;
-            [selectButton setTintColor:[UIColor greenColor]];
+            [cell setSelectedState:YES];
         }
     }
-    [selectButton.superview bringSubviewToFront:selectButton];
     
-    // 更新确认按钮标题（显示选中数量）
     [self.confirmButton setTitle:[NSString stringWithFormat:@"确认(%ld)", self.selectedImages.count] forState:UIControlStateNormal];
     UIBarButtonItem *confirmItem = [[UIBarButtonItem alloc] initWithCustomView:self.confirmButton];
     self.navigationItem.rightBarButtonItem = confirmItem;
     
-    // 选择时发送点击对象
-    BOOL newisSelected = [self.selectedUrlSet containsObject:imageUrl];//读取最新状态
+    BOOL newisSelected = [self.selectedUrlSet containsObject:imageUrl];
     NSLog(@"选择状态:%d imageUrl:%@  newisSelected:%@",newisSelected,imageUrl,selectedImage);
     if ([self.delegate respondsToSelector:@selector(imageGridSearch:didSelectImage:cell:)]) {
         [self.delegate imageGridSearch:self didSelectImage:model cell:cell];
@@ -456,7 +384,6 @@
     // 点击搜索按钮时请求数据
     [self fetchImageList:YES];
 }
-
 
 
 #pragma mark - UISearchResultsUpdating（带防抖）
@@ -519,14 +446,6 @@
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     CGFloat margin = 4;
     CGFloat itemWidth = (self.view.bounds.size.width - margin * (margin+1)) / margin;
-    
-    // 刷新所有单元格的勾选按钮位置
-    [self.collectionView.visibleCells enumerateObjectsUsingBlock:^(UICollectionViewCell * _Nonnull cell, NSUInteger idx, BOOL * _Nonnull stop) {
-        UIButton *selectButton = [cell.contentView viewWithTag:100];
-        selectButton.frame = CGRectMake(itemWidth - 25, 5, 20, 20);
-    }];
-   
-    
     return CGSizeMake(itemWidth, itemWidth);
 }
 

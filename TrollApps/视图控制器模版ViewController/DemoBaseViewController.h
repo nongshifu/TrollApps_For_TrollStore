@@ -7,7 +7,7 @@
 //
 
 #import "ZXNavigationBarController.h"
-#import "DemoBaseNavigationController.h"
+
 #import "config.h"
 
 #import <IGListKit/IGListKit.h>

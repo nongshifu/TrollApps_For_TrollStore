@@ -422,7 +422,7 @@
     }
     [UserModel getUserInfoWithUdid:udid success:^(UserModel * _Nonnull userModel) {
         if(userModel && userModel.udid.length>5){
-            [NewProfileViewController sharedInstance].userInfo = userModel;
+            
             self.userInfo = userModel;
             //刷新融云缓存
             [[loadData sharedInstance] refreshUserInfoCache:userModel];
@@ -561,7 +561,7 @@
         }];
         return;
     }
-    UserModel *userInfo = [[UserModel alloc] init];
+    UserModel *userInfo = self.userInfo;
     // 更新用户信息
     userInfo.nickname = self.nicknameTextField.text;
     userInfo.phone = self.phoneTextField.text;
@@ -735,6 +735,7 @@
         }];
         return;
     }
+    [self loadUserData];
 }
 
 

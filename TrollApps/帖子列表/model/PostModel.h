@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 /** 帖子状态 */
 typedef NS_ENUM(NSInteger, PostStatus) {
     PostStatusDraft = 0,        // 草稿
-    PostStatusPendingAudit = 1, // 待上传附件
+    PostStatusWaitingUploadAttachments = 1, // 待上传附件
     PostStatusPublished = 2,    // 已发布
     PostStatusRemoved = 3,      // 已下架
     PostStatusDeleted = 4       // 已删除
@@ -67,6 +67,8 @@ typedef NS_ENUM(NSInteger, PostSortType) {
 @property (nonatomic, copy) NSString *post_content;
 /// 图片URL数组（原图地址，如@[@"url1",@"url2"]）
 @property (nonatomic, strong) NSArray<NSString *> *post_images;
+/// 等待删除的图片URL数组（原图地址，如@[@"url1",@"url2"]）
+@property (nonatomic, strong) NSArray<NSString *> *deleted_images;
 /// 图片缩略图URL数组（优化加载，和post_images一一对应）
 @property (nonatomic, strong) NSArray<NSString *> *post_images_thumb;
 /// 视频URL（原视频地址）

@@ -7,9 +7,9 @@
 
 #import <Foundation/Foundation.h>
 #import <IGListKit/IGListKit.h>
+#import <YYModel/YYModel.h>
 #import "config.h"
 #import "UserModel.h"
-#import <YYModel/YYModel.h>
 NS_ASSUME_NONNULL_BEGIN
 
 typedef NS_ENUM(NSInteger, Action_type) {

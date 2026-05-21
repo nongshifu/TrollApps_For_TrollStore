@@ -40,6 +40,27 @@ PODS:
     - BRPickerView/Deprecated/Base
   - BRPickerView/TextPicker (2.9.9):
     - BRPickerView/Core
+  - FontAwesomeKit (2.2.1):
+    - FontAwesomeKit/Core (= 2.2.1)
+    - FontAwesomeKit/FontAwesome (= 2.2.1)
+    - FontAwesomeKit/FoundationIcons (= 2.2.1)
+    - FontAwesomeKit/IonIcons (= 2.2.1)
+    - FontAwesomeKit/Material (= 2.2.1)
+    - FontAwesomeKit/Octicons (= 2.2.1)
+    - FontAwesomeKit/Zocial (= 2.2.1)
+  - FontAwesomeKit/Core (2.2.1)
+  - FontAwesomeKit/FontAwesome (2.2.1):
+    - FontAwesomeKit/Core
+  - FontAwesomeKit/FoundationIcons (2.2.1):
+    - FontAwesomeKit/Core
+  - FontAwesomeKit/IonIcons (2.2.1):
+    - FontAwesomeKit/Core
+  - FontAwesomeKit/Material (2.2.1):
+    - FontAwesomeKit/Core
+  - FontAwesomeKit/Octicons (2.2.1):
+    - FontAwesomeKit/Core
+  - FontAwesomeKit/Zocial (2.2.1):
+    - FontAwesomeKit/Core
   - HWPanModal (0.9.9)
   - HXPhotoPickerObjC (3.3.4):
     - HXPhotoPickerObjC/Default (= 3.3.4)
@@ -76,6 +97,7 @@ PODS:
   - SDWebImage (5.21.7):
     - SDWebImage/Core (= 5.21.7)
   - SDWebImage/Core (5.21.7)
+  - SSZipArchive (2.4.3)
   - SVProgressHUD (2.3.1):
     - SVProgressHUD/Core (= 2.3.1)
   - SVProgressHUD/Core (2.3.1)
@@ -88,6 +110,7 @@ PODS:
 
 DEPENDENCIES:
   - BRPickerView
+  - FontAwesomeKit
   - HWPanModal (~> 0.9.4)
   - HXPhotoPickerObjC
   - HXPhotoPickerObjC/SDWebImage
@@ -98,6 +121,7 @@ DEPENDENCIES:
   - Masonry
   - MJRefresh
   - RongCloudIM/IMKit
+  - SSZipArchive
   - SVProgressHUD
   - YYCache
   - YYModel
@@ -108,6 +132,7 @@ SPEC REPOS:
   trunk:
     - AFNetworking
     - BRPickerView
+    - FontAwesomeKit
     - HWPanModal
     - HXPhotoPickerObjC
     - IGListDiffKit
@@ -118,6 +143,7 @@ SPEC REPOS:
     - MJRefresh
     - RongCloudIM
     - SDWebImage
+    - SSZipArchive
     - SVProgressHUD
     - YYCache
     - YYModel
@@ -127,6 +153,7 @@ SPEC REPOS:
 SPEC CHECKSUMS:
   AFNetworking: 3bd23d814e976cd148d7d44c3ab78017b744cd58
   BRPickerView: 84b2effb81f3b9ebd27f1d31de867ae0b37024f7
+  FontAwesomeKit: 3614979b3dbb0ec3f7fac1bd760b91f66c31db67
   HWPanModal: b57a6717d3cdcd666bff44f9dd2a5be9f4d6f5d2
   HXPhotoPickerObjC: ca01803a5f8d48a43a8283eec2a632cfb0386b37
   IGListDiffKit: 02d937d7e714d6f558771f284ed80668d483b522
@@ -137,12 +164,13 @@ SPEC CHECKSUMS:
   MJRefresh: ff9e531227924c84ce459338414550a05d2aea78
   RongCloudIM: 26e1b912d72d34c86508bc37b84d6315b30aca48
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  SSZipArchive: fe6a26b2a54d5a0890f2567b5cc6de5caa600aef
   SVProgressHUD: 4837c74bdfe2e51e8821c397825996a8d7de6e22
   YYCache: 8105b6638f5e849296c71f331ff83891a4942952
   YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
   ZXNavigationBar: a8ceb13fe37f9ca894cf6ae22d805cbdbb9ad6b1
 
-PODFILE CHECKSUM: 50c6358cdc54bd575837b6af2d6a93c2a8b4742d
+PODFILE CHECKSUM: 8fa72b4013cbf4dd4730b8f704290ef890c49f5b
 
 COCOAPODS: 1.16.2

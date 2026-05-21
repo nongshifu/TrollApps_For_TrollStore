@@ -7,7 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "DemoBaseViewController.h"
-#import "BaseBottomSheetVC.h"
 #import "AppPublishEditViewModel.h"
 #import "MediaItemModel.h"
 
@@ -43,8 +42,6 @@ typedef NS_ENUM(NSInteger, PublishEditMode) {
 /// 视图模型
 @property (nonatomic, strong, readonly) AppPublishEditViewModel *viewModel;
 
-/// 导航控制器（可选，用于自定义导航）
-@property (nonatomic, strong, nullable) UINavigationController *navigationController;
 
 /// 初始化为发布模式
 + (instancetype)publishViewController;

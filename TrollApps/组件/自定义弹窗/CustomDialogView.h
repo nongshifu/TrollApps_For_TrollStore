@@ -21,6 +21,21 @@ NS_ASSUME_NONNULL_BEGIN
           buttonTitle:(NSString *)buttonTitle
              bottomTip:(NSString *)bottomTip;
 
+/// 显示自定义弹窗（带闭包回调）
+/// @param title 标题文字
+/// @param subtitle 副标题文字
+/// @param buttonTitle 按钮文字
+/// @param bottomTip 按钮下方提示文字
+/// @param buttonAction 按钮点击回调
+/// @param bottomTipAction 底部提示点击回调
++ (void)showWithTitle:(NSString *)title
+             subtitle:(NSString *)subtitle
+          buttonTitle:(NSString *)buttonTitle
+             bottomTip:(NSString *)bottomTip
+         buttonAction:(void(^ __nullable)(void))buttonAction
+      bottomTipAction:(void(^ __nullable)(void))bottomTipAction;
+
+
 + (void)showDefault;
 
 @end

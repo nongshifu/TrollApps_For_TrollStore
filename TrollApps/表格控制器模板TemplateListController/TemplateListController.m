@@ -218,6 +218,7 @@
 - (void)refreshTable{
     [self refreshTableAnimated:YES];
 }
+
 - (void)refreshTableAnimated:(BOOL)animated {
     // 🔥 第一步：先结束刷新状态（必须放最前面）
     [self endRefreshing];

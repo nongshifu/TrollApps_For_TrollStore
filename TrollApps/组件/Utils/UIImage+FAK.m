@@ -16,7 +16,7 @@
 
 + (UIImage *)fak_imageWithIcon:(FAKIcon *)icon
                           color:(UIColor *)color {
-    CGFloat size = icon.iconSize ?: 30.0;
+    CGFloat size = icon.iconFontSize ?: 30.0;
     return [self fak_imageWithIcon:icon size:CGSizeMake(size, size) color:color];
 }
 
@@ -24,7 +24,7 @@
                           size:(CGSize)size
                          color:(UIColor *)color {
     [icon addAttribute:NSForegroundColorAttributeName value:color];
-    icon.iconSize = size.width;
+    icon.iconFontSize = size.width;
     return [icon imageWithSize:size];
 }
 

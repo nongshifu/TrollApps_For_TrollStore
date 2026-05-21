@@ -90,7 +90,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
     _isBatchEditing = NO;
     _isShowFavoriteList = NO;
     _searchCurrentDirectoryOnly = YES;
-    _currentSortType = 0;
+    _currentSortType = SortTypeName;
     _isSortAscending = YES;
     _fileList = [NSMutableArray array];
     _selectedFileList = [NSMutableArray array];
@@ -302,7 +302,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
 
 // 排序按钮点击处理
 - (void)handleSortButtonTap:(UIButton *)sender {
-    NSInteger newSortType = sender.tag;
+    FileSortType newSortType = sender.tag;
 
     if (self.currentSortType == newSortType) {
         self.isSortAscending = !self.isSortAscending;
@@ -1761,7 +1761,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
     if (self.fileList.count == 0) return;
     
     switch (self.currentSortType) {
-        case 0: { // 按文件名排序
+        case SortTypeName: { // 按文件名排序
             [self.fileList sortUsingComparator:^NSComparisonResult(FileModel *obj1, FileModel *obj2) {
                 // 文件夹优先
                 if (obj1.itemType == FileItemTypeFolder && obj2.itemType == FileItemTypeFile) return NSOrderedAscending;
@@ -1778,7 +1778,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
             break;
         }
             
-        case 1: { // 按类型排序
+        case SortTypeType: { // 按类型排序
             [self.fileList sortUsingComparator:^NSComparisonResult(FileModel *obj1, FileModel *obj2) {
                 // 文件夹优先
                 if (obj1.itemType == FileItemTypeFolder && obj2.itemType == FileItemTypeFile) return NSOrderedAscending;
@@ -1798,7 +1798,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
             break;
         }
             
-        case 2: { // 按日期排序（修改日期）
+        case SortTypeDate: { // 按日期排序（修改日期）
             [self.fileList sortUsingComparator:^NSComparisonResult(FileModel *obj1, FileModel *obj2) {
                 // 文件夹优先
                 if (obj1.itemType == FileItemTypeFolder && obj2.itemType == FileItemTypeFile) return NSOrderedAscending;
@@ -1816,7 +1816,7 @@ static NSString * const kCellIdentifier = @"FileListCell";
             break;
         }
             
-        case 3: { // 按大小排序
+        case SortTypeSize: { // 按大小排序
             [self.fileList sortUsingComparator:^NSComparisonResult(FileModel *obj1, FileModel *obj2) {
                 // 文件夹优先
                 if (obj1.itemType == FileItemTypeFolder && obj2.itemType == FileItemTypeFile) return NSOrderedAscending;

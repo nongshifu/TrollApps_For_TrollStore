@@ -17,6 +17,12 @@
 #import "PaymentManager.h"
 #import "ShowOneOrderViewController.h"
 #import "URLRouter.h"
+#import "AnnouncementManager.h"
+// 放在 PCH 最顶部
+#define DISABLE_FONTAWESOME_AUTO_REGISTRATION
+#define DISABLE_FOUNDATIONICONS_AUTO_REGISTRATION
+#define DISABLE_IONICONS_AUTO_REGISTRATION
+// 其他用到的字体集也加上
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -29,6 +35,18 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    // 关键：预注册用到的所有字体（防止懒加载崩溃）
+    [FAKFontAwesome iconFontWithSize:1];
+    [FAKFoundationIcons iconFontWithSize:1];
+    [FAKIonIcons iconFontWithSize:1];
+    
+    // 延迟一点时间显示公告，等界面完全加载
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        UIViewController *rootVC = self.window.rootViewController;
+        [[AnnouncementManager sharedManager] showAnnouncementIfNeededFromViewController:rootVC];
+    });
+    
+    
     // 检查启动参数中是否有文件URL（如通过文件导入启动）
     NSURL *launchURL = launchOptions[UIApplicationLaunchOptionsURLKey];
     if (launchURL) {
@@ -77,6 +95,35 @@
     [barButton setBackgroundImage:[UIImage new] forState:UIControlStateSelected style:UIBarButtonItemStylePlain barMetrics:UIBarMetricsDefault];
     // 清空背景偏移（避免残留空白）
     [barButton setBackgroundVerticalPositionAdjustment:0 forBarMetrics:UIBarMetricsDefault];
+    
+    // iOS 15+ 修复系统 UIBarButtonItem 的灰色背景问题
+    if (@available(iOS 15.0, *)) {
+        // 针对系统导航栏中的 UIButton 设置配置
+        UIButton *systemNavButtonAppearance = [UIButton appearanceWhenContainedInInstancesOfClasses:@[[UINavigationBar class]]];
+        UIButtonConfiguration *config = [UIButtonConfiguration plainButtonConfiguration];
+        config.background.backgroundColor = [UIColor clearColor];
+        config.background.cornerRadius = 0;
+        [systemNavButtonAppearance setConfiguration:config];
+    }
+    
+    // 3. 修复 ZXNavigationBar 按钮灰色背景问题（iOS 15+ UIButton 新配置系统导致）
+    // 使用 runtime 动态获取 ZXNavItemBtn 类并设置外观
+    Class zxNavItemBtnClass = NSClassFromString(@"ZXNavItemBtn");
+    if (zxNavItemBtnClass) {
+        UIButton *navItemBtnAppearance = [UIButton appearanceWhenContainedInInstancesOfClasses:@[zxNavItemBtnClass]];
+        [navItemBtnAppearance setBackgroundColor:[UIColor clearColor]];
+        [navItemBtnAppearance setBackgroundImage:nil forState:UIControlStateNormal];
+        [navItemBtnAppearance setBackgroundImage:nil forState:UIControlStateHighlighted];
+        [navItemBtnAppearance setBackgroundImage:nil forState:UIControlStateSelected];
+        
+        // iOS 15+ 新配置系统
+        if (@available(iOS 15.0, *)) {
+            UIButtonConfiguration *config = [UIButtonConfiguration plainButtonConfiguration];
+            config.background.backgroundColor = [UIColor clearColor];
+            config.background.cornerRadius = 0;
+            [navItemBtnAppearance setConfiguration:config];
+        }
+    }
 }
 
 #pragma mark - 融云相关

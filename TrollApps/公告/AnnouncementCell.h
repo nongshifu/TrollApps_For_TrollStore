@@ -7,6 +7,7 @@
 //
 
 #import "TemplateCell.h"
+#import "AnnouncementModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

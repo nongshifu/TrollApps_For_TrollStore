@@ -8,7 +8,11 @@
 
 #import "AnnouncementManager.h"
 #import "AnnouncementDetailViewController.h"
-
+#import "AnnouncementListViewController.h"
+#import "CustomDialogView.h"
+#import "NetworkClient.h"
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 @interface AnnouncementManager ()
 
 @property (nonatomic, strong) NSMutableDictionary *shownAnnouncements;
@@ -135,9 +139,10 @@ static NSString *const kLatestAnnouncementKey = @"AnnouncementManagerLatestAnnou
                 }
                 return;
             }
-            
-            AnnouncementModel *announcement = [AnnouncementModel yy_modelWithDictionary:data];
+            NSLog(@"读取最新激活公告：%@",data);
+            AnnouncementModel *announcement = [AnnouncementModel yy_modelWithDictionary:data[@"announcement"]];
             self.latestAnnouncement = announcement;
+            NSLog(@"广告弹窗模式：%ld",announcement.announcement_popup_mode);
             [self saveData];
             
             if (completion) {
@@ -180,18 +185,42 @@ static NSString *const kLatestAnnouncementKey = @"AnnouncementManagerLatestAnnou
 - (void)showAnnouncement:(AnnouncementModel *)announcement fromViewController:(UIViewController *)viewController {
     if (!announcement || !viewController) return;
     
+    [self markAnnouncementAsShown:announcement];
+    
+    __weak typeof(viewController) weakVC = viewController;
+    [CustomDialogView showWithTitle:announcement.announcement_title
+                           subtitle:announcement.announcement_content
+                        buttonTitle:@"查看详情"
+                           bottomTip:@"查看更多公告"
+                       buttonAction:^{
+                           [self showAnnouncementDetail:announcement fromViewController:weakVC];
+                       }
+                    bottomTipAction:^{
+                           [self showAnnouncementList:weakVC];
+                       }];
+}
+
+- (void)showAnnouncementDetail:(AnnouncementModel *)announcement fromViewController:(UIViewController *)viewController {
+    if (!announcement || !viewController) return;
+    
     AnnouncementDetailViewController *detailVC = [[AnnouncementDetailViewController alloc] init];
     detailVC.announcementUuid = announcement.announcement_uuid;
-    
-    // 根据弹窗模式决定是否可以关闭
-    BOOL canClose = (announcement.announcement_popup_mode != AnnouncementPopupModeForced);
     
     UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:detailVC];
     navVC.modalPresentationStyle = UIModalPresentationFormSheet;
     
-    [viewController presentViewController:navVC animated:YES completion:^{
-        [self markAnnouncementAsShown:announcement];
-    }];
+    [viewController presentViewController:navVC animated:YES completion:nil];
+}
+
+- (void)showAnnouncementList:(UIViewController *)viewController {
+    if (!viewController) return;
+    
+    AnnouncementListViewController *listVC = [[AnnouncementListViewController alloc] init];
+    
+    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:listVC];
+    navVC.modalPresentationStyle = UIModalPresentationFormSheet;
+    
+    [viewController presentViewController:navVC animated:YES completion:nil];
 }
 
 - (void)clearDisplayHistory {

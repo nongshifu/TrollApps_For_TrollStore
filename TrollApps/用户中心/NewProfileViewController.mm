@@ -13,7 +13,6 @@
 #import "MyCollectionViewController.h"
 #import "UserModel.h"
 #import <SVProgressHUD/SVProgressHUD.h>
-#import "PublishAppViewController.h"
 #import "VIPPackage.h"
 #import "VIPPackageCell.h"
 #import "TokenGenerator.h"
@@ -1390,7 +1389,6 @@
 - (void)loadVIPPackagesFromRemote {
     // 1. 构建请求URL（加时间戳防缓存）
     
-    [SVProgressHUD showWithStatus:@"加载套餐中..."];
     NSDictionary *dictionary = @{
         @"action":@"loadVIPPackages"
     };
@@ -1406,7 +1404,7 @@
 
             // 3. 严格解析JSON结构（status=success + data=数组）
             if (!jsonResult) {
-                [SVProgressHUD showErrorWithStatus:@"套餐数据格式错误"];
+                
                 return;
             }
 
@@ -1414,13 +1412,11 @@
             NSString * msg = jsonResult[@"msg"];
             NSArray *packagesArray = jsonResult[@"data"];
             if (code != 200) {
-                [SVProgressHUD showErrorWithStatus:@"套餐数据解析失败"];
+                
                 NSLog(@"vip.json解析失败，原始数据：%@", stringResult);
                 return;
             }
-            [SVProgressHUD showSuccessWithStatus:msg];
-            [SVProgressHUD dismissWithDelay:1];
-
+           
             // 4. 清空旧数据，解析新套餐
             [self.dataSource removeAllObjects];
             for (NSDictionary *packageDict in packagesArray) {
@@ -1439,8 +1435,7 @@
         });
     } failure:^(NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [SVProgressHUD dismiss];
-            [SVProgressHUD showErrorWithStatus:@"加载套餐失败（请检查网络）"];
+           
             // 失败时加载本地缓存
             [self loadLocalPackages];
         });

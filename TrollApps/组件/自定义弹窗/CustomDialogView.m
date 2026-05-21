@@ -1,9 +1,9 @@
 #import "CustomDialogView.h"
 // 定义默认文案常量（方便统一维护）
-#define kDefaultTitle @"对方已无法和您对话"
-#define kDefaultSubtitle @"亲爱的Souler，对方账号因多人标记，疑似性别作假，为维护您的私聊体验，已限制对方与您的聊天，感谢理解。"
+#define kDefaultTitle @"最新公告"
+#define kDefaultSubtitle @"点击查看公告详情"
 #define kDefaultButtonTitle @"我知道了"
-#define kDefaultBottomTip @"若您想要恢复对话，可点击申请>"
+#define kDefaultBottomTip @"全部公告>"
 
 @interface CustomDialogView ()
 
@@ -14,6 +14,8 @@
 @property (nonatomic, strong) UIButton *actionButton;
 @property (nonatomic, strong) UILabel *bottomTipLabel;
 @property (nonatomic, strong) UIButton *closeButton;
+@property (nonatomic, copy) void(^buttonAction)(void);
+@property (nonatomic, copy) void(^bottomTipAction)(void);
 @end
 
 @implementation CustomDialogView
@@ -106,13 +108,14 @@
     self.actionButton.layer.cornerRadius = actionButtonSize/2;
     [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.actionButton.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightMedium];
-    [self.actionButton addTarget:self action:@selector(dismiss) forControlEvents:UIControlEventTouchUpInside];
+    [self.actionButton addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
     [self.containerView addSubview:self.actionButton];
 
     // 底部提示（自适应颜色）
     self.bottomTipLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(self.actionButton.frame) + 10, containerW - 40, 20)];
     self.bottomTipLabel.textAlignment = NSTextAlignmentCenter;
     self.bottomTipLabel.font = [UIFont systemFontOfSize:12];
+    self.bottomTipLabel.userInteractionEnabled = YES;
     UIColor *tipColor = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
         if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
             return [UIColor colorWithRed:0.4 green:0.8 blue:1.0 alpha:1.0];
@@ -121,6 +124,8 @@
         }
     }];
     self.bottomTipLabel.textColor = tipColor;
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(bottomTipTapped:)];
+    [self.bottomTipLabel addGestureRecognizer:tapGesture];
     [self.containerView addSubview:self.bottomTipLabel];
     
     
@@ -167,6 +172,33 @@
     [CustomDialogView showWithTitle:nil subtitle:nil buttonTitle:nil bottomTip:nil];
 }
 
++ (void)showWithTitle:(NSString *)title subtitle:(NSString *)subtitle buttonTitle:(NSString *)buttonTitle bottomTip:(NSString *)bottomTip buttonAction:(void (^)(void))buttonAction bottomTipAction:(void (^)(void))bottomTipAction {
+    CustomDialogView *dialog = [[CustomDialogView alloc] init];
+    // 传入参数前先做nil判断，nil则替换为默认值
+    NSString *finalTitle = title ?: kDefaultTitle;
+    NSString *finalSubtitle = subtitle ?: kDefaultSubtitle;
+    NSString *finalButtonTitle = buttonTitle ?: kDefaultButtonTitle;
+    NSString *finalBottomTip = bottomTip ?: kDefaultBottomTip;
+    
+    [dialog setTitle:finalTitle subtitle:finalSubtitle buttonTitle:finalButtonTitle bottomTip:finalBottomTip];
+    dialog.buttonAction = buttonAction;
+    dialog.bottomTipAction = bottomTipAction;
+    [[UIApplication sharedApplication].keyWindow addSubview:dialog];
+}
+
+- (void)buttonTapped:(UIButton *)sender {
+    [self dismiss];
+    if (self.buttonAction) {
+        self.buttonAction();
+    }
+}
+
+- (void)bottomTipTapped:(UITapGestureRecognizer *)gesture {
+    [self dismiss];
+    if (self.bottomTipAction) {
+        self.bottomTipAction();
+    }
+}
 
 - (void)dismiss {
     [UIView animateWithDuration:0.2 animations:^{

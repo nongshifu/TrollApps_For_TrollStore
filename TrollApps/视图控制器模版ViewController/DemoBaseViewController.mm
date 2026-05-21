@@ -35,6 +35,7 @@
     self.zx_navBarBackgroundColor = [[UIColor systemBackgroundColor] colorWithAlphaComponent:0.96];
     self.zx_navTintColor = [UIColor labelColor];
     self.zx_navStatusBarStyle = ZXNavStatusBarStyleDefault;
+    
     self.zx_showNavHistoryStackContentView = YES;
     [self zx_setNavGradientBacFrom:[UIColor randomColorWithAlpha:0.3] to:[UIColor randomColorWithAlpha:0.3]];
     
@@ -295,8 +296,8 @@
     //先判断下系统
     if (@available(iOS 13.0, *)) {
         UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
-        appearance.backgroundImage = image;
-        appearance.shadowImage = [UIImage new];
+//        appearance.backgroundImage = image;
+//        appearance.shadowImage = [UIImage new];
         appearance.shadowColor = nil;
         
         self.navigationController.navigationBar.standardAppearance = appearance;
@@ -514,4 +515,7 @@
     NSUUID *vendorID = [UIDevice currentDevice].identifierForVendor;
     return vendorID ? [vendorID UUIDString] : [[NSUUID UUID] UUIDString];
 }
+
+
+
 @end

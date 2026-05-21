@@ -189,7 +189,8 @@
         self.nicknameLabel.text = userInfo.nickname ?: @"匿名用户"; // 默认显示匿名
         
         // 加载头像（这里用占位图示例，实际项目中可使用SDWebImage加载网络图片）
-        [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:userInfo.avatar] placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
+        
+        [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@?size=0.2&minw=100&minh=100",userInfo.avatar]] placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
         //用户在线
         if(userInfo.is_online){
             self.avatarImageView.layer.borderWidth = 2;

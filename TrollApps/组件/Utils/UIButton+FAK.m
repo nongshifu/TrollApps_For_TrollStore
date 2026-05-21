@@ -19,7 +19,7 @@
               color:(UIColor *)color {
     CGFloat size = self.titleLabel.font.pointSize * 1.5;
     [icon addAttribute:NSForegroundColorAttributeName value:color];
-    icon.iconSize = size;
+    icon.iconFontSize = size;
     UIImage *image = [icon imageWithSize:CGSizeMake(size, size)];
     [self setImage:image forState:state];
 }

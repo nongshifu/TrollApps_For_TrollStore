@@ -7,6 +7,8 @@
 
 #import "AppPublishEditViewModel.h"
 #import "config.h"
+#import "AppInfoModel.h"
+#import "AppDraftModel.h"
 #import "NetworkClient.h"
 #import <AVFoundation/AVFoundation.h>
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
@@ -41,6 +43,7 @@ NSString * const kAppPublishDraftKey = @"AppPublishDraft_v4";
     _isEditMode = NO;
     _editingAppId = nil;
     _currentVersionCode = 1;
+    _draftModel = [[AppDraftModel alloc] init];
     
     _appName = @"";
     _bundleId = @"";
@@ -128,32 +131,36 @@ NSString * const kAppPublishDraftKey = @"AppPublishDraft_v4";
 }
 
 - (void)parseAppInfoData:(NSDictionary *)appInfo {
+    NSLog(@"appInfo:%@",appInfo);
+    AppInfoModel *model = [AppInfoModel yy_modelWithDictionary:appInfo];
     // 基本信息
-    self.appName = appInfo[@"app_name"] ?: @"";
-    self.bundleId = appInfo[@"bundle_id"] ?: @"";
-    self.trackId = appInfo[@"track_id"] ?: @"0";
-    self.versionName = appInfo[@"version_name"] ?: @"1.0.0";
-    self.appType = [appInfo[@"app_type"] integerValue];
-    self.appDescription = appInfo[@"app_description"] ?: @"";
-    self.releaseNotes = appInfo[@"release_notes"] ?: @"";
-    self.appRmb = [NSString stringWithFormat:@"%@", appInfo[@"app_rmb"] ?: @"0"];
-    self.appStatus = [appInfo[@"app_status"] integerValue];
-    self.currentVersionCode = [appInfo[@"current_version_code"] integerValue];
+    self.appName = model.app_name ?: @"";
+    self.bundleId = model.bundle_id ?: @"";
+    self.trackId = model.track_id ?: @"0";
+    self.versionName = model.version_name ?: @"1.0.0";
+    self.appType = model.app_type;
+    self.appDescription = model.app_description ?: @"";
+    self.releaseNotes = model.release_notes ?: @"";
+    self.appRmb = [NSString stringWithFormat:@"%ld", (long)(model.app_rmb ?:0)];
+    self.appStatus = model.app_status;
+    self.currentVersionCode = model.current_version_code;
     
     // 图标
-    NSString *iconURL = appInfo[@"icon_url"];
+    NSString *iconURL = model.icon_url;
+    NSLog(@"iconURL:%@",iconURL);
     if (iconURL && iconURL.length > 0) {
         self.existingIconURL = [self fullURLWithPath:iconURL];
     }
-    
+    NSLog(@"self.existingIconURL:%@",self.existingIconURL);
     // 主文件
-    NSString *mainFileUrl = appInfo[@"mainFileUrl"];
-    if (mainFileUrl && mainFileUrl.length > 0) {
-        self.mainFileCloudURL = [self fullURLWithPath:mainFileUrl];
-        
+    NSString *mainFileUrl = model.mainFileUrl;
+    NSLog(@"mainFileUrl:%@",mainFileUrl);
+    if (mainFileUrl && mainFileUrl.length > 10) {
+        self.mainFileCloudURL = [self fullURLWithPath:mainFileUrl]?:@"";
+        NSLog(@"self.mainFileCloudURL:%@",self.mainFileCloudURL);
         // 从 AppInfo 中读取 is_cloud 属性
         if (appInfo[@"is_cloud"] != nil) {
-            self.isCloudMode = [appInfo[@"is_cloud"] boolValue];
+            self.isCloudMode = model.is_cloud;
         } else {
             // 如果没有 is_cloud 属性，默认是服务器文件 (非云端)
             self.isCloudMode = NO;
@@ -161,54 +168,50 @@ NSString * const kAppPublishDraftKey = @"AppPublishDraft_v4";
     }
     
     // 标签
-    NSArray *tags = appInfo[@"tags"];
-    if ([tags isKindOfClass:[NSArray class]]) {
+    NSArray *tags = model.tags;
+    if (tags) {
         [self.selectedTags removeAllObjects];
         [self.selectedTags addObjectsFromArray:tags];
     }
     
     // 媒体文件 (截图和视频)
     [self.mediaItems removeAllObjects];
-    NSArray *fileNames = appInfo[@"fileNames"];
-    if ([fileNames isKindOfClass:[NSArray class]]) {
-        NSString *savePath = appInfo[@"save_path"];
-        NSInteger appId = [appInfo[@"app_id"] integerValue];
+    for (NSString *fileURL in model.fileNames) {
+        // 先提取文件名
+        NSString *fileName = [fileURL lastPathComponent];
+        NSLog(@"fileName:%@",fileName);
+        // 跳过主文件和图标
+        if ([fileName containsString:MAIN_File_KEY] || [fileName containsString:ICON_KEY]) {
+            continue;
+        }
+        // 跳过视频缩略图(会在显示时单独处理)
+        if ([fileName containsString:@"_thumbnail_"]) {
+            continue;
+        }
         
-        for (NSString *fileURL in fileNames) {
-            // 先提取文件名
-            NSString *fileName = [fileURL lastPathComponent];
-            
-            // 跳过主文件和图标
-            if ([fileName containsString:MAIN_File_KEY] || [fileName containsString:ICON_KEY]) {
-                continue;
-            }
-            // 跳过视频缩略图(会在显示时单独处理)
-            if ([fileName containsString:@"_thumbnail_"]) {
-                continue;
-            }
-            
-            // 判断是图片还是视频
-            NSString *ext = [[fileName pathExtension] lowercaseString];
-            NSArray *videoExts = @[@"mp4", @"mov", @"m4v", @"avi", @"mkv"];
-            BOOL isVideo = [videoExts containsObject:ext];
-            
-            // 查找对应的缩略图
-            NSString *thumbnailURL = nil;
-            if (isVideo) {
-                // 查找缩略图文件
-                NSString *baseName = [fileName stringByDeletingPathExtension];
-                for (NSString *fnURL in fileNames) {
-                    NSString *fn = [fnURL lastPathComponent];
-                    if ([fn containsString:baseName] && [fn containsString:@"_thumbnail_"]) {
-                        thumbnailURL = fnURL;
-                        break;
-                    }
+        // 判断是图片还是视频
+        NSString *ext = [[fileName pathExtension] lowercaseString];
+        
+        NSLog(@"判断是图片还是视频ext:%@",ext);
+        NSArray *videoExts = @[@"mp4", @"mov", @"m4v", @"avi", @"mkv"];
+        BOOL isVideo = [videoExts containsObject:ext];
+        
+        // 查找对应的缩略图
+        NSString *thumbnailURL = nil;
+        if (isVideo) {
+            // 查找缩略图文件
+            NSString *baseName = [fileName stringByDeletingPathExtension];
+            for (NSString *fnURL in model.fileNames) {
+                NSString *fn = [fnURL lastPathComponent];
+                if ([fn containsString:baseName] && [fn containsString:@"_thumbnail_"]) {
+                    thumbnailURL = fnURL;
+                    break;
                 }
             }
-            
-            MediaItemModel *item = [MediaItemModel itemWithFileName:fileName fileURL:fileURL thumbnailURL:thumbnailURL isVideo:isVideo];
-            [self.mediaItems addObject:item];
         }
+        NSLog(@"thumbnailURL:%@",thumbnailURL);
+        MediaItemModel *item = [MediaItemModel itemWithFileName:fileName fileURL:fileURL thumbnailURL:thumbnailURL isVideo:isVideo];
+        [self.mediaItems addObject:item];
     }
 }
 
@@ -226,25 +229,23 @@ NSString * const kAppPublishDraftKey = @"AppPublishDraft_v4";
         return;
     }
     
-    NSMutableDictionary *draft = [NSMutableDictionary dictionary];
-    draft[@"appName"] = self.appName ?: @"";
-    draft[@"bundleId"] = self.bundleId ?: @"";
-    draft[@"trackId"] = self.trackId ?: @"";
-    draft[@"versionName"] = self.versionName ?: @"1.0.0";
-    draft[@"appType"] = @(self.appType);
-    draft[@"appDescription"] = self.appDescription ?: @"";
-    draft[@"releaseNotes"] = self.releaseNotes ?: @"";
-    draft[@"appRmb"] = self.appRmb ?: @"0";
-    draft[@"appStatus"] = @(self.appStatus);
-    draft[@"selectedTags"] = [self.selectedTags copy];
-    draft[@"isCloudMode"] = @(self.isCloudMode);
-    draft[@"mainFileCloudURL"] = self.mainFileCloudURL ?: @"";
-    draft[@"editingAppId"] = self.editingAppId ?: [NSNull null];
-    draft[@"currentVersionCode"] = @(self.currentVersionCode);
+    self.draftModel.appName = self.appName ?: @"";
+    self.draftModel.bundleId = self.bundleId ?: @"";
+    self.draftModel.trackId = self.trackId ?: @"";
+    self.draftModel.versionName = self.versionName ?: @"1.0.0";
+    self.draftModel.appType = self.appType;
+    self.draftModel.appDescription = self.appDescription ?: @"";
+    self.draftModel.releaseNotes = self.releaseNotes ?: @"";
+    self.draftModel.appRmb = self.appRmb ?: @"0";
+    self.draftModel.appStatus = self.appStatus;
+    self.draftModel.selectedTags = [self.selectedTags copy];
+    self.draftModel.isCloudMode = self.isCloudMode;
+    self.draftModel.mainFileCloudURL = self.mainFileCloudURL;
+    self.draftModel.editingAppId = self.editingAppId;
+    self.draftModel.currentVersionCode = self.currentVersionCode;
+    self.draftModel.saveTime = [[NSDate date] timeIntervalSince1970];
     
-    // 不再保存图标Base64（太大）和媒体文件信息
-    draft[@"saveTime"] = @([[NSDate date] timeIntervalSince1970]);
-    
+    NSDictionary *draft = [self.draftModel yy_modelToJSONObject];
     [[NSUserDefaults standardUserDefaults] setObject:draft forKey:kAppPublishDraftKey];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -255,30 +256,30 @@ NSString * const kAppPublishDraftKey = @"AppPublishDraft_v4";
         return NO;
     }
     
-    self.appName = draft[@"appName"] ?: @"";
-    self.bundleId = draft[@"bundleId"] ?: @"";
-    self.trackId = draft[@"trackId"] ?: @"";
-    self.versionName = draft[@"versionName"] ?: @"1.0.0";
-    self.appType = [draft[@"appType"] integerValue];
-    self.appDescription = draft[@"appDescription"] ?: @"";
-    self.releaseNotes = draft[@"releaseNotes"] ?: @"";
-    self.appRmb = draft[@"appRmb"] ?: @"0";
-    self.appStatus = [draft[@"appStatus"] integerValue];
-    self.isCloudMode = [draft[@"isCloudMode"] boolValue];
-    self.mainFileCloudURL = draft[@"mainFileCloudURL"];
+    self.draftModel = [AppDraftModel yy_modelWithDictionary:draft];
     
-    if (draft[@"editingAppId"] && ![draft[@"editingAppId"] isEqual:[NSNull null]]) {
-        self.editingAppId = draft[@"editingAppId"];
+    self.appName = self.draftModel.appName ?: @"";
+    self.bundleId = self.draftModel.bundleId ?: @"";
+    self.trackId = self.draftModel.trackId ?: @"";
+    self.versionName = self.draftModel.versionName ?: @"1.0.0";
+    self.appType = self.draftModel.appType;
+    self.appDescription = self.draftModel.appDescription ?: @"";
+    self.releaseNotes = self.draftModel.releaseNotes ?: @"";
+    self.appRmb = self.draftModel.appRmb ?: @"0";
+    self.appStatus = self.draftModel.appStatus;
+    self.isCloudMode = self.draftModel.isCloudMode;
+    self.mainFileCloudURL = self.draftModel.mainFileCloudURL;
+    
+    if (self.draftModel.editingAppId) {
+        self.editingAppId = self.draftModel.editingAppId;
         self.isEditMode = YES;
     } else {
         self.isEditMode = NO;
     }
-    self.currentVersionCode = [draft[@"currentVersionCode"] integerValue];
+    self.currentVersionCode = self.draftModel.currentVersionCode;
     
     [self.selectedTags removeAllObjects];
-    [self.selectedTags addObjectsFromArray:draft[@"selectedTags"] ?: @[]];
-    
-    // 不再恢复图标和媒体文件（太大，改为只保存基础文本信息）
+    [self.selectedTags addObjectsFromArray:self.draftModel.selectedTags ?: @[]];
     
     return YES;
 }

@@ -7,6 +7,8 @@
 //
 
 #import "TemplateListController.h"
+#import "AnnouncementCell.h"
+#import "AnnouncementModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

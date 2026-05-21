@@ -9,7 +9,7 @@
 
 #ifndef FAKExtensions_h
 #define FAKExtensions_h
-
+#import "FAKIconNames.h"
 #import "UIView+FAK.h"
 #import "UIImage+FAK.h"
 #import "UIImageView+FAK.h"

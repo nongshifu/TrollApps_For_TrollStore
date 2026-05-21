@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "AppInfoModel.h"
+#import "AppDraftModel.h"
 #import "MediaItemModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -18,6 +19,9 @@ extern NSString * const kAppPublishDraftKey; // 草稿存储Key
 
 /// 单例访问
 + (instancetype)sharedInstance;
+
+/// 草稿模型（用于保存和加载）
+@property (nonatomic, strong) AppDraftModel *draftModel;
 
 /// 是否是编辑模式
 @property (nonatomic, assign) BOOL isEditMode;

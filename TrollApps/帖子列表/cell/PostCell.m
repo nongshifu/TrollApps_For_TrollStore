@@ -395,8 +395,8 @@
             statusText = @"草稿";
             statusBgColor = [UIColor grayColor];
             break;
-        case PostStatusPendingAudit:
-            statusText = @"待审核";
+        case     PostStatusWaitingUploadAttachments:
+            statusText = @"待上传附件";
             statusBgColor = [UIColor orangeColor];
             break;
         case PostStatusPublished:
@@ -429,13 +429,10 @@
 - (void)setupAuthorAvatarViewWithModel:(PostModel *)model {
     NSLog(@"用户头像:%@",model.author_avatar);
     if(model.author_avatar){
-        [self.authorAvatarView sd_setImageWithURL:[NSURL URLWithString:model.author_avatar]
+        
+        
+        [self.authorAvatarView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@?size=0.2&minw=100&minh=100",model.author_avatar]] placeholderImage:[UIImage systemImageNamed:@"person.circle"]
                                         completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if(image){
-                self.authorAvatarView.image = image;
-            }
-        }];
-        [self.authorAvatarView sd_setImageWithURL:[NSURL URLWithString:model.author_avatar] placeholderImage:[UIImage systemImageNamed:@"person.circle"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
             if(image){
                 self.authorAvatarView.image = image;
                 self.authorAvatarView.layer.cornerRadius = kAvatarWidth/2;
@@ -528,6 +525,7 @@
         return [NSString stringWithFormat:@"%.2fW", count / 10000.0];
     }
 }
+
 #pragma mark - 工具方法
 - (BOOL)isValidURL:(NSString *)urlStr {
     if (!urlStr || urlStr.length == 0) return NO;
@@ -697,8 +695,7 @@
 
 #pragma mark - 头像点击
 - (void)authorAvatarViewTap:(UITapGestureRecognizer *)tapGesture{
-    NSString *my_udid = [NewProfileViewController sharedInstance].userInfo.udid;
-    BOOL  role = [NewProfileViewController sharedInstance].userInfo.role == 1;
+ 
     NSLog(@"点击了头像udid:%@",self.postModel.user_model.udid);
     UIViewController *topVc = [self getTopViewController];
     if([topVc isKindOfClass:[UserProfileViewController class]]) return;
@@ -710,6 +707,7 @@
 
 #pragma mark - 状态按钮配置
 - (void)setupStatusButtonWithModel:(PostModel *)model {
+    
     NSString *statusText = @"";
     UIColor *statusBgColor = [UIColor lightGrayColor];
     
@@ -718,15 +716,15 @@
             statusText = @"草稿";
             statusBgColor = [UIColor grayColor];
             break;
-        case PostStatusPendingAudit:
-            statusText = @"待审核";
+        case     PostStatusWaitingUploadAttachments:
+            statusText = @"待上传附件";
             statusBgColor = [UIColor orangeColor];
             break;
         case PostStatusPublished:
             statusText = @"已发布";
             if (model.post_audit_status == PostAuditStatusApproved) {
                 statusText = @"已发布";
-                statusBgColor = [UIColor greenColor];
+                statusBgColor = [UIColor blueColor];
             } else if (model.post_audit_status == PostAuditStatusRejected) {
                 statusText = @"审核驳回";
                 statusBgColor = [UIColor redColor];
@@ -1109,17 +1107,6 @@
     [[self getTopViewController] presentViewController:nc animated:YES completion:nil];
     
 }
-
-#pragma mark - 辅助方法
-// 获取顶层视图控制器
-- (UIViewController *)getTopViewController {
-    UIViewController *topVC = [UIApplication sharedApplication].keyWindow.rootViewController;
-    while (topVC.presentedViewController) {
-        topVC = topVC.presentedViewController;
-    }
-    return topVC;
-}
-
 
 #pragma mark - 网络请求：更新帖子
 - (void)updatePostWithCompletion:(void(^)(BOOL success))completion {

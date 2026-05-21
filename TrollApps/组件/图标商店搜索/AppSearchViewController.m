@@ -101,7 +101,7 @@
                                                       target:self
                                                       action:@selector(countryButtonTapped)];
     self.countryItem.tintColor = [UIColor labelColor];
-    self.navigationItem.rightBarButtonItem = self.countryItem;
+    
     
     // 关闭按钮
     UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithTitle:@"关闭"
@@ -109,13 +109,8 @@
                                                                       target:self
                                                                       action:@selector(dismiss)];
     closeButton.tintColor = [UIColor labelColor];
-    
-    // 关键：禁用系统默认的返回按钮
-    self.navigationItem.leftItemsSupplementBackButton = NO; // 禁用补充模式
-    self.navigationItem.hidesBackButton = YES; // 隐藏系统返回按钮
-    
     // 设置自定义左侧按钮
-    self.navigationItem.leftBarButtonItem = closeButton;
+    self.navigationItem.rightBarButtonItems = @[closeButton,self.countryItem];
 }
 
 #pragma mark - 初始化表格

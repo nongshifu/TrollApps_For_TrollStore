@@ -11,12 +11,12 @@
 #import "AppInfoModel.h"
 #import "CommentModel.h"
 #import "NewProfileViewController.h"
-#import "PublishAppViewController.h"
 #import "AppCommentCell.h"
 #import "TipBarCell.h"
 #import "CommentInputView.h"
 #import "CommentModel.h"
 #import "ContactHelper.h"
+#import "AppPublishEditViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED YES // .M当前文件单独启用
@@ -173,10 +173,17 @@
 //左上角更新按钮
 - (void)updateApp:(UIButton *)button {
     NSLog(@"点击更新按钮 准备更新软件:%@",self.appInfo.app_name);
-    PublishAppViewController *vc = [PublishAppViewController new];
-    vc.category = CategoryTypeUpdate;
-    vc.app_info = self.appInfo;
-    [self presentPanModal:vc];
+    [self dismissViewControllerAnimated:YES completion:^{
+        AppPublishEditViewController *publishVC = [AppPublishEditViewController editViewControllerWithAppId:self.appInfo.app_id];
+        publishVC.title = @"更新软件";
+        
+        UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:publishVC];
+        [[[UIView new] getTopViewController] presentViewController:navVC animated:YES completion:nil];
+    }];
+    
+   
+    
+    
 }
 
 //左上角状态按钮
@@ -236,7 +243,7 @@
                 return;
             }
             NSInteger code = [jsonResult[@"code"] intValue];
-            NSInteger new_status = [jsonResult[@"new_status"] intValue];
+            AppStatus new_status = (AppStatus)[jsonResult[@"new_status"] intValue];
             NSString *msg = jsonResult[@"msg"];
             if(code == 200){
                 
@@ -371,14 +378,15 @@
             
             if(code == 200){
                 NSDictionary *data = jsonResult[@"data"];
-                NSLog(@"请求查看帖子成功，返回数据: %@", data);
+                NSLog(@"请求查看APP成功，返回数据: %@", data);
                 
                 // ==========================
                 // 解析应用信息（安全版）
                 // ==========================
                 NSDictionary *appInfoDic = data[@"appInfo"];
-                self.appInfo = [AppInfoModel yy_modelWithDictionary:appInfoDic];
                 
+                self.appInfo = [AppInfoModel yy_modelWithDictionary:appInfoDic];
+                NSLog(@"请求查看APP成功Files，返回数据: %@", self.appInfo.fileNames);
                 if (self.appInfo && self.appInfo.app_name) {
                     self.appInfo.isShowAll = YES;
                     
@@ -423,7 +431,7 @@
                 if(!self.tipBarModel){
                     NSString *url = @"https://img2.baidu.com/it/u=4010382319,3987420383&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256";
                     if(self.appInfo.userModel.avatar.length>0 && [self.appInfo.userModel.avatar containsString:@"http"]){
-                        url = self.appInfo.userModel.avatar;
+                        url = [NSString stringWithFormat:@"%@?size=0.2&minw=100&minh=100",self.appInfo.userModel.avatar];
                     }
                     self.tipBarModel = [[TipBarModel alloc] initWithIconURL:url tipText:tipMsg leftButtonText:@"New" rightButtonText:@"Hot"];
                     

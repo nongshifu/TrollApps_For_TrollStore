@@ -366,14 +366,13 @@
     // 设置应用图标
     NSLog(@"iconURL:%@",appInfo.icon_url);
     
-    [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:appInfo.icon_url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+    [self.appIconImageView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@?size=0.2&minw=100&minh=100",appInfo.icon_url]] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
         if(image){
             self.appIconImageView.image = image;
         }
     }];
     NSLog(@"附件列表:%@",self.appInfoModel.fileNames);
-    // 根据应用状态调整下载按钮
-    [self updateDownloadButtonForAppStatus:appInfo.app_status];
+    
     
     // 设置应用名称
     self.appNameLabel.text = appInfo.app_name;
@@ -382,6 +381,9 @@
     NSString *downloadButtonTitle = @"下载";
     if(appInfo.hasPurchased || appInfo.app_rmb == 0){
         downloadButtonTitle = @"下载";
+        if(appInfo.is_cloud){
+            downloadButtonTitle = @"网盘下载";
+        }
         self.downloadButton.backgroundColor = [UIColor systemBlueColor];
     }else{
         downloadButtonTitle = @"购买";
@@ -430,44 +432,55 @@
     //视频图片
     [self configureFilesWithAppInfo:appInfo];
     
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
+    // 根据应用状态调整下载按钮
+    [self updateDownloadButtonForAppStatus:appInfo.app_status];
+//    
+//    [self setNeedsLayout];
+//    [self layoutIfNeeded];
     
 }
 
 // 根据应用状态调整下载按钮
-- (void)updateDownloadButtonForAppStatus:(NSInteger)status {
+- (void)updateDownloadButtonForAppStatus:(AppStatus)status {
     //软件状态：状态（0正常，1失效 2更新中 3锁定 4上传中 5隐藏）
     switch (status) {
-        case 0: // 正常
+        case AppStatusNormal:{
+            // 正常
             [self.downloadButton setTitle:@"下载" forState:UIControlStateNormal];
-            self.downloadButton.backgroundColor = [UIColor systemBlueColor];
+            if(self.appInfoModel.is_cloud){
+                [self.downloadButton setTitle:@"云盘下载" forState:UIControlStateNormal];
+            }
+                self.downloadButton.backgroundColor = [UIColor systemBlueColor];
             if(self.appInfoModel.download_count > 100){
                 [self.downloadButton setTitle:@"🔥 下载" forState:UIControlStateNormal];
+                if(self.appInfoModel.is_cloud){
+                    [self.downloadButton setTitle:@"🔥 云盘下载" forState:UIControlStateNormal];
+                }
             }
+        }
             break;
-        case 1: // 失效
+        case AppStatusInvalid: // 失效
             [self.downloadButton setTitle:@"失效" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.3];
             break;
-        case 2: // 更新中
+        case AppStatusUpdating: // 更新中
             [self.downloadButton setTitle:@"更新中" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor systemOrangeColor];
             break;
-        case 3: // 锁定禁止下载
+        case AppStatusLocked: // 锁定禁止下载
             [self.downloadButton setTitle:@"禁止下载" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor systemRedColor];
             break;
-        case 4: // 正常
-            [self.downloadButton setTitle:@"上传中" forState:UIControlStateNormal];
+        case AppStatusUploading: // 锁定
+            [self.downloadButton setTitle:@"锁定" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor purpleColor];
             break;
-        case 5: // 隐藏
+        case AppStatusHidden: // 隐藏
             [self.downloadButton setTitle:@"作者隐藏" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor blackColor];
             break;
         default:
-            [self.downloadButton setTitle:@"其他" forState:UIControlStateNormal];
+            [self.downloadButton setTitle:@"已删除" forState:UIControlStateNormal];
             self.downloadButton.backgroundColor = [UIColor systemGrayColor];
             break;
     }
@@ -605,7 +618,7 @@
 - (void)configureFilesWithAppInfo:(AppInfoModel *)appInfo{
     //图片视频
     NSLog(@"AppInfoModel.fileNames:%@",self.appInfoModel.fileNames);
-    if(self.appInfoModel.fileNames.count>1 && self.appInfoModel.isShowAll){
+    if(self.appInfoModel.fileNames.count>0 && self.appInfoModel.isShowAll){
         [self addAssModelToManagerWith:self.appInfoModel.fileNames];
         [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.statsMiniButtonView.mas_bottom).offset(8);
@@ -703,13 +716,13 @@
     }
     
     // 查看详情可以催更
-    if(self.appInfoModel.app_status != 0 && self.appInfoModel.isShowAll) {
+    if(self.appInfoModel.app_status != AppStatusNormal && self.appInfoModel.isShowAll) {
         [[ContactHelper shared] showContactActionSheetWithUserInfo:self.appInfoModel.userModel title:@"联系作者催更"];
         return;
     }
     
     //列表模式 跳过 不显示
-    if(self.appInfoModel.app_status != 0) {
+    if(self.appInfoModel.app_status != AppStatusNormal) {
         [self showAlertWithConfirmationFromViewController:[self getTopViewController] title:button.titleLabel.text message:@"可查看详情\n点击电话图标催更" confirmTitle:@"查看" cancelTitle:@"关闭" onConfirmed:^{
             ShowOneAppViewController *vc = [ShowOneAppViewController new];
             vc.appInfo = self.appInfoModel;
@@ -1371,36 +1384,17 @@
 
 - (void)addAssModelToManagerWith:(NSArray<NSString *> *)appFileModels {
     Demo9Model *models =[[HXPhotoURLConverter alloc] getAssetModels:appFileModels];
-    self.manager = [[HXPhotoURLConverter alloc] getManager:models];
-    
-    NSLog(@"最后:%@",appFileModels);
     // 计算文件媒体数量
-    NSInteger count = 0;
-    // 5. 校验文件格式
-    NSSet *allowedFileTypes = [NSSet setWithObjects:
-                               // 图片格式
-                               @"jpg", @"jpeg", @"png", @"gif", @"bmp", @"heic", @"heif",
-                               // 视频格式
-                               //                               @"mp4", @"mov", @"avi", @"m4v", @"mpg", @"mpeg", @"flv", @"wmv",
-                               // 其他指定格式
-                               //                               @"ipa", @"tipa", @"zip", @"js", @"html", @"json", @"deb", @"sh",
-                               nil];
+    NSInteger count = models.customAssetModels.count;
     
-    for (NSString *file in appFileModels) {
-        NSLog(@"媒体文件:%@",file);
-        //排除头像 缩略图 和主程序文件
-        if ([file containsString:@"thumbnail"] || [file containsString:ICON_KEY]  || [file containsString:MAIN_File_KEY]) {
-            continue;
-        }
-        NSURL *url= [NSURL URLWithString:file];
-        NSString *fileType = [url pathExtension].lowercaseString;
-        //排除非图片视频文件
-        if (![allowedFileTypes containsObject:fileType]) {
-            continue;
-        }
-        //最后排除图标和缩略图 得到剩下
-        count++;
-    }
+    
+    
+    if(models.customAssetModels.count == 0 )return;
+    self.manager = [[HXPhotoURLConverter alloc] getManager:models];
+    self.manager.configuration.photoCanEdit = NO;
+    self.manager.configuration.videoCanEdit = NO;
+    NSLog(@"最后:%@",models.customAssetModels);
+    
     
     NSLog(@"排除后的媒体数量:%ld",count);
     if(count ==0) return;
@@ -1421,43 +1415,37 @@
     }else{
         totalHeight = cellWidth *4 +9;
     }
-    
-//    [self.photoView removeFromSuperview];
-//    self.photoView = nil;
-    
-    //照片选择器
-    // 只在 photoView 为 nil 时创建
-    if (!self.photoView) {
-        self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectZero manager:self.manager];
-        // ... 一次性配置固定属性（cornerRadius、delegate 等）...
-        [self.imageStackView addSubview:self.photoView];
-        // ... 只做一次的约束（比如 left/top/right）...
-    }
-    
-//    self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectMake(0, 0, maxWidth, totalHeight) manager:self.manager];
-    self.photoView.frame = CGRectMake(0, 0, maxWidth, totalHeight);
-    self.photoView.delegate = self;
-    self.photoView.layer.cornerRadius = 10;
-    self.photoView.layer.masksToBounds = YES;
-    self.photoView.outerCamera = YES;
-    self.photoView.alpha = 1;
-    self.photoView.showAddCell = NO;
-    self.photoView.hideDeleteButton = YES;
-    self.photoView.layer.borderWidth = 0.5;
-    self.photoView.layer.borderColor = [UIColor quaternaryLabelColor].CGColor;
-    self.photoView.backgroundColor = [UIColor clearColor];
-    [self.photoView setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
-    
-    // 刷新视图
-    [self.photoView refreshView];
-    
-//    [self.imageStackView addSubview:self.photoView];
+
+   
     
     // 图片容器
     [self.imageStackView mas_updateConstraints:^(MASConstraintMaker *make) {
         make.width.equalTo(@(maxWidth));
         make.height.equalTo(@(totalHeight));
     }];
+    
+    if (!self.photoView) {
+        self.photoView = [[HXPhotoView alloc] initWithFrame:CGRectZero manager:self.manager];
+        self.photoView.delegate = self;
+        self.photoView.layer.cornerRadius = 10;
+        self.photoView.layer.masksToBounds = YES;
+        self.photoView.outerCamera = YES;
+        self.photoView.alpha = 1;
+        self.photoView.showAddCell = NO;
+        self.photoView.hideDeleteButton = YES;
+        self.photoView.layer.borderWidth = 0.5;
+        self.photoView.layer.borderColor = [UIColor quaternaryLabelColor].CGColor;
+        self.photoView.backgroundColor = [UIColor clearColor];
+        [self.imageStackView addSubview:self.photoView];
+        
+    }
+
+    self.photoView.frame = CGRectMake(0, 0, maxWidth, totalHeight);
+    
+    [self.photoView setRandomGradientBackgroundWithColorCount:3 alpha:0.1];
+    
+    // 刷新视图
+    [self.photoView refreshView];
     
 }
 

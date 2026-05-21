@@ -13,7 +13,7 @@
 #import "SystemViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
-#define MY_NSLog_ENABLED NO // .M当前文件单独启用
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
 
 @implementation loadData
 
@@ -201,6 +201,10 @@
 
 /// 从远程加载套餐数据
 - (void)loadVIPPackagesFromRemote {
+    // 格式化日期为时间戳或ISO格式
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyyMMddHHmmss"];
+    
     
     NSDictionary *dictionary = @{
         @"action":@"loadVIPPackages"

@@ -27,7 +27,7 @@
                size:(CGSize)size
               color:(UIColor *)color {
     [icon addAttribute:NSForegroundColorAttributeName value:color];
-    icon.iconSize = size.width;
+    icon.iconFontSize = size.width;
     self.image = [icon imageWithSize:size];
 }
 

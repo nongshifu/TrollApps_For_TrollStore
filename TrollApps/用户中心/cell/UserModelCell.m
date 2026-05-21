@@ -327,7 +327,8 @@ static UIImage *imageWithColor(UIColor *color) {
         self.avatarImageView.image = model.avatarImage;
     }
     if (model.avatar.length > 0) {
-        [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:model.avatar]
+        
+        [self.avatarImageView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@?size=0.2&minw=100&minh=100",model.avatar]]
                               placeholderImage:[UIImage systemImageNamed:@"person.circle.fill"]];
     } else {
         self.avatarImageView.image = [UIImage systemImageNamed:@"person.circle.fill"];

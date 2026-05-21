@@ -747,6 +747,7 @@
     self.userInfo = userModel;
     //设置页面udid
     _user_udid = self.userInfo.udid;
+    _user_id = self.userInfo.user_id;
     NSString *userDic = [userModel yy_modelToJSONString];
     NSLog(@"userDic:%@",userDic);
     
@@ -1054,7 +1055,7 @@
     // 构建请求参数（根据实际接口调整）
     NSDictionary *params = @{
         @"action": @"user_comment",
-        @"to_id": self.user_udid,
+        @"to_id": @(self.user_id),
         @"action_type": @(Comment_type_UserComment),
         @"content": commentContent,
         

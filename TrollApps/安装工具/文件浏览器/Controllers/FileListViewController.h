@@ -105,7 +105,7 @@
 @property (nonatomic, assign) BOOL searchCurrentDirectoryOnly;
 
 /// 当前排序类型（0:名称 1:类型 2:日期 3:大小）
-@property (nonatomic, assign) NSInteger currentSortType;
+@property (nonatomic, assign) FileSortType currentSortType;
 
 /// 是否升序排列
 @property (nonatomic, assign) BOOL isSortAscending;

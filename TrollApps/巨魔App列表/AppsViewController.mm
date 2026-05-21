@@ -10,7 +10,6 @@
 #import "CategoryManagerViewController.h"
 #import "MyFavoritesListViewController.h"
 #import "ShowOneAppViewController.h"
-#import "PublishAppViewController.h"
 #import "AppSearchViewController.h"
 #import "NewProfileViewController.h"
 #import "DownloadManagerViewController.h"
@@ -21,6 +20,9 @@
 #import "AppVersionHistoryViewController.h"
 #include <dlfcn.h>
 #import "AppListViewController.h"
+#import "AnnouncementDetailViewController.h"
+#import "AnnouncementListViewController.h"
+#import "FileListViewController.h"
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED NO // .M当前文件单独启用
@@ -277,11 +279,15 @@
 
     //设置左侧按钮
     [self zx_setLeftBtnWithImg:avatarImage clickedBlock:^(ZXNavItemBtn * _Nonnull btn) {
-        UserProfileViewController *vc = [UserProfileViewController new];
+//        UserProfileViewController *vc = [UserProfileViewController new];
+//        
+//        vc.user_udid = [loadData sharedInstance].userModel.udid;
+//        
+//        [self presentPanModal:vc];
+        AnnouncementListViewController *vc = [AnnouncementListViewController new];
+        UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:vc];
+        [self presentViewController:nc animated:YES completion:nil];
         
-        vc.user_udid = [loadData sharedInstance].userModel.udid;
-        
-        [self presentPanModal:vc];
     }];
 
 
@@ -893,7 +899,7 @@
     }else if(tag ==2){
      
         // 2. 初始化文件浏览器（不需要再包裹导航控制器，利用当前的导航栈）
-        SandboxFileBrowserVC *browser = [SandboxFileBrowserVC browserWithDefaultPath];
+        FileListViewController *browser = [[FileListViewController alloc] init];
         UINavigationController *nv = [[UINavigationController alloc] initWithRootViewController:browser];
         // 3. 🔥 关键：导航 push 跳转（替换原来的 present）
         [self.navigationController presentViewController:nv animated:YES completion:nil];

@@ -318,9 +318,7 @@ typedef NS_ENUM(NSInteger, ImageSourceType) {
 @property (nonatomic, strong) UITextField *mainFileURLField;
 @property (nonatomic, strong) UIButton *selectFileButton;
 @property (nonatomic, strong) UILabel *existingFileLabel;
-@property (nonatomic, strong) UIView *loadingOverlay;
-@property (nonatomic, strong) UIActivityIndicatorView *loadingIndicator;
-@property (nonatomic, strong) UILabel *progressLabel;
+
 @property (nonatomic, assign) ImageSourceType currentImageSourceType;
 @property (nonatomic, strong) UIImageView *iconImageView;
 @property (nonatomic, strong, readwrite) AppPublishEditViewModel *viewModel;
@@ -551,7 +549,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     
     // 保存原始的 scrollView insets
     _originalContentInset = _scrollView.contentInset;
-    _originalScrollIndicatorInsets = _scrollView.scrollIndicatorInsets;
+    _originalScrollIndicatorInsets = _scrollView.horizontalScrollIndicatorInsets;
     
     // 添加键盘通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
@@ -560,6 +558,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     [self.view setNeedsLayout];
     [self.view layoutIfNeeded];
 }
+
 //禁用键盘遮挡动画
 - (BOOL)isAutoHandleKeyboardEnabled{
     return NO;
@@ -608,9 +607,9 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     newOffsetY = MAX(newOffsetY, 0);
     
     [UIView animateWithDuration:duration delay:0 options:curve << 16 animations:^{
-        _scrollView.contentInset = contentInset;
-        _scrollView.scrollIndicatorInsets = scrollIndicatorInsets;
-        _scrollView.contentOffset = CGPointMake(_scrollView.contentOffset.x, newOffsetY);
+        self.scrollView.contentInset = contentInset;
+        self.scrollView.scrollIndicatorInsets = scrollIndicatorInsets;
+        self.scrollView.contentOffset = CGPointMake(self.scrollView.contentOffset.x, newOffsetY);
     } completion:nil];
 }
 
@@ -620,8 +619,8 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     UIViewAnimationCurve curve = [userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue];
     
     [UIView animateWithDuration:duration delay:0 options:curve << 16 animations:^{
-        _scrollView.contentInset = _originalContentInset;
-        _scrollView.scrollIndicatorInsets = _originalScrollIndicatorInsets;
+        self.scrollView.contentInset = self.originalContentInset;
+        self.scrollView.scrollIndicatorInsets = self.originalContentInset;
     } completion:nil];
     
     _currentFirstResponder = nil;
@@ -652,20 +651,20 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     self.title = _viewModel.isEditMode ? @"编辑应用" : @"发布应用";
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     
+    // 编辑模式：取消按钮 + 草稿按钮
+//    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelTapped)];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemClose target:self action:@selector(cancelTapped)];
+    
     // 左侧第二个按钮：草稿操作
     UIBarButtonItem *draftButton = [[UIBarButtonItem alloc] initWithTitle:@"草稿" style:UIBarButtonItemStylePlain target:self action:@selector(draftButtonTapped)];
     draftButton.tintColor = [UIColor systemOrangeColor];
     
-    if (_viewModel.isEditMode) {
-        // 编辑模式：取消按钮 + 草稿按钮
-        UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelTapped)];
-        self.navigationItem.leftBarButtonItems = @[cancelButton, draftButton];
-    } else {
-        // 发布模式：草稿按钮 + 右侧发布按钮
-        self.navigationItem.leftBarButtonItem = draftButton;
-    }
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:_viewModel.isEditMode ? @"更新" : @"发布" style:UIBarButtonItemStyleDone target:self action:@selector(submitTapped)];
+    self.navigationItem.leftBarButtonItems = @[cancelButton,draftButton];
+    
+    UIBarButtonItem *submitButton = [[UIBarButtonItem alloc] initWithTitle:_viewModel.isEditMode ? @"更新" : @"发布" style:UIBarButtonItemStyleDone target:self action:@selector(submitTapped)];
+    
+    self.navigationItem.rightBarButtonItems = @[submitButton];
 }
 
 - (void)draftButtonTapped {
@@ -674,21 +673,28 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     [alert addAction:[UIAlertAction actionWithTitle:@"保存草稿" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         [self saveViewModelData];
         [self.viewModel saveDraft];
-        [self showToast:@"草稿已保存"];
+        
+        [SVProgressHUD showSuccessWithStatus:@"草稿已保存"];
+        [SVProgressHUD dismissWithDelay:1.5];
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"加载草稿" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         if ([self.viewModel loadDraft]) {
             [self populateUIWithViewModel];
-            [self showToast:@"草稿已加载"];
+            
+            [SVProgressHUD showSuccessWithStatus:@"草稿已加载"];
+            [SVProgressHUD dismissWithDelay:1.5];
         } else {
-            [self showAlertWithTitle:@"提示" message:@"没有找到草稿"];
+            [SVProgressHUD showErrorWithStatus:@"没有找到草稿"];
+            [SVProgressHUD dismissWithDelay:1.5];
         }
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"清除草稿" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
         [self.viewModel clearDraft];
-        [self showToast:@"草稿已清除"];
+        
+        [SVProgressHUD showSuccessWithStatus:@"草稿已清除"];
+        [SVProgressHUD dismissWithDelay:1.5];
     }]];
     
     [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
@@ -700,14 +706,6 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     [self presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)showToast:(NSString *)message {
-    UIAlertController *toast = [UIAlertController alertControllerWithTitle:nil message:message preferredStyle:UIAlertControllerStyleAlert];
-    [self presentViewController:toast animated:YES completion:^{
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [toast dismissViewControllerAnimated:YES completion:nil];
-        });
-    }];
-}
 
 - (void)setupUI {
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
@@ -723,7 +721,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     CGFloat yOffset = 16;
     yOffset = [self addSectionWithTitle:@"基本信息" yOffset:yOffset];
     yOffset = [self addFormRowWithLabel:@"应用名称 *" placeholder:@"请输入应用名称" fieldTag:1001 yOffset:yOffset];
-    yOffset = [self addFormRowWithLabel:@"Bundle ID" placeholder:@"如: com.example.myapp" fieldTag:1002 yOffset:yOffset];
+    yOffset = [self addFormRowWithLabel:@"Bundle ID" placeholder:@"可选 如: com.example.myapp" fieldTag:1002 yOffset:yOffset];
     yOffset = [self addButtonRowWithTitle:@"从App Store搜索" action:@selector(searchAppStore) yOffset:yOffset];
     yOffset = [self addFormRowWithLabel:@"App Store ID" placeholder:@"可选" fieldTag:1003 yOffset:yOffset keyboardType:UIKeyboardTypeNumberPad];
     yOffset = [self addFormRowWithLabel:@"版本名称" placeholder:@"如: 1.0.0" fieldTag:1004 yOffset:yOffset];
@@ -756,34 +754,6 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     _contentView.frame = CGRectMake(0, 0, self.view.bounds.size.width, yOffset);
     _scrollView.contentSize = CGSizeMake(self.view.bounds.size.width, yOffset);
     
-    [self setupLoadingOverlay];
-}
-
-- (void)setupLoadingOverlay {
-    _loadingOverlay = [[UIView alloc] initWithFrame:self.view.bounds];
-    _loadingOverlay.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
-    _loadingOverlay.hidden = YES;
-    _loadingOverlay.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.view addSubview:_loadingOverlay];
-    
-    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 200, 120)];
-    card.center = CGPointMake(_loadingOverlay.bounds.size.width / 2, _loadingOverlay.bounds.size.height / 2);
-    card.backgroundColor = [UIColor systemBackgroundColor];
-    card.layer.cornerRadius = 12;
-    card.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
-    [_loadingOverlay addSubview:card];
-    
-    _loadingIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
-    _loadingIndicator.center = CGPointMake(card.bounds.size.width / 2, 40);
-    _loadingIndicator.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
-    [card addSubview:_loadingIndicator];
-    
-    _progressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 70, card.bounds.size.width, 30)];
-    _progressLabel.font = [UIFont systemFontOfSize:14];
-    _progressLabel.textColor = [UIColor secondaryLabelColor];
-    _progressLabel.textAlignment = NSTextAlignmentCenter;
-    _progressLabel.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
-    [card addSubview:_progressLabel];
 }
 
 - (CGFloat)addSectionWithTitle:(NSString *)title yOffset:(CGFloat)yOffset {
@@ -1179,15 +1149,18 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 }
 
 - (void)loadExistingData {
-    [self showLoadingWithMessage:@"加载中..."];
+    [SVProgressHUD showWithStatus:@"加载中..."];
     [_viewModel setupForEditWithAppId:self.viewModel.editingAppId.integerValue completion:^(BOOL success, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self hideLoading];
+            [SVProgressHUD dismiss];;
             if (success) {
                 [self populateUIWithViewModel];
             } else {
-                [self showAlertWithTitle:@"提示" message:error.localizedDescription handler:^(UIAlertAction *action) {
-                    [self.navigationController popViewControllerAnimated:YES];
+                
+                [self showAlertWithConfirmationFromViewController:self title:@"提示" message:error.localizedDescription confirmTitle:@"确定" cancelTitle:nil onConfirmed:^{
+                    [self dismiss];
+                } onCancelled:^{
+                    [self dismiss];
                 }];
             }
         });
@@ -1245,17 +1218,19 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 
 - (void)cancelTapped {
     if (_viewModel.hasUnsavedChanges) {
-        [self showAlertWithTitle:@"提示" message:@"有未保存的更改，是否保存草稿？" cancelTitle:@"不保存" cancelHandler:^(UIAlertAction *action) {
+       
+        [self showAlertWithConfirmationFromViewController:self title:@"提示" message:@"有未保存的更改，是否保存草稿？" confirmTitle:@"保存" cancelTitle:@"取消" onConfirmed:^{
             [self->_viewModel clearDraft];
-            [self dismissViewControllerAnimated:YES completion:nil];
-        } otherTitle:@"保存草稿" otherHandler:^(UIAlertAction *action) {
+            [self dismiss];
+        } onCancelled:^{
             [self saveViewModelData];
             [self->_viewModel saveDraft];
-            [self dismissViewControllerAnimated:YES completion:nil];
+            [self dismiss];
         }];
     } else {
-        [self dismissViewControllerAnimated:YES completion:nil];
+        [self dismiss];
     }
+    
 }
 
 - (void)submitTapped {
@@ -1263,7 +1238,9 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     [self saveViewModelData];
     NSError *error = nil;
     if (![_viewModel validateDataWithError:&error]) {
-        [self showAlertWithTitle:@"提示" message:error.localizedDescription];
+        [SVProgressHUD showErrorWithStatus:error.localizedDescription];
+        [SVProgressHUD dismissWithDelay:3];
+        
         return;
     }
     [self publishApp];
@@ -1287,9 +1264,9 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 
 - (void)publishApp {
     if(_viewModel.isEditMode){
-        [self showLoadingWithMessage:@"更新..."];
+        [SVProgressHUD showWithStatus:@"更新..."];
     }else{
-        [self showLoadingWithMessage:@"发布中..."];
+        [SVProgressHUD showWithStatus:@"发布中..."];
     }
     
     NSString *idfv = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
@@ -1351,16 +1328,22 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
         //返回主线程UI操作
         dispatch_async(dispatch_get_main_queue(), ^{
             if(!jsonResult){
-                NSLog(@"\n发布软件返回失败stringResult:%@",stringResult);
+                
                 NSError *error = [NSError errorWithDomain:@"setupForEditWithAppId" code:413 userInfo:@{NSLocalizedDescriptionKey: stringResult ?: @"加载失败"}];
+                NSLog(@"\n发布软件返回失败error:%@",error);
+                [SVProgressHUD showErrorWithStatus:error.localizedDescription];
+                [SVProgressHUD dismissWithDelay:3];
                 
                 return;
             }
             NSInteger code = [jsonResult[@"code"] intValue];
             NSString *msg = jsonResult[@"msg"];
             if (code !=200) {
-                NSLog(@"\n发布软件返回失败stringResult:%@",stringResult);
+                
                 NSError *error = [NSError errorWithDomain:@"setupForEditWithAppId" code:414 userInfo:@{NSLocalizedDescriptionKey: msg ?: @"加载失败"}];
+                NSLog(@"\n发布软件返回失败error:%@",error);
+                [SVProgressHUD showErrorWithStatus:error.localizedDescription];
+                [SVProgressHUD dismissWithDelay:3];
                 
                 return;
             }
@@ -1371,16 +1354,16 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
                 NSInteger appId = self.viewModel.isEditMode ? self.viewModel.editingAppId.integerValue : [jsonResult[@"appInfo"][@"app_id"] integerValue];
                 [self uploadAllFilesWithAppId:appId];
             } else {
-                [self hideLoading];
-                [self showAlertWithTitle:@"提示" message:jsonResult[@"msg"] ?: @"发布失败"];
+                [SVProgressHUD dismiss];;
+                [SVProgressHUD showErrorWithStatus:jsonResult[@"msg"] ?: @"发布失败"];
             }
         });
         
     } failure:^(NSError *error) {
         //返回主线程UI操作
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self hideLoading];
-            [self showAlertWithTitle:@"提示" message:error.localizedDescription];
+            [SVProgressHUD dismiss];;
+            [SVProgressHUD showErrorWithStatus:error.localizedDescription];
         });
     }];
     
@@ -1489,7 +1472,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 }
 
 - (void)handleUploadResults:(NSDictionary *)results forAppId:(NSInteger)appId {
-    [self hideLoading];
+    [SVProgressHUD dismiss];;
     [self publishSuccessWithAppId:appId];
 }
 
@@ -1497,17 +1480,20 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     _hasSuccessfullySubmitted = YES;
     [_viewModel clearDraft];
     NSString *message = _viewModel.isEditMode ? @"更新成功！" : @"发布成功！";
-    [self showAlertWithTitle:@"提示" message:message handler:^(UIAlertAction *action) {
+    
+    [self showAlertWithConfirmationFromViewController:self title:@"提示" message:message confirmTitle:@"完成" cancelTitle:nil onConfirmed:^{
         if ([self.delegate respondsToSelector:@selector(publishEditViewController:didSuccessWithAppId:)]) {
             [self.delegate publishEditViewController:self didSuccessWithAppId:appId];
         }
-        [self.navigationController popViewControllerAnimated:YES];
+        [self dismiss];
+    } onCancelled:^{
+        
     }];
 }
 
 - (void)updateProgress:(NSInteger)completed total:(NSInteger)total {
     CGFloat progress = (CGFloat)completed / total * 100;
-    _progressLabel.text = [NSString stringWithFormat:@"%ld/%ld (%.0f%%)", (long)completed, (long)total, progress];
+    [SVProgressHUD showProgress:progress / 100 status:[NSString stringWithFormat:@"%ld/%ld (%.0f%%)", (long)completed, (long)total, progress]];
 }
 
 - (void)searchAppStore {
@@ -1552,26 +1538,25 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 
 - (void)searchAppStoreForImage {
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
-    AppSearchViewController *searchVC = [AppSearchViewController sharedInstance];
+    AppSearchViewController *searchVC = [AppSearchViewController new];
     searchVC.delegate = self;
     searchVC.keyword = _bundleIdField.text;
-    
-    [self.navigationController pushViewController:searchVC animated:YES];
+    [self presentViewController:searchVC animated:YES completion:nil];
 }
 
 - (void)searchInternetImage {
     UIScrollView.appearance.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
-    ImageGridSearchViewController *imageSearchVC = [ImageGridSearchViewController sharedInstance];
+    ImageGridSearchViewController *imageSearchVC = [ImageGridSearchViewController new];
     imageSearchVC.searchKeyword = _appNameField.text ?: @"";
     imageSearchVC.delegate = self;
     imageSearchVC.maxiMum = (_currentImageSourceType == ImageSourceTypeIcon) ? 1 : (kMaximumMediaCount - _mediaItems.count);
-    
-    [self.navigationController pushViewController:imageSearchVC animated:YES];
+    UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:imageSearchVC];
+    [self presentViewController:nc animated:YES completion:nil];
 }
 
 - (void)takePhoto {
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-        [self showAlertWithTitle:@"提示" message:@"相机不可用"];
+        [SVProgressHUD showErrorWithStatus:@"相机不可用"];
         return;
     }
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
@@ -1696,7 +1681,8 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
             [self addMediaItemWithURL:img.url isVideo:NO];
         }
     }
-    [self.navigationController popViewControllerAnimated:YES];
+    [controller dismissViewControllerAnimated:YES completion:nil];
+    
 }
 
 #pragma mark - UIImagePickerControllerDelegate
@@ -1737,7 +1723,9 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     for (NSURL *url in urls) {
         if (_currentImageSourceType == ImageSourceTypeMainFile) {
             [self handleMainFileURL:url];
-        } else {
+        } else if (_currentImageSourceType == ImageSourceTypeIcon) {
+            [self downloadAndSetIconWithURL:urls.firstObject.absoluteString];
+        }else{
             [self handleMediaFileURL:url];
         }
     }
@@ -1789,7 +1777,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
         [self updateMainFileUI];
     } else {
         NSLog(@"主文件读取失败: %@", error.localizedDescription);
-        [self showAlertWithTitle:@"提示" message:@"文件读取失败"];
+        [SVProgressHUD showErrorWithStatus:@"文件读取失败"];
     }
     
     [url stopAccessingSecurityScopedResource];
@@ -1862,7 +1850,7 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     } else if (collectionView.tag == 2) {
         if (indexPath.item == _mediaItems.count) {
             if (_mediaItems.count >= kMaximumMediaCount) {
-                [self showAlertWithTitle:@"提示" message:[NSString stringWithFormat:@"最多添加%ld个文件", (long)kMaximumMediaCount]];
+                [SVProgressHUD showErrorWithStatus:[NSString stringWithFormat:@"最多添加%ld个文件", (long)kMaximumMediaCount]];
             } else {
                 [self showImageSourceSelectorForType:ImageSourceTypeMedia];
             }
@@ -1901,11 +1889,11 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
         CGSize textSize = [tag sizeWithAttributes:attributes];
         
         // 计算宽度：文字宽度 + 左右padding (各16像素)
-        CGFloat horizontalPadding = 32.0;
+        CGFloat horizontalPadding = 24;
         CGFloat cellWidth = textSize.width + horizontalPadding;
         
         // 设置一个较大的固定最小宽度
-        cellWidth = MAX(cellWidth, 80);  // 最小宽度80
+        cellWidth = MAX(cellWidth, 32);  // 最小宽度80
         
         return CGSizeMake(cellWidth, 32);
     } else if (collectionView.tag == 4) {
@@ -1930,42 +1918,13 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
     }
 }
 
-#pragma mark - Helper Methods
 
-- (void)showLoadingWithMessage:(NSString *)message {
-    _progressLabel.text = message;
-    [_loadingIndicator startAnimating];
-    _loadingOverlay.hidden = NO;
-}
-
-- (void)hideLoading {
-    [_loadingIndicator stopAnimating];
-    _loadingOverlay.hidden = YES;
-}
-
-- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
-    [self showAlertWithTitle:title message:message handler:nil];
-}
-
-- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message handler:(void(^)(UIAlertAction *action))handler {
-    [self showAlertWithTitle:title message:message cancelTitle:@"确定" cancelHandler:handler otherTitle:nil otherHandler:nil];
-}
-
-- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message cancelTitle:(NSString *)cancelTitle cancelHandler:(void(^)(UIAlertAction *action))cancelHandler otherTitle:(NSString *)otherTitle otherHandler:(void(^)(UIAlertAction *action))otherHandler {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-    if (cancelTitle) {
-        [alert addAction:[UIAlertAction actionWithTitle:cancelTitle style:UIAlertActionStyleCancel handler:cancelHandler ?: ^(UIAlertAction *action) {}]];
-    }
-    if (otherTitle) {
-        [alert addAction:[UIAlertAction actionWithTitle:otherTitle style:UIAlertActionStyleDefault handler:otherHandler ?: ^(UIAlertAction *action) {}]];
-    }
-    [self presentViewController:alert animated:YES completion:nil];
-}
 
 // 显示后
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self setupNavigationBar];
+    
     
 }
 

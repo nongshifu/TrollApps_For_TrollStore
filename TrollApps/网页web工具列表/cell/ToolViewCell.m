@@ -207,7 +207,7 @@
     
     // 头像占位（实际项目中替换为工具图标URL）
     self.avatarImgView.image = [UIImage systemImageNamed:@"doc.text.fill"]; // 系统占位图
-    NSString *iconUrlString = [NSString stringWithFormat:@"%@/%@/icon.png",localURL,self.toolModel.tool_path];
+    NSString *iconUrlString = [NSString stringWithFormat:@"%@/%@/icon.png?size=0.2&minw=100&minh=100",localURL,self.toolModel.tool_path];
     [self.avatarImgView sd_setImageWithURL:[NSURL URLWithString:iconUrlString] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
         if(image){
             self.avatarImgView.image = image;
