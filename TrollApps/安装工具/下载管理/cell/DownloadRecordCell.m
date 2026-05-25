@@ -334,7 +334,7 @@
 - (void)downloadButtonClicked {
     // 这里可以添加下载逻辑，例如调用DownloadManagerViewController进行下载
     NSLog(@"重新下载应用downloadUrl: %@", self.downloadRecordModel.downloadUrl);
-    [AppInfoModel getDownloadLinkWithAppId:self.downloadRecordModel.appId success:^(NSURL * _Nonnull downloadURL, NSDictionary * _Nonnull json) {
+    [AppInfoModel getDownloadLinkWithAppId:self.downloadRecordModel.appId success:^(DownloadRecordModel *recordModel, NSURL * _Nonnull downloadURL, NSDictionary * _Nonnull json) {
         [SVProgressHUD showSuccessWithStatus:@"开始下载"];
         [SVProgressHUD dismissWithDelay:1];
         [[FileInstallManager sharedManager] installFileWithURL:downloadURL completion:^(BOOL success, NSError * _Nullable error) {

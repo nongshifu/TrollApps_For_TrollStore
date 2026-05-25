@@ -6,7 +6,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "PlistEditorViewController.h"
 NS_ASSUME_NONNULL_BEGIN
 
 @class FileModel;

@@ -20,6 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSInteger appId;
 /// 应用名称
 @property (nonatomic, copy) NSString *appName;
+/// 是否云端
+@property (nonatomic, assign) BOOL is_cloud;
 /// 下载用户UDID（与数据库字段userUdid完全一致）
 @property (nonatomic, copy) NSString *userUdid;
 /// 下载地址（与数据库字段downloadUrl完全一致）
@@ -42,6 +44,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *createdAt;
 /// 更新时间（与数据库字段updatedAt完全一致）
 @property (nonatomic, copy) NSString *updatedAt;
+/// 文件大小
+@property (nonatomic, strong) NSString * file_size;
 
 @end
 

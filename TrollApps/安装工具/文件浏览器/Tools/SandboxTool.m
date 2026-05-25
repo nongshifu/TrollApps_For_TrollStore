@@ -71,6 +71,10 @@
     return [fileModels copy];
 }
 
++ (NSArray<FileModel *> *)getFileListAtPath:(NSString *)dirPath displayType:(DisplayType)displayType{
+    return [self getFirstLevelFileModelsWithDirPath:dirPath displayType:displayType];
+}
+
 + (BOOL)isDirectoryAtPath:(NSString *)path {
     BOOL isDir = NO;
     [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];

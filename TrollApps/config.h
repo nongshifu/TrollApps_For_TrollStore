@@ -72,8 +72,8 @@
 #import "NetworkClient.h"//网络封装
 #import "ExpandableIconButton.h"//旋转发布按钮
 #import "UIImage+Extensions.h"//uiimage对象拓展
-#import "SendMessage.h"//发送融云消息
-#import "SandboxFileBrowserVC.h"//文件管理
+#import "SendMessage.h"  //发送融云消息
+#import "SandboxFileManager.h" //文件管理
 #import "FAKExtensions.h"// 图标拓展
 #import "NetworkClient.h"
 

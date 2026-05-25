@@ -99,7 +99,7 @@ typedef NS_ENUM(NSInteger, AppStatus) {
 /// @param success 成功回调：返回下载链接 NSURL
 /// @param failure 失败回调：返回错误信息 NSError
 + (void)getDownloadLinkWithAppId:(NSInteger)app_id
-                         success:(void(^)(NSURL *downloadURL, NSDictionary *json))success
+                         success:(void(^)(DownloadRecordModel *recordModel, NSURL *downloadURL, NSDictionary *json))success
                          failure:(void(^)(NSError *error))failure;
 
 /// 获取 App 下载链接（异步）

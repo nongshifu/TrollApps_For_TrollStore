@@ -7,6 +7,9 @@
 
 #import "RemarkManager.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+
 @interface RemarkManager ()
 
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *remarksDict;
@@ -42,14 +45,17 @@
 }
 
 - (void)loadRemarks {
+    NSLog(@"加载备注loadRemarks:%@",self.filePath);
     if ([[NSFileManager defaultManager] fileExistsAtPath:self.filePath]) {
         self.remarksDict = [[NSMutableDictionary alloc] initWithContentsOfFile:self.filePath];
+        NSLog(@"判断存在remarksDict:%@",self.remarksDict);
     } else {
         self.remarksDict = [NSMutableDictionary dictionary];
     }
 }
 
 - (void)saveRemarks {
+    NSLog(@"保存备注saveRemarks:%@",self.remarksDict);
     [self.remarksDict writeToFile:self.filePath atomically:YES];
 }
 

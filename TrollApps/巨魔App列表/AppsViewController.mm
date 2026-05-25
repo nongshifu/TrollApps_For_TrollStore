@@ -23,6 +23,13 @@
 #import "AnnouncementDetailViewController.h"
 #import "AnnouncementListViewController.h"
 #import "FileListViewController.h"
+#import "SandboxFileManager.h" //文件管理
+#import "FavoriteManager.h"
+#import "SandboxTool.h"
+#import "SandboxTool.h"
+#import "FavoriteListViewController.h"
+
+
 
 #undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
 #define MY_NSLog_ENABLED NO // .M当前文件单独启用
@@ -897,12 +904,23 @@
         [self presentPanModal:vc];
 
     }else if(tag ==2){
+        
+        FavoriteManager *favoriteManager = [FavoriteManager sharedManager];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsPath = paths.firstObject;
+        NSString *downloadDir = [documentsPath stringByAppendingPathComponent:@"Downloads"];
+        NSString *Inbox = [documentsPath stringByAppendingPathComponent:@"Inbox"];
+        
+        [favoriteManager addFavoriteWithPath:downloadDir remark:@"下载目录"];
+        [favoriteManager addFavoriteWithPath:Inbox remark:@"导入目录"];
      
         // 2. 初始化文件浏览器（不需要再包裹导航控制器，利用当前的导航栈）
-        FileListViewController *browser = [[FileListViewController alloc] init];
-        UINavigationController *nv = [[UINavigationController alloc] initWithRootViewController:browser];
-        // 3. 🔥 关键：导航 push 跳转（替换原来的 present）
-        [self.navigationController presentViewController:nv animated:YES completion:nil];
+//        NSString *docsPath = [SandboxTool getSandboxDirectoryPath:SandboxDirectoryTypeHome];
+//        [SandboxFileManager presentFileBrowserFrom:self path:docsPath];
+        FavoriteListViewController *vc = [FavoriteListViewController new];
+        UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:vc];
+        [self presentViewController:nc animated:YES completion:nil];
+        
         
     }else{
         DownloadManagerViewController *vc = [DownloadManagerViewController sharedInstance];

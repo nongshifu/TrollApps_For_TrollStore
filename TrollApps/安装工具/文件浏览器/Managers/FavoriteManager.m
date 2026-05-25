@@ -2,11 +2,15 @@
 #import "FileNotification.h"
 #import "RemarkManager.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+
 static NSString * const kFavoriteFilePathsKey = @"FavoriteFilePaths";
 
 @interface FavoriteManager ()
 @property (nonatomic, strong) NSMutableArray<FileModel *> *favoriteModels;
 @property (nonatomic, strong) NSMutableArray<NSString *> *favoritePaths;
+@property (nonatomic, assign) BOOL isLoaded;
 @end
 
 @implementation FavoriteManager
@@ -26,6 +30,7 @@ static NSString * const kFavoriteFilePathsKey = @"FavoriteFilePaths";
     if (self) {
         _favoriteModels = [NSMutableArray array];
         _favoritePaths = [NSMutableArray array];
+        _isLoaded = NO;
     }
     return self;
 }
@@ -94,34 +99,58 @@ static NSString * const kFavoriteFilePathsKey = @"FavoriteFilePaths";
 }
 
 - (BOOL)isFavorite:(NSString *)path {
+    NSLog(@"判断是否收藏：%@",path);
     if (!path) {
         return NO;
     }
-    return [self.favoritePaths containsObject:path];
+    @synchronized(self.favoritePaths) {
+        NSLog(@"判断是否收藏self.favoritePaths：%@",self.favoritePaths);
+        return [self.favoritePaths containsObject:path];
+    }
 }
 
 - (NSArray<FileModel *> *)getAllFavorites {
-    return [self.favoriteModels copy];
+    @synchronized(self.favoriteModels) {
+        return [self.favoriteModels copy];
+    }
 }
 
 - (void)saveFavorites {
-    [[NSUserDefaults standardUserDefaults] setObject:[self.favoritePaths copy] forKey:kFavoriteFilePathsKey];
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    @synchronized(self.favoritePaths) {
+        [[NSUserDefaults standardUserDefaults] setObject:[self.favoritePaths copy] forKey:kFavoriteFilePathsKey];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
 }
 
 - (void)loadFavorites {
-    NSArray *savedPaths = [[NSUserDefaults standardUserDefaults] arrayForKey:kFavoriteFilePathsKey];
+    @synchronized(self.favoritePaths) {
+        @synchronized(self.favoriteModels) {
+            NSArray *savedPaths = [[NSUserDefaults standardUserDefaults] arrayForKey:kFavoriteFilePathsKey];
+            NSLog(@"读取本地收藏:%@",savedPaths);
 
-    [self.favoritePaths removeAllObjects];
-    [self.favoriteModels removeAllObjects];
+            [self.favoritePaths removeAllObjects];
+            [self.favoriteModels removeAllObjects];
 
-    if (savedPaths) {
-        for (NSString *path in savedPaths) {
-            if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-                [self.favoritePaths addObject:path];
-                FileModel *model = [FileModel modelWithFilePath:path];
-                model.isFavorite = YES;
-                [self.favoriteModels addObject:model];
+            if (savedPaths) {
+                for (NSString *path in savedPaths) {
+                    NSLog(@"读取本地收藏遍历path:%@",path);
+                    if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                        [self.favoritePaths addObject:path];
+                        NSLog(@"准备封装模型");
+                        
+                        // 直接创建 FileModel，绕过 isFavorite 检查避免嵌套调用
+                        FileModel *model = [[FileModel alloc] init];
+                        model.filePath = path;
+                        model.fileName = [path lastPathComponent];
+                        model.itemType = FileItemTypeFolder;
+                        model.fileSize = 0;
+                        model.isFavorite = YES;
+                        model.parentDirPath = [path stringByDeletingLastPathComponent];
+                        
+                        NSLog(@"封装模型model：%@",model);
+                        [self.favoriteModels addObject:model];
+                    }
+                }
             }
         }
     }

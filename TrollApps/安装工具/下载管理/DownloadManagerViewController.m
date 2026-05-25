@@ -5,7 +5,8 @@
 #import "EmptyView.h"
 #import "AppInfoModel.h"
 #import "DownloadTaskModel.h"
-#import "SandboxFileBrowserVC.h"
+#import "SandboxFileManager.h" //文件管理
+#import "SandboxTool.h"
 #import "DownloadRecordViewController.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 

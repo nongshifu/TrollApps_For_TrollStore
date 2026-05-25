@@ -34,6 +34,9 @@
 /// 文件修改日期
 @property (nonatomic, copy) NSDate *modificationDate;
 
+/// 最后访问时间（用于历史记录）
+@property (nonatomic, copy) NSDate *lastAccessTime;
+
 /// 备注
 @property (nonatomic, copy) NSString *remark;
 
@@ -54,6 +57,11 @@
 /// @param filePath 文件完整路径
 /// @return FileModel实例
 + (instancetype)modelWithFilePath:(NSString *)filePath;
+
+- (NSDictionary *)toDictionary;
+
+/// 从字典初始化（用于从持久化恢复）
+- (instancetype)initWithDictionary:(NSDictionary *)dict;
 
 #pragma mark - 实例方法
 

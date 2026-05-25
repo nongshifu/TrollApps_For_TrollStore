@@ -36,6 +36,11 @@
 /// @return 文件模型数组
 + (NSArray<FileModel *> *)getFirstLevelFileModelsWithDirPath:(NSString *)dirPath displayType:(DisplayType)displayType;
 
+/// 获取目录下第一层文件模型数组（简化版本，获取全部文件）
+/// @param dirPath 目录路径
+/// @return 文件模型数组
++ (NSArray<FileModel *> *)getFileListAtPath:(NSString *)dirPath displayType:(DisplayType)displayType;
+
 #pragma mark - 隐藏文件
 
 /// 获取隐藏文件名列表

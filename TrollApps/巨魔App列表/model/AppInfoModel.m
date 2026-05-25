@@ -77,7 +77,7 @@
 }
 
 + (void)getDownloadLinkWithAppId:(NSInteger)app_id
-                         success:(void(^)(NSURL *downloadURL, NSDictionary *json))success
+                         success:(void(^)(DownloadRecordModel *recordModel, NSURL *downloadURL, NSDictionary *json))success
                          failure:(void(^)(NSError *error))failure {
     // 1. 传递 app_id 到接口参数
     NSDictionary *parameters = @{@"app_id": @(app_id), @"action": @"getDownloadLink"}; // 注意：参数结构需与接口匹配！
@@ -96,19 +96,23 @@
             NSInteger code = [jsonResult[@"code"] integerValue];
             NSString * msg = jsonResult[@"msg"];
             if (code == 200) {
-                NSString *downloadLink = jsonResult[@"data"][@"download_url"];
-                if (downloadLink.length > 0) {
-                    // 核心修复：对 URL 字符串进行编码处理
-                    NSString *encodedURLString = [downloadLink stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-                    // 3. 创建 NSURL
-                    NSURL *downloadURL = [NSURL URLWithString:encodedURLString];
-                    if (downloadURL) {
-                        if (success) success(downloadURL,jsonResult[@"data"]);
-                        return;
-                    } else {
-                        NSLog(@"URL 创建失败，原始链接：%@，编码后：%@", downloadLink, encodedURLString);
-                    }
+                // 核心修复：对 URL 字符串进行编码处理
+                NSString *downloadLink = jsonResult[@"data"][@"downloadUrl"];
+                // 核心修复：对 URL 字符串进行编码处理
+                NSString *encodedURLString = [downloadLink stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+                // 3. 创建 NSURL
+                NSURL *downloadURL = [NSURL URLWithString:encodedURLString];
+                BOOL hasPurchased = [jsonResult[@"data"][@"hasPurchased"] boolValue];
+                if (hasPurchased && downloadURL) {
+                    // 构造记录模型（直接用链接数据返回）
+                    
+                    DownloadRecordModel *model = [DownloadRecordModel yy_modelWithDictionary:jsonResult[@"data"]];
+                    model.downloadUrl = encodedURLString;
+                    
+                    if (success) success(model,downloadURL, jsonResult[@"data"]);
+                    return;
                 }
+                
             }
             
             // 解析失败：构造错误信息
@@ -127,84 +131,97 @@
     }];
 }
 
-/// 获取下载链接并插入下载历史
+/// 新版：先获取下载链接状态，未购买则确认购买，已购买直接返回链接
 + (void)getDownloadLinkAndRecordHistoryWithAppId:(NSInteger)app_id
-                                         success:(void(^)(DownloadRecordModel *recordModel , NSDictionary *json))success
+                                         success:(void(^)(DownloadRecordModel *recordModel, NSDictionary *json))success
                                          failure:(void(^)(NSError *error))failure {
-    // 1. 先获取下载链接
-    [self getDownloadLinkWithAppId:app_id success:^(NSURL *downloadURL, NSDictionary *jsonData) {
-        // 2. 下载链接获取成功，准备插入下载历史
-        NSString *downloadUrlString = jsonData[@"download_url"];
-        NSString *appName = jsonData[@"app_name"];
-        NSString *versionName = jsonData[@"version_name"];
-        NSString *udid = [[NewProfileViewController sharedInstance] getUDID] ?[[NewProfileViewController sharedInstance] getUDID]:[[NewProfileViewController sharedInstance] getIDFV];
-        // 3. 构造插入历史记录的参数
-        NSDictionary *recordParams = @{
-            @"app_id": @(app_id),
-            @"action": @"recordDownload",
-            @"download_url": downloadUrlString,
-            @"device_info": udid // 设备信息，可根据需求扩展
-        };
-       
-        
-        // 4. 调用插入下载历史的API
-        [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
-                                                    modules:@"app"
-                                                parameters:recordParams
-                                                  progress:nil
-                                                   success:^(NSDictionary *recordJson, NSString *stringResult, NSData *dataResult) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSLog(@"插入下载历史成功：%@", recordJson);
-                
-                // 5. 解析响应，构建完整的下载记录模型
-                DownloadRecordModel *recordModel = [[DownloadRecordModel alloc] init];
-                
-                // 设置从getDownloadLink返回的数据
-                recordModel.appId = app_id;
-                recordModel.appName = appName;
-                recordModel.versionName = versionName;
-                recordModel.downloadUrl = [NSString stringWithFormat:@"%@",downloadURL];
-                recordModel.downloadTime = [self currentDateTimeString];
-                
-                // 设置从recordDownload返回的数据
-                if ([recordJson[@"code"] integerValue] == 200) {
-                    recordModel.recordId = [recordJson[@"data"][@"recordId"] integerValue];
-                    recordModel.status = 0; // 下载成功
-                } else {
-                    recordModel.status = 1; // 插入记录失败
-                }
-                
-                // 6. 返回完整模型
-                if (success) {
-                    success(recordModel,recordJson);
-                }
-            });
-        } failure:^(NSError *error) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSLog(@"插入下载历史失败：%@", error);
-                
-                // 即使插入历史失败，也要返回下载链接（核心功能优先）
-                DownloadRecordModel *recordModel = [[DownloadRecordModel alloc] init];
-                recordModel.appId = app_id;
-                recordModel.appName = appName;
-                recordModel.versionName = versionName;
-                recordModel.downloadUrl = [NSString stringWithFormat:@"%@",downloadURL];
-                
-                recordModel.downloadTime = [self currentDateTimeString];
-                recordModel.status = 1; // 插入记录失败
-                
-                if (success) {
-                    success(recordModel,nil);
-                }
-            });
-        }];
-    } failure:^(NSError *error) {
-        // 获取下载链接失败，直接返回错误
+
+    NSString *udid = [[NewProfileViewController sharedInstance] getUDID];
+    if (!udid || udid.length < 5) {
+        if (failure) failure([NSError errorWithDomain:@"UDID错误" code:0 userInfo:nil]);
+        return;
+    }
+
+    // ==========================
+    // 第一步：先调用 getDownloadLink 查询状态
+    // ==========================
+    NSDictionary *getLinkParams = @{
+        @"app_id": @(app_id),
+        @"action": @"getDownloadLink"
+    };
+
+    [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                                modules:@"app"
+                                             parameters:getLinkParams
+                                               progress:nil
+                                                success:^(NSDictionary *linkJson, NSString *stringResult, NSData *dataResult) {
+
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (failure) {
-                failure(error);
+            if ([linkJson[@"code"] integerValue] != 200) {
+                failure([NSError errorWithDomain:linkJson[@"msg"] ?: @"获取链接失败" code:0 userInfo:nil]);
+                return;
             }
+
+            // 取出接口返回状态
+            NSDictionary *data = linkJson[@"data"];
+            NSLog(@"取出接口返回linkJson:%@",linkJson);
+            BOOL hasPurchased = [data[@"hasPurchased"] boolValue];
+            NSString *downloadUrl = data[@"downloadUrl"];
+           
+            // 核心修复：对 URL 字符串进行编码处理
+            NSString *encodedURLString = [downloadUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+            // 3. 创建 NSURL
+            NSURL *downloadURL = [NSURL URLWithString:encodedURLString];
+
+            NSLog(@"获取链接成功：hasPurchased = %d, url = %@ hasRecord :%@", hasPurchased, encodedURLString,data[@"hasRecord"]);
+
+            // ==============================================
+            // 已购买 → 直接返回链接（不扣积分）
+            // ==============================================
+            if (hasPurchased) {
+                // 构造记录模型（直接用链接数据返回）
+                
+                DownloadRecordModel *model = [DownloadRecordModel yy_modelWithDictionary:data];
+                model.downloadUrl = encodedURLString;
+                
+                if (success) success(model, linkJson);
+                return;
+            }
+
+            // ==============================================
+            // 未购买 → 必须调用 recordDownload 确认购买（扣积分）
+            // ==============================================
+            NSDictionary *recordParams = @{
+                @"app_id": @(app_id),
+                @"action": @"recordDownload",
+                @"device_info": udid
+            };
+
+            [[NetworkClient sharedClient] sendRequestWithMethod:NetworkRequestMethodPOST
+                                                        modules:@"app"
+                                                     parameters:recordParams
+                                                       progress:nil
+                                                        success:^(NSDictionary *recordJson, NSString *stringResult, NSData *dataResult) {
+
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if ([recordJson[@"code"] integerValue] != 200) {
+                        NSString *msg = recordJson[@"msg"] ?: @"购买失败";
+                        failure([NSError errorWithDomain:msg code:0 userInfo:nil]);
+                        return;
+                    }
+
+                    // 购买成功 → 返回 recordDownload 里的完整数据（含下载链接）
+                    DownloadRecordModel *recordModel = [DownloadRecordModel yy_modelWithDictionary:recordJson[@"data"]];
+                    if (success) success(recordModel, recordJson);
+                });
+
+            } failure:^(NSError *error) {
+                dispatch_async(dispatch_get_main_queue(), ^{ failure(error); });
+            }];
         });
+
+    } failure:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{ failure(error); });
     }];
 }
 

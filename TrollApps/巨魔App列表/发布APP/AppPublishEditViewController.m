@@ -1924,8 +1924,38 @@ static NSArray<NSDictionary *> *_allAppTypes = nil;
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self setupNavigationBar];
-    
-    
+    [self fixNavigationBarButtonBackground];
+}
+
+- (void)fixNavigationBarButtonBackground {
+    // 遍历导航栏视图层级，清除私有按钮类的背景色
+    UINavigationBar *navBar = self.navigationController.navigationBar;
+    if (navBar) {
+        [self clearBackgroundColorForView:navBar];
+    }
+}
+
+- (void)clearBackgroundColorForView:(UIView *)view {
+    // iOS 15+ _UIModernBarButton 等私有类的背景色清除
+    NSString *className = NSStringFromClass(view.class);
+    if ([className containsString:@"UIModernBarButton"] ||
+        [className containsString:@"_UIButtonBarButton"] ||
+        [className containsString:@"UINavigationBarContentView"]) {
+        view.backgroundColor = [UIColor clearColor];
+    }
+
+    // 同时清除 UIBarBackground 的背景色
+    if ([className isEqualToString:@"_UIBarBackground"]) {
+        view.backgroundColor = [UIColor clearColor];
+        for (UIView *subview in view.subviews) {
+            subview.backgroundColor = [UIColor clearColor];
+        }
+    }
+
+    // 递归遍历子视图
+    for (UIView *subview in view.subviews) {
+        [self clearBackgroundColorForView:subview];
+    }
 }
 
 @end

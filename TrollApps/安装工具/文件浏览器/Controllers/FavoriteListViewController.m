@@ -13,9 +13,12 @@
 #import "FileListCell.h"
 #import "SandboxTool.h"
 
+#undef MY_NSLog_ENABLED // .M取消 PCH 中的全局宏定义
+#define MY_NSLog_ENABLED YES // .M当前文件单独启用
+
 static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
 
-@interface FavoriteListViewController () <UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, FileListCellDelegate>
+@interface FavoriteListViewController () <UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating>
 
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSMutableArray<FileModel *> *favoriteList;
@@ -29,14 +32,17 @@ static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSLog(@"设置UI");
     [self setupUI];
+    NSLog(@"设置导航");
     [self setupSearchController];
+    NSLog(@"加载数据");
     [self loadFavorites];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self loadFavorites];
+    
 }
 
 - (void)setupUI {
@@ -81,10 +87,13 @@ static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
 
 - (void)loadFavorites {
     self.favoriteList = [[[FavoriteManager sharedManager] getAllFavorites] mutableCopy];
+    NSLog(@"加载数据loadFavorites：%@",self.favoriteList);
     for (FileModel *model in self.favoriteList) {
         model.isFavorite = YES;
     }
     self.filteredList = [self.favoriteList mutableCopy];
+    
+    NSLog(@"加载数据filteredList：%@",self.filteredList);
     [self.tableView reloadData];
 }
 
@@ -95,15 +104,19 @@ static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
 - (void)enterButtonTapped {
     NSString *homePath = [SandboxTool getSandboxDirectoryPath:SandboxDirectoryTypeHome];
 
+    [self openSourceFileListVCWithPath:homePath];
+}
+
+- (void)openSourceFileListVCWithPath:(NSString*)targetPath{
     if (self.sourceFileListVC) {
         [self dismissViewControllerAnimated:YES completion:^{
-            [self.sourceFileListVC navigateToPath:homePath];
+            [self.sourceFileListVC navigateToPath:targetPath];
         }];
     } else {
         [self dismissViewControllerAnimated:YES completion:^{
-            FileListViewController *fileListVC = [[FileListViewController alloc] initWithFullPath:homePath];
+            FileListViewController *fileListVC = [[FileListViewController alloc] initWithFullPath:targetPath];
             UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:fileListVC];
-            navController.modalPresentationStyle = UIModalPresentationFullScreen;
+//            navController.modalPresentationStyle = UIModalPresentationFullScreen;
             UIViewController *presenter = [UIApplication sharedApplication].keyWindow.rootViewController;
             while (presenter.presentedViewController) {
                 presenter = presenter.presentedViewController;
@@ -150,27 +163,13 @@ static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSLog(@"点击了");
 
     FileModel *model = [self currentDataList][indexPath.row];
 
     NSString *targetPath = (model.itemType == FileItemTypeFolder) ? model.filePath : model.parentDirPath;
+    [self openSourceFileListVCWithPath:targetPath];
 
-    if (self.sourceFileListVC) {
-        [self dismissViewControllerAnimated:YES completion:^{
-            [self.sourceFileListVC navigateToPath:targetPath];
-        }];
-    } else {
-        [self dismissViewControllerAnimated:YES completion:^{
-            FileListViewController *fileListVC = [[FileListViewController alloc] initWithFullPath:targetPath];
-            UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:fileListVC];
-            navController.modalPresentationStyle = UIModalPresentationFullScreen;
-            UIViewController *presenter = [UIApplication sharedApplication].keyWindow.rootViewController;
-            while (presenter.presentedViewController) {
-                presenter = presenter.presentedViewController;
-            }
-            [presenter presentViewController:navController animated:YES completion:nil];
-        }];
-    }
 }
 
 - (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -190,12 +189,5 @@ static NSString * const kFavoriteCellIdentifier = @"FavoriteCell";
     return [UISwipeActionsConfiguration configurationWithActions:@[deleteAction]];
 }
 
-#pragma mark - FileListCellDelegate
-
-- (void)fileListCell:(FileListCell *)cell didSelectCheckBox:(BOOL)selected forFileModel:(FileModel *)model {
-}
-
-- (void)fileListCell:(FileListCell *)cell didTapActionButtonForFileModel:(FileModel *)model {
-}
 
 @end

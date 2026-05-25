@@ -2,6 +2,7 @@
 #import "FileModel.h"
 #import "FileNotification.h"
 #import "FileListViewController.h"
+#import "FileListTableViewController.h"
 #import "RemarkManager.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -514,7 +515,10 @@
         [[RemarkManager sharedManager] saveRemark:remark forFilePath:model.filePath];
         if([viewController isKindOfClass:[FileListViewController class]]){
             FileListViewController * vc = (FileListViewController*)viewController;
-            [vc.tableView reloadData];
+            FileListTableViewController *currentVC = [vc currentTableViewController];
+            if (currentVC) {
+                [currentVC.tableView reloadData];
+            }
         }
         
     }]];
@@ -529,6 +533,329 @@
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     [viewController presentViewController:alert animated:YES completion:nil];
+}
+
+#pragma mark - 拷贝移动实现
+
+- (NSString *)generateSuggestedFileNameForPath:(NSString *)path {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString *fileName = [path lastPathComponent];
+    NSString *extension = [fileName pathExtension];
+    NSString *baseName = [fileName stringByDeletingPathExtension];
+
+    NSString *newPath = path;
+    NSInteger counter = 1;
+
+    while ([fm fileExistsAtPath:newPath]) {
+        NSString *newFileName;
+        if (extension.length > 0) {
+            newFileName = [NSString stringWithFormat:@"%@_%ld.%@", baseName, (long)counter, extension];
+        } else {
+            newFileName = [NSString stringWithFormat:@"%@_%ld", baseName, (long)counter];
+        }
+        newPath = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:newFileName];
+        counter++;
+    }
+
+    return [newPath lastPathComponent];
+}
+
+- (void)copyFile:(FileModel *)model
+      toDirectory:(NSString *)destinationDir
+fromViewController:(UIViewController *)viewController
+    conflictHandler:(FileConflictHandler)conflictHandler {
+    __weak typeof(self) weakSelf = self;
+    NSString *destinationPath = [destinationDir stringByAppendingPathComponent:model.fileName];
+    NSFileManager *fm = [NSFileManager defaultManager];
+
+    if (![fm fileExistsAtPath:destinationPath]) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf) {
+            [strongSelf executeCopyForModel:model toPath:destinationPath];
+        }
+    } else if (conflictHandler) {
+        NSString *suggestedName = [self generateSuggestedFileNameForPath:destinationPath];
+        conflictHandler(model, destinationPath, suggestedName, ^(FileConflictOption option, NSString *newFileName) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+
+            switch (option) {
+                case FileConflictOptionOverwrite:
+                    [strongSelf executeOverwriteCopyForModel:model toPath:destinationPath];
+                    break;
+                case FileConflictOptionRename: {
+                    if (newFileName.length > 0) {
+                        NSString *customPath = [destinationDir stringByAppendingPathComponent:newFileName];
+                        [strongSelf executeCopyForModel:model toPath:customPath];
+                    }
+                    break;
+                }
+                case FileConflictOptionCancel:
+                default:
+                    break;
+            }
+        });
+    } else {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf) {
+            [strongSelf executeOverwriteCopyForModel:model toPath:destinationPath];
+        }
+    }
+}
+
+- (void)moveFile:(FileModel *)model
+      toDirectory:(NSString *)destinationDir
+fromViewController:(UIViewController *)viewController
+    conflictHandler:(FileConflictHandler)conflictHandler {
+    __weak typeof(self) weakSelf = self;
+    NSString *destinationPath = [destinationDir stringByAppendingPathComponent:model.fileName];
+    NSFileManager *fm = [NSFileManager defaultManager];
+
+    if (![fm fileExistsAtPath:destinationPath]) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf) {
+            [strongSelf executeMoveForModel:model toPath:destinationPath];
+        }
+    } else if (conflictHandler) {
+        NSString *suggestedName = [self generateSuggestedFileNameForPath:destinationPath];
+        conflictHandler(model, destinationPath, suggestedName, ^(FileConflictOption option, NSString *newFileName) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+
+            switch (option) {
+                case FileConflictOptionOverwrite:
+                    [strongSelf executeOverwriteMoveForModel:model toPath:destinationPath];
+                    break;
+                case FileConflictOptionRename: {
+                    if (newFileName.length > 0) {
+                        NSString *customPath = [destinationDir stringByAppendingPathComponent:newFileName];
+                        [strongSelf executeMoveForModel:model toPath:customPath];
+                    }
+                    break;
+                }
+                case FileConflictOptionCancel:
+                default:
+                    break;
+            }
+        });
+    } else {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf) {
+            [strongSelf executeOverwriteMoveForModel:model toPath:destinationPath];
+        }
+    }
+}
+
+- (void)copyFiles:(NSArray<FileModel *> *)models
+      toDirectory:(NSString *)destinationDir
+fromViewController:(UIViewController *)viewController
+    conflictHandler:(FileConflictHandler)conflictHandler
+        completion:(void (^)(NSInteger, NSArray<NSString *> *))completion {
+    if (models.count == 0) {
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(0, @[]);
+            });
+        }
+        return;
+    }
+
+    __weak typeof(self) weakSelf = self;
+    __block NSInteger successCount = 0;
+    __block NSMutableArray<NSString *> *successPaths = [NSMutableArray array];
+    __block NSInteger currentIndex = 0;
+    __block void (^processNext)(void);
+    
+    __block typeof(processNext) blockReference;
+    blockReference = processNext = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(successCount, [successPaths copy]);
+                });
+            }
+            return;
+        }
+        
+        if (currentIndex >= models.count) {
+            if (completion) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(successCount, [successPaths copy]);
+                });
+            }
+            return;
+        }
+
+        FileModel *model = models[currentIndex];
+        currentIndex++;
+
+        NSString *destinationPath = [destinationDir stringByAppendingPathComponent:model.fileName];
+        NSFileManager *fm = [NSFileManager defaultManager];
+
+        if (![fm fileExistsAtPath:destinationPath]) {
+            [strongSelf executeCopyForModel:model toPath:destinationPath];
+            successCount++;
+            [successPaths addObject:destinationPath];
+            if (blockReference) blockReference();
+        } else if (conflictHandler) {
+            NSString *suggestedName = [strongSelf generateSuggestedFileNameForPath:destinationPath];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                conflictHandler(model, destinationPath, suggestedName, ^(FileConflictOption option, NSString *newFileName) {
+                    __strong typeof(weakSelf) strongSelfCallback = weakSelf;
+                    if (!strongSelfCallback) {
+                        if (blockReference) blockReference();
+                        return;
+                    }
+                    
+                    switch (option) {
+                        case FileConflictOptionOverwrite:
+                            [strongSelfCallback executeOverwriteCopyForModel:model toPath:destinationPath];
+                            successCount++;
+                            [successPaths addObject:destinationPath];
+                            break;
+                        case FileConflictOptionRename: {
+                            if (newFileName.length > 0) {
+                                NSString *customPath = [destinationDir stringByAppendingPathComponent:newFileName];
+                                [strongSelfCallback executeCopyForModel:model toPath:customPath];
+                                successCount++;
+                                [successPaths addObject:customPath];
+                            }
+                            break;
+                        }
+                        case FileConflictOptionCancel:
+                        default:
+                            break;
+                    }
+                    if (blockReference) blockReference();
+                });
+            });
+        } else {
+            if (blockReference) blockReference();
+        }
+    };
+
+    processNext();
+}
+
+- (void)moveFiles:(NSArray<FileModel *> *)models
+      toDirectory:(NSString *)destinationDir
+fromViewController:(UIViewController *)viewController
+    conflictHandler:(FileConflictHandler)conflictHandler
+        completion:(void (^)(NSInteger, NSArray<NSString *> *))completion {
+    if (models.count == 0) {
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(0, @[]);
+            });
+        }
+        return;
+    }
+
+    __weak typeof(self) weakSelf = self;
+    __block NSInteger successCount = 0;
+    __block NSMutableArray<NSString *> *successPaths = [NSMutableArray array];
+    __block NSInteger currentIndex = 0;
+    __block void (^processNext)(void);
+    
+    __block typeof(processNext) blockReference;
+    blockReference = processNext = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(successCount, [successPaths copy]);
+                });
+            }
+            return;
+        }
+        
+        if (currentIndex >= models.count) {
+            if (completion) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(successCount, [successPaths copy]);
+                });
+            }
+            return;
+        }
+
+        FileModel *model = models[currentIndex];
+        currentIndex++;
+
+        NSString *destinationPath = [destinationDir stringByAppendingPathComponent:model.fileName];
+        NSFileManager *fm = [NSFileManager defaultManager];
+
+        if (![fm fileExistsAtPath:destinationPath]) {
+            [strongSelf executeMoveForModel:model toPath:destinationPath];
+            successCount++;
+            [successPaths addObject:destinationPath];
+            if (blockReference) blockReference();
+        } else if (conflictHandler) {
+            NSString *suggestedName = [strongSelf generateSuggestedFileNameForPath:destinationPath];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                conflictHandler(model, destinationPath, suggestedName, ^(FileConflictOption option, NSString *newFileName) {
+                    __strong typeof(weakSelf) strongSelfCallback = weakSelf;
+                    if (!strongSelfCallback) {
+                        if (blockReference) blockReference();
+                        return;
+                    }
+                    
+                    switch (option) {
+                        case FileConflictOptionOverwrite:
+                            [strongSelfCallback executeOverwriteMoveForModel:model toPath:destinationPath];
+                            successCount++;
+                            [successPaths addObject:destinationPath];
+                            break;
+                        case FileConflictOptionRename: {
+                            if (newFileName.length > 0) {
+                                NSString *customPath = [destinationDir stringByAppendingPathComponent:newFileName];
+                                [strongSelfCallback executeMoveForModel:model toPath:customPath];
+                                successCount++;
+                                [successPaths addObject:customPath];
+                            }
+                            break;
+                        }
+                        case FileConflictOptionCancel:
+                        default:
+                            break;
+                    }
+                    if (blockReference) blockReference();
+                });
+            });
+        } else {
+            if (blockReference) blockReference();
+        }
+    };
+
+    processNext();
+}
+
+- (void)executeCopyForModel:(FileModel *)model toPath:(NSString *)path {
+    NSError *error = nil;
+    [[NSFileManager defaultManager] copyItemAtPath:model.filePath toPath:path error:&error];
+    if (error) {
+        NSLog(@"Copy error: %@", error.localizedDescription);
+    }
+}
+
+- (void)executeMoveForModel:(FileModel *)model toPath:(NSString *)path {
+    NSError *error = nil;
+    [[NSFileManager defaultManager] moveItemAtPath:model.filePath toPath:path error:&error];
+    if (error) {
+        NSLog(@"Move error: %@", error.localizedDescription);
+    }
+}
+
+- (void)executeOverwriteCopyForModel:(FileModel *)model toPath:(NSString *)path {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm removeItemAtPath:path error:nil];
+    [self executeCopyForModel:model toPath:path];
+}
+
+- (void)executeOverwriteMoveForModel:(FileModel *)model toPath:(NSString *)path {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm removeItemAtPath:path error:nil];
+    [self executeMoveForModel:model toPath:path];
 }
 
 - (UIViewController *)topViewController {

@@ -15,6 +15,7 @@
 #import <QuickLook/QuickLook.h>
 #import <AVKit/AVKit.h>
 #import <Photos/Photos.h>
+#import "PlistEditorViewController.h"
 
 static NSString * const kPreviewCellIdentifier = @"PreviewCell";
 

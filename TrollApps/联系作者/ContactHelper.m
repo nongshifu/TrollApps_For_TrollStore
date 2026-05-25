@@ -116,9 +116,16 @@
     UIAlertAction *openView = [UIAlertAction actionWithTitle:@"查看TA主页"
                                                           style:UIAlertActionStyleDestructive
                                                         handler:^(UIAlertAction *action) {
-        UserProfileViewController *vc = [UserProfileViewController new];
-        vc.user_udid = userInfo.udid;
-        [[UIView getTopViewController] presentPanModal:vc];
+        UIViewController *topVC = [UIView getTopViewController];
+        if(![topVC isKindOfClass:[UserProfileViewController class]]){
+            UserProfileViewController *vc = [UserProfileViewController new];
+            vc.user_udid = userInfo.udid;
+            [[UIView getTopViewController] presentPanModal:vc];
+        }else{
+            [SVProgressHUD showImage:[UIImage systemImageNamed:@"face.smiling"] status:@"现在已经在Ta主页"];
+            [SVProgressHUD dismissWithDelay:1];
+        }
+        
         
     }];
     [alertController addAction:openView];
